@@ -1,5 +1,34 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AbstractUser, BaseUserManager
+from django.utils.translation import gettext_lazy as _
+from django.conf import settings
+
+class CustomUserManager(BaseUserManager):
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError(_('The Email field must be set'))
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        return self.create_user(email, password, **extra_fields)
+
+class CustomUser(AbstractUser):
+    username = None
+    email = models.EmailField(_('email address'), unique=True)
+    
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
+    
+    objects = CustomUserManager()
+    
+    def __str__(self):
+        return self.email
 
 class Beat(models.Model):
     title = models.CharField(max_length=200)
@@ -47,13 +76,13 @@ class Testimonial(models.Model):
         return f"{self.name} - {self.role}"
 
 class Cart(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     beats = models.ManyToManyField(Beat, through='CartItem')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Cart for {self.user.username}"
+        return f"Cart for {self.user.email}"
 
     @property
     def total_price(self):
@@ -80,7 +109,7 @@ class Order(models.Model):
         ('cancelled', 'Cancelled'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     beats = models.ManyToManyField(Beat, through='OrderItem')
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
@@ -88,7 +117,7 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Order #{self.id} by {self.user.username}"
+        return f"Order #{self.id} by {self.user.email}"
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)

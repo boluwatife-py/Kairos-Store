@@ -2,7 +2,7 @@
 <!-- Beat Card -->
 <div class="glass-card rounded-lg overflow-hidden">
   <div class="relative h-48 bg-gray-800">
-    <img src="{% static beat.image %}" alt="{{ beat.title }}" class="w-full h-full object-cover" />
+    <img src="{{ beat.image.url }}" alt="{{ beat.title }}" class="w-full h-full object-cover" />
     <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
     <div class="absolute bottom-4 left-4 right-4 flex justify-between items-center">
       <div>
@@ -30,9 +30,43 @@
         </div>
         <span class="text-xs text-gray-400">0:30</span>
       </div>
-      <button class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-button text-sm font-medium transition-colors whitespace-nowrap">
+      <button 
+        onclick="handleAddToCart({{ beat.id }}, '{{ beat.title }}')"
+        class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-button text-sm font-medium transition-colors whitespace-nowrap"
+      >
         Add to Cart
       </button>
     </div>
   </div>
-</div> 
+</div>
+
+<script>
+  async function handleAddToCart(beatId, beatTitle) {
+    try {
+      const response = await fetch(`/cart/add/${beatId}/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const data = await response.json();
+      
+      if (response.status === 401 && data.requires_auth) {
+        showLoginModal();
+        showToast('Please login to continue', 'error');
+        return;
+      }
+      
+      if (response.ok) {
+        showToast(data.message);
+        // Update cart count if needed
+      } else {
+        showToast(data, 'error');
+      }
+    } catch (error) {
+      showToast({ message: 'An error occurred. Please try again.' }, 'error');
+    }
+  }
+</script> 

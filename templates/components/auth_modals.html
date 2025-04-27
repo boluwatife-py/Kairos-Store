@@ -14,8 +14,8 @@
         <form id="loginForm" method="post" action="{% url 'store:login' %}">
           {% csrf_token %}
           <div class="mb-4">
-            <label for="id_username" class="block text-sm font-medium text-gray-300 mb-2">Username</label>
-            <input type="text" name="username" id="id_username" class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" required />
+            <label for="id_email" class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+            <input type="email" name="email" id="id_email" class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" required />
           </div>
           <div class="mb-6">
             <label for="id_password" class="block text-sm font-medium text-gray-300 mb-2">Password</label>
@@ -48,7 +48,7 @@
           </div>
           <p class="text-center text-sm text-gray-400">
             Don't have an account?
-            <a href="#" id="signupLink" class="text-primary hover:text-primary/80 transition-colors">Sign up</a>
+            <a href="#" id="showRegisterModal" class="text-primary hover:text-primary/80 transition-colors">Sign up</a>
           </p>
         </form>
       </div>
@@ -71,8 +71,8 @@
         <form id="registrationForm" method="post" action="{% url 'store:register' %}">
           {% csrf_token %}
           <div class="mb-4">
-            <label for="id_username" class="block text-sm font-medium text-gray-300 mb-2">Username</label>
-            <input type="text" name="username" id="id_username" class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" required />
+            <label for="id_email" class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+            <input type="email" name="email" id="id_email" class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" required />
           </div>
           <div class="mb-4">
             <label for="id_password1" class="block text-sm font-medium text-gray-300 mb-2">Password</label>
@@ -103,10 +103,244 @@
           </div>
           <p class="text-center text-sm text-gray-400">
             Already have an account?
-            <a href="#" id="loginLinkFromRegistration" class="text-primary hover:text-primary/80 transition-colors">Log in</a>
+            <a href="#" id="showLoginModal" class="text-primary hover:text-primary/80 transition-colors">Login</a>
           </p>
         </form>
       </div>
     </div>
   </div>
-</div> 
+</div>
+
+<!-- Toast Container -->
+<div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col items-end"></div>
+
+<script>
+  // Toast function
+  function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `mb-4 p-4 rounded-lg shadow-lg min-w-[300px] max-w-md ${
+      type === 'success' ? 'bg-green-500' : 'bg-red-500'
+    } text-white flex items-center justify-between`;
+    
+    // Create message container
+    const messageContainer = document.createElement('div');
+    messageContainer.className = 'flex-1';
+    
+    // Handle both string and object messages
+    if (typeof message === 'object') {
+      if (message.errors) {
+        // Get the first error message
+        const firstError = Object.values(message.errors)[0][0];
+        messageContainer.textContent = firstError;
+      } else {
+        messageContainer.textContent = message.message || 'An error occurred';
+      }
+    } else {
+      messageContainer.textContent = message;
+    }
+    
+    // Create close button
+    const closeButton = document.createElement('button');
+    closeButton.className = 'ml-4 text-white hover:text-gray-200';
+    closeButton.innerHTML = '<i class="ri-close-line"></i>';
+    closeButton.onclick = () => toast.remove();
+    
+    // Add elements to toast
+    toast.appendChild(messageContainer);
+    toast.appendChild(closeButton);
+    
+    const container = document.getElementById('toastContainer');
+    container.appendChild(toast);
+    
+    // Add animation with faster transition
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(10px)';
+    toast.style.transition = 'all 0.15s ease-out';
+    
+    // Trigger animation
+    requestAnimationFrame(() => {
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateY(0)';
+    });
+    
+    // Remove toast after 4 seconds
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(10px)';
+      setTimeout(() => {
+        toast.remove();
+      }, 150);
+    }, 4000);
+  }
+
+  // Loading state functions
+  function setLoading(form, isLoading) {
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalText = submitButton.dataset.originalText || submitButton.innerHTML;
+    
+    if (isLoading) {
+      submitButton.dataset.originalText = originalText;
+      submitButton.innerHTML = `
+        <div class="flex items-center justify-center">
+          <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </div>
+      `;
+      submitButton.disabled = true;
+      submitButton.classList.add('opacity-75', 'cursor-not-allowed');
+    } else {
+      submitButton.innerHTML = originalText;
+      submitButton.disabled = false;
+      submitButton.classList.remove('opacity-75', 'cursor-not-allowed');
+    }
+  }
+
+  // Modal switching functions
+  function showLoginModal() {
+    document.getElementById('loginModal').classList.remove('hidden');
+    document.getElementById('registrationModal').classList.add('hidden');
+  }
+
+  function showRegisterModal() {
+    document.getElementById('registrationModal').classList.remove('hidden');
+    document.getElementById('loginModal').classList.add('hidden');
+  }
+
+  function closeLoginModal() {
+    document.getElementById('loginModal').classList.add('hidden');
+  }
+
+  function closeRegistrationModal() {
+    document.getElementById('registrationModal').classList.add('hidden');
+  }
+
+  // Handle authenticated actions
+  function handleAuthenticatedAction(action) {
+    return async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const formData = new FormData(form);
+      
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+          }
+        });
+        
+        const data = await response.json();
+        
+        if (response.status === 401 && data.requires_auth) {
+          showLoginModal();
+          showToast('Please login to continue', 'error');
+          return;
+        }
+        
+        if (response.ok) {
+          showToast(data.message);
+          if (data.redirect) {
+            window.location.href = data.redirect;
+          } else {
+            window.location.reload();
+          }
+        } else {
+          showToast(data, 'error');
+        }
+      } catch (error) {
+        showToast({ message: 'An error occurred. Please try again.' }, 'error');
+      }
+    };
+  }
+
+  // Event listeners for modal switching
+  document.getElementById('showRegisterModal').addEventListener('click', (e) => {
+    e.preventDefault();
+    showRegisterModal();
+  });
+
+  document.getElementById('showLoginModal').addEventListener('click', (e) => {
+    e.preventDefault();
+    showLoginModal();
+  });
+
+  document.getElementById('closeLoginModal').addEventListener('click', closeLoginModal);
+  document.getElementById('closeRegistrationModal').addEventListener('click', closeRegistrationModal);
+
+  // Form submission handlers
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+    
+    setLoading(form, true);
+    
+    try {
+      const response = await fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        showToast(data.message);
+        form.reset();
+        window.location.reload();
+      } else {
+        showToast(data, 'error');
+        form.reset();
+      }
+    } catch (error) {
+      showToast({ message: 'An error occurred. Please try again.' }, 'error');
+      form.reset();
+    } finally {
+      setLoading(form, false);
+    }
+  });
+
+  document.getElementById('registrationForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+    
+    setLoading(form, true);
+    
+    try {
+      const response = await fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        showToast(data.message);
+        form.reset();
+        window.location.reload();
+      } else {
+        showToast(data, 'error');
+        form.reset();
+      }
+    } catch (error) {
+      showToast({ message: 'An error occurred. Please try again.' }, 'error');
+      form.reset();
+    } finally {
+      setLoading(form, false);
+    }
+  });
+
+  // Add event listeners for authenticated actions
+  document.querySelectorAll('[data-requires-auth]').forEach(element => {
+    element.addEventListener('click', handleAuthenticatedAction());
+  });
+</script> 

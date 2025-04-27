@@ -2,8 +2,23 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import login
+from django.contrib.auth import login, authenticate
+from django.http import JsonResponse
+from functools import wraps
 from .models import Beat, Bundle, OrderItem, Testimonial, Cart, CartItem, Order
+from .forms import CustomUserCreationForm
+
+def login_required_json(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Please login to continue',
+                'requires_auth': True
+            }, status=401)
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
 
 def home(request):
     featured_beats = Beat.objects.filter(is_featured=True)[:3]
@@ -34,7 +49,7 @@ def dashboard(request):
     }
     return render(request, 'dashboard.html', context)
 
-@login_required
+@login_required_json
 def add_to_cart(request, beat_id):
     beat = get_object_or_404(Beat, id=beat_id)
     cart, created = Cart.objects.get_or_create(user=request.user)
@@ -44,15 +59,19 @@ def add_to_cart(request, beat_id):
         cart_item.quantity += 1
         cart_item.save()
     
-    messages.success(request, f'{beat.title} added to cart!')
-    return redirect('store:beats')
+    return JsonResponse({
+        'status': 'success',
+        'message': f'{beat.title} added to cart!'
+    })
 
-@login_required
+@login_required_json
 def remove_from_cart(request, cart_item_id):
     cart_item = get_object_or_404(CartItem, id=cart_item_id, cart__user=request.user)
     cart_item.delete()
-    messages.success(request, 'Item removed from cart!')
-    return redirect('store:cart')
+    return JsonResponse({
+        'status': 'success',
+        'message': 'Item removed from cart!'
+    })
 
 @login_required
 def cart(request):
@@ -62,7 +81,7 @@ def cart(request):
     }
     return render(request, 'cart.html', context)
 
-@login_required
+@login_required_json
 def checkout(request):
     cart = get_object_or_404(Cart, user=request.user)
     if request.method == 'POST':
@@ -78,25 +97,61 @@ def checkout(request):
                 quantity=item.quantity
             )
         cart.delete()
-        messages.success(request, 'Order placed successfully!')
-        return redirect('store:dashboard')
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Order placed successfully!'
+        })
     
-    context = {
-        'cart': cart,
-    }
-    return render(request, 'checkout.html', context)
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Invalid request method'
+    }, status=405)
 
 def register(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
-            messages.success(request, 'Account created successfully!')
-            return redirect('store:home')
-    else:
-        form = UserCreationForm()
-    return render(request, 'store/register.html', {'form': form})
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Account created successfully!'
+            })
+        else:
+            return JsonResponse({
+                'status': 'error',
+                'errors': form.errors
+            }, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
+
+def custom_login(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        remember = request.POST.get('remember')
+        
+        if not email or not password:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Please provide both email and password'
+            }, status=400)
+        
+        user = authenticate(request, email=email, password=password)
+        
+        if user is not None:
+            login(request, user)
+            if not remember:
+                request.session.set_expiry(0)
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Login successful!'
+            })
+        else:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid email or password'
+            }, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
 
 def terms(request):
     return render(request, 'store/terms.html')
