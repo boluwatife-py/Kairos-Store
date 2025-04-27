@@ -1,0 +1,79 @@
+{% load static %}
+<!-- Cart Modal (Hidden by default) -->
+<div class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+  <div class="absolute top-0 right-0 bottom-0 w-full max-w-md glass border-l border-gray-800 transform transition-transform duration-300">
+    <div class="flex justify-between items-center p-6 border-b border-gray-800">
+      <h2 class="text-xl font-bold text-white">Your Cart (3)</h2>
+      <button class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+        <i class="ri-close-line ri-lg"></i>
+      </button>
+    </div>
+    <div class="p-6 overflow-y-auto max-h-[calc(100vh-200px)]">
+      <!-- Cart Item 1 -->
+      <div class="flex items-center mb-6 pb-6 border-b border-gray-800">
+        <div class="w-16 h-16 bg-gray-800 rounded flex-shrink-0 mr-4">
+          <img src="{% static 'images/base11.jpg' %}" alt="Midnight Vibes" class="w-full h-full object-cover rounded" />
+        </div>
+        <div class="flex-grow">
+          <h4 class="text-white font-medium">Midnight Vibes</h4>
+          <p class="text-gray-400 text-sm">Hip Hop • 90 BPM</p>
+        </div>
+        <div class="flex items-center">
+          <span class="text-primary font-bold mr-4">$49.99</span>
+          <button class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+            <i class="ri-delete-bin-line"></i>
+          </button>
+        </div>
+      </div>
+      <!-- Cart Item 2 -->
+      <div class="flex items-center mb-6 pb-6 border-b border-gray-800">
+        <div class="w-16 h-16 bg-gray-800 rounded flex-shrink-0 mr-4">
+          <img src="{% static 'images/base12.jpg' %}" alt="Future Trap" class="w-full h-full object-cover rounded" />
+        </div>
+        <div class="flex-grow">
+          <h4 class="text-white font-medium">Future Trap</h4>
+          <p class="text-gray-400 text-sm">Trap • 140 BPM</p>
+        </div>
+        <div class="flex items-center">
+          <span class="text-primary font-bold mr-4">$59.99</span>
+          <button class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+            <i class="ri-delete-bin-line"></i>
+          </button>
+        </div>
+      </div>
+      <!-- Cart Item 3 -->
+      <div class="flex items-center">
+        <div class="w-16 h-16 bg-gray-800 rounded flex-shrink-0 mr-4">
+          <img src="{% static 'images/base11.jpg' %}" alt="Soul Therapy" class="w-full h-full object-cover rounded" />
+        </div>
+        <div class="flex-grow">
+          <h4 class="text-white font-medium">Soul Therapy</h4>
+          <p class="text-gray-400 text-sm">R&B • 70 BPM</p>
+        </div>
+        <div class="flex items-center">
+          <span class="text-primary font-bold mr-4">$44.99</span>
+          <button class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+            <i class="ri-delete-bin-line"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="p-6 border-t border-gray-800">
+      <div class="flex justify-between mb-4">
+        <span class="text-gray-300">Subtotal</span>
+        <span class="text-white font-medium">$154.97</span>
+      </div>
+      <div class="flex justify-between mb-6">
+        <span class="text-gray-300">Total</span>
+        <span class="text-primary font-bold text-xl">$154.97</span>
+      </div>
+      <button class="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-button font-medium transition-colors whitespace-nowrap">
+        Proceed to Checkout
+      </button>
+      <button class="w-full bg-transparent border border-white/30 hover:border-white/50 text-white py-3 rounded-button font-medium transition-colors mt-3 whitespace-nowrap">
+        Continue Shopping
+      </button>
+    </div>
+  </div>
+</div> 

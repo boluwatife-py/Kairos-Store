@@ -1,0 +1,31 @@
+<!-- Bundle Card -->
+{% load static %}
+<div class="glass-card rounded-lg overflow-hidden">
+  <div class="relative h-64 bg-gray-800">
+    <img src="{% static bundle.image %}" alt="{{ bundle.title }}" class="w-full h-full object-cover" />
+    <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
+    <div class="absolute bottom-4 left-4">
+      <span class="bg-primary text-white text-sm px-3 py-1 rounded-full font-medium">{{ bundle.beat_count }} Beats</span>
+      <span class="bg-gray-800/80 text-white text-sm px-3 py-1 rounded-full font-medium ml-2">Save {{ bundle.discount }}%</span>
+    </div>
+  </div>
+  <div class="p-5">
+    <div class="flex justify-between items-start mb-4">
+      <h3 class="text-xl font-semibold text-white">{{ bundle.title }}</h3>
+      <div class="text-right">
+        <span class="text-gray-400 line-through text-sm">${{ bundle.original_price }}</span>
+        <span class="text-primary font-bold text-xl ml-2">${{ bundle.discounted_price }}</span>
+      </div>
+    </div>
+    <p class="text-gray-400 mb-5">{{ bundle.description }}</p>
+    <div class="flex items-center justify-between">
+      <button class="bg-transparent border border-white/30 hover:border-white/50 text-white px-4 py-2 rounded-button text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap">
+        <i class="ri-play-circle-line"></i>
+        Preview Bundle
+      </button>
+      <button class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-button text-sm font-medium transition-colors whitespace-nowrap">
+        Add to Cart
+      </button>
+    </div>
+  </div>
+</div> 

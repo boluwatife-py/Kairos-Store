@@ -1,0 +1,38 @@
+{% load static %}
+<!-- Audio Player (Fixed Bottom) -->
+<div class="fixed bottom-0 left-0 right-0 glass border-t border-gray-800 py-3 px-4">
+  <div class="max-w-7xl mx-auto flex items-center">
+    <div class="w-12 h-12 bg-gray-800 rounded flex-shrink-0 mr-3">
+      <img src="{% static 'images/base10.jpg' %}" alt="Now Playing" class="w-full h-full object-cover rounded" />
+    </div>
+    <div class="mr-4 flex-shrink-0">
+      <h4 class="text-white text-sm font-medium">Midnight Vibes</h4>
+      <p class="text-gray-400 text-xs">Hip Hop • 90 BPM</p>
+    </div>
+    <div class="flex items-center space-x-4 mr-6">
+      <button class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+        <i class="ri-skip-back-line"></i>
+      </button>
+      <button class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white">
+        <i class="ri-play-fill ri-lg"></i>
+      </button>
+      <button class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+        <i class="ri-skip-forward-line"></i>
+      </button>
+    </div>
+    <div class="flex-grow flex items-center">
+      <span class="text-xs text-gray-400 mr-2">0:12</span>
+      <input type="range" min="0" max="100" value="40" class="audio-progress flex-grow" />
+      <span class="text-xs text-gray-400 ml-2">0:30</span>
+    </div>
+    <div class="flex items-center ml-6">
+      <button class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+        <i class="ri-volume-up-line"></i>
+      </button>
+      <input type="range" min="0" max="100" value="80" class="audio-progress w-20 ml-2" />
+      <button class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors ml-4">
+        <i class="ri-repeat-line"></i>
+      </button>
+    </div>
+  </div>
+</div> 

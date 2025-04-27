@@ -1,0 +1,57 @@
+{% load static %}
+<div id="toast" class="fixed top-4 right-4 z-50 hidden">
+  <div class="glass rounded-lg border border-gray-800 shadow-xl p-4 min-w-[300px]">
+    <div class="flex items-start">
+      <div class="flex-shrink-0">
+        <i id="toastIcon" class="ri-information-line text-xl"></i>
+      </div>
+      <div class="ml-3 w-0 flex-1">
+        <p id="toastMessage" class="text-sm font-medium text-white"></p>
+      </div>
+      <div class="ml-4 flex-shrink-0 flex">
+        <button id="closeToast" class="text-gray-400 hover:text-white transition-colors">
+          <i class="ri-close-line text-xl"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showToast(message, type = 'info') {
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toastMessage');
+    const toastIcon = document.getElementById('toastIcon');
+    
+    // Set message
+    toastMessage.textContent = message;
+    
+    // Set icon based on type
+    switch(type) {
+      case 'success':
+        toastIcon.className = 'ri-checkbox-circle-line text-green-500 text-xl';
+        break;
+      case 'error':
+        toastIcon.className = 'ri-error-warning-line text-red-500 text-xl';
+        break;
+      case 'warning':
+        toastIcon.className = 'ri-alert-line text-yellow-500 text-xl';
+        break;
+      default:
+        toastIcon.className = 'ri-information-line text-blue-500 text-xl';
+    }
+    
+    // Show toast
+    toast.classList.remove('hidden');
+    
+    // Auto hide after 5 seconds
+    setTimeout(() => {
+      toast.classList.add('hidden');
+    }, 5000);
+  }
+  
+  // Close toast when clicking close button
+  document.getElementById('closeToast').addEventListener('click', () => {
+    document.getElementById('toast').classList.add('hidden');
+  });
+</script> 

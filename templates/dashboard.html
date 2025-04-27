@@ -1,0 +1,2454 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kairos Store - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: { primary: "#6d28d9", secondary: "#3b82f6" },
+            borderRadius: {
+              none: "0px",
+              sm: "4px",
+              DEFAULT: "8px",
+              md: "12px",
+              lg: "16px",
+              xl: "20px",
+              "2xl": "24px",
+              "3xl": "32px",
+              full: "9999px",
+              button: "8px",
+            },
+          },
+        },
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
+    <style>
+      :where([class^="ri-"])::before {
+        content: "\f3c2";
+      }
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #1f2937;
+        color: #f9fafb;
+      }
+      .glass {
+        background: rgba(31, 41, 55, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .glass-card {
+        background: rgba(31, 41, 55, 0.5);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+      }
+      .glass-card:hover {
+        transform: translateY(-5px) scale(1.02);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(109, 40, 217, 0.3);
+      }
+      .audio-progress {
+        -webkit-appearance: none;
+        appearance: none;
+        height: 4px;
+        border-radius: 2px;
+        background: rgba(255, 255, 255, 0.2);
+        outline: none;
+      }
+      .audio-progress::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #6d28d9;
+        cursor: pointer;
+      }
+      input[type="checkbox"] {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        background: rgba(31, 41, 55, 0.5);
+        position: relative;
+        cursor: pointer;
+      }
+      input[type="checkbox"]:checked {
+        background: #6d28d9;
+        border-color: #6d28d9;
+      }
+      input[type="checkbox"]:checked::after {
+        content: "";
+        position: absolute;
+        width: 5px;
+        height: 10px;
+        border: solid white;
+        border-width: 0 2px 2px 0;
+        top: 2px;
+        left: 6px;
+        transform: rotate(45deg);
+      }
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+      }
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(31, 41, 55, 0.5);
+        transition: 0.4s;
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 2px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+      }
+      input:checked + .slider {
+        background-color: #6d28d9;
+      }
+      input:checked + .slider:before {
+        transform: translateX(20px);
+      }
+      .equalizer {
+        display: flex;
+        align-items: flex-end;
+        height: 16px;
+        gap: 2px;
+      }
+      .equalizer span {
+        width: 2px;
+        background-color: #6d28d9;
+        border-radius: 1px;
+        animation: equalize 1s infinite;
+      }
+      .equalizer span:nth-child(1) {
+        animation-delay: 0.1s;
+      }
+      .equalizer span:nth-child(2) {
+        animation-delay: 0.3s;
+      }
+      .equalizer span:nth-child(3) {
+        animation-delay: 0.5s;
+      }
+      .equalizer span:nth-child(4) {
+        animation-delay: 0.2s;
+      }
+      @keyframes equalize {
+        0% {
+          height: 3px;
+        }
+        50% {
+          height: 12px;
+        }
+        100% {
+          height: 5px;
+        }
+      }
+      input[type="number"]::-webkit-inner-spin-button,
+      input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      .custom-dropdown {
+        position: relative;
+      }
+      .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        z-index: 10;
+        margin-top: 0.5rem;
+        display: none;
+      }
+      .custom-dropdown.active .dropdown-menu {
+        display: block;
+      }
+      .waveform {
+        display: flex;
+        align-items: center;
+        height: 20px;
+        gap: 2px;
+      }
+      .waveform span {
+        width: 2px;
+        background-color: rgba(255, 255, 255, 0.4);
+        border-radius: 1px;
+      }
+      .tab-button {
+        position: relative;
+      }
+      .tab-button.active {
+        color: #6d28d9;
+      }
+      .tab-button.active::after {
+        content: "";
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background-color: #6d28d9;
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+      .progress-ring-circle {
+        transition: stroke-dashoffset 0.35s;
+        transform: rotate(-90deg);
+        transform-origin: 50% 50%;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen">
+    <!-- Navigation -->
+    <nav class="glass fixed top-0 left-0 right-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+          <div class="flex items-center">
+            <a
+              href="/"
+              data-readdy="true"
+              class="font-['Pacifico'] text-2xl text-white"
+              >Kairos</a
+            >
+          </div>
+          <div class="hidden md:flex items-center space-x-8">
+            <a
+              href="/"
+              data-readdy="true"
+              class="text-white hover:text-primary transition-colors"
+              >Home</a
+            >
+            <a
+              href="./beats.html"
+              data-readdy="true"
+              class="text-white hover:text-primary transition-colors"
+              >Beats</a
+            >
+            <a href="#" class="text-primary font-medium transition-colors"
+              >Dashboard</a
+            >
+          </div>
+          <div class="flex items-center space-x-4">
+            <div
+              class="w-10 h-10 flex items-center justify-center relative cursor-pointer"
+              id="cartButton"
+            >
+              <i class="ri-shopping-cart-line text-white ri-lg"></i>
+              <span
+                class="absolute -top-1 -right-1 bg-primary text-white text-xs w-5 h-5 flex items-center justify-center rounded-full"
+                >3</span
+              >
+            </div>
+            <div
+              class="w-10 h-10 flex items-center justify-center bg-gray-700 rounded-full cursor-pointer"
+            >
+              <i class="ri-user-line text-white ri-lg"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="pt-24 pb-32">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Dashboard Header -->
+        <div
+          class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8"
+        >
+          <div>
+            <h1 class="text-3xl font-bold text-white">My Dashboard</h1>
+            <p class="text-gray-400 mt-1">
+              Manage your account, purchases, and favorites
+            </p>
+          </div>
+          <div class="mt-4 md:mt-0">
+            <button
+              class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-button font-medium transition-colors whitespace-nowrap flex items-center"
+            >
+              <i class="ri-download-cloud-line mr-2"></i>
+              Download All Purchases
+            </button>
+          </div>
+        </div>
+
+        <!-- Dashboard Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <!-- Stats Card 1 -->
+          <div class="glass-card rounded-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-white">Purchased Beats</h3>
+              <div
+                class="w-10 h-10 flex items-center justify-center bg-primary/20 rounded-full"
+              >
+                <i class="ri-music-2-line text-primary"></i>
+              </div>
+            </div>
+            <div class="flex items-end justify-between">
+              <div>
+                <span class="text-3xl font-bold text-white">12</span>
+                <p class="text-gray-400 text-sm mt-1">Total beats owned</p>
+              </div>
+              <div class="h-16 flex items-end">
+                <div class="w-6 h-8 bg-primary/20 rounded-t-sm mr-1"></div>
+                <div class="w-6 h-10 bg-primary/30 rounded-t-sm mr-1"></div>
+                <div class="w-6 h-12 bg-primary/40 rounded-t-sm mr-1"></div>
+                <div class="w-6 h-16 bg-primary/60 rounded-t-sm"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stats Card 2 -->
+          <div class="glass-card rounded-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-white">Saved Beats</h3>
+              <div
+                class="w-10 h-10 flex items-center justify-center bg-secondary/20 rounded-full"
+              >
+                <i class="ri-heart-line text-secondary"></i>
+              </div>
+            </div>
+            <div class="flex items-end justify-between">
+              <div>
+                <span class="text-3xl font-bold text-white">24</span>
+                <p class="text-gray-400 text-sm mt-1">Beats in wishlist</p>
+              </div>
+              <div class="h-16 flex items-end">
+                <div class="w-6 h-6 bg-secondary/20 rounded-t-sm mr-1"></div>
+                <div class="w-6 h-10 bg-secondary/30 rounded-t-sm mr-1"></div>
+                <div class="w-6 h-14 bg-secondary/40 rounded-t-sm mr-1"></div>
+                <div class="w-6 h-16 bg-secondary/60 rounded-t-sm"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stats Card 3 -->
+          <div class="glass-card rounded-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-white">Account Balance</h3>
+              <div
+                class="w-10 h-10 flex items-center justify-center bg-green-500/20 rounded-full"
+              >
+                <i class="ri-wallet-3-line text-green-500"></i>
+              </div>
+            </div>
+            <div class="flex items-end justify-between">
+              <div>
+                <span class="text-3xl font-bold text-white">$75.00</span>
+                <p class="text-gray-400 text-sm mt-1">Available credits</p>
+              </div>
+              <div class="flex items-center">
+                <button
+                  class="bg-green-500/20 text-green-500 hover:bg-green-500/30 px-3 py-1.5 rounded-button text-sm font-medium transition-colors whitespace-nowrap"
+                >
+                  Add Funds
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Dashboard Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Left Column -->
+          <div class="lg:col-span-1">
+            <!-- Profile Card -->
+            <div class="glass-card rounded-lg overflow-hidden mb-6">
+              <div
+                class="relative h-24 bg-gradient-to-r from-primary/40 to-secondary/40"
+              >
+                <div class="absolute -bottom-12 left-6">
+                  <div
+                    class="w-24 h-24 rounded-full border-4 border-gray-900 overflow-hidden bg-gray-800"
+                  >
+                    <img
+                      src="https://readdy.ai/api/search-image?query=professional%2520headshot%2520of%2520a%2520music%2520producer%252C%2520artistic%2520portrait%252C%2520high%2520quality%252C%2520studio%2520lighting%252C%2520neutral%2520expression&width=200&height=200&seq=1&orientation=squarish"
+                      alt="Profile"
+                      class="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div class="pt-16 px-6 pb-6">
+                <div class="flex justify-between items-start">
+                  <div>
+                    <h3 class="text-xl font-bold text-white">James Wilson</h3>
+                    <p class="text-gray-400 text-sm">Premium Member</p>
+                  </div>
+                  <button
+                    class="bg-gray-800/80 hover:bg-gray-700/80 text-white px-3 py-1 rounded-button text-sm transition-colors whitespace-nowrap"
+                  >
+                    Edit Profile
+                  </button>
+                </div>
+                <div class="mt-6 space-y-3">
+                  <div class="flex items-center">
+                    <div class="w-8 h-8 flex items-center justify-center">
+                      <i class="ri-mail-line text-gray-400"></i>
+                    </div>
+                    <span class="text-gray-300 ml-2"
+                      >james.wilson@example.com</span
+                    >
+                  </div>
+                  <div class="flex items-center">
+                    <div class="w-8 h-8 flex items-center justify-center">
+                      <i class="ri-smartphone-line text-gray-400"></i>
+                    </div>
+                    <span class="text-gray-300 ml-2">+1 (555) 987-6543</span>
+                  </div>
+                  <div class="flex items-center">
+                    <div class="w-8 h-8 flex items-center justify-center">
+                      <i class="ri-map-pin-line text-gray-400"></i>
+                    </div>
+                    <span class="text-gray-300 ml-2">Los Angeles, CA</span>
+                  </div>
+                </div>
+                <div class="mt-6 pt-6 border-t border-gray-800">
+                  <h4 class="text-white font-medium mb-3">Membership Status</h4>
+                  <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                      <div class="h-2 bg-gray-800 rounded-full overflow-hidden">
+                        <div
+                          class="h-full bg-gradient-to-r from-primary to-secondary"
+                          style="width: 75%"
+                        ></div>
+                      </div>
+                      <div class="flex justify-between mt-1">
+                        <span class="text-xs text-gray-400">75% Complete</span>
+                        <span class="text-xs text-gray-400">Premium</span>
+                      </div>
+                    </div>
+                    <div class="ml-4">
+                      <button
+                        class="text-primary hover:text-primary/80 text-sm font-medium transition-colors whitespace-nowrap"
+                      >
+                        Upgrade
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Account Settings Card -->
+            <div class="glass-card rounded-lg p-6 mb-6">
+              <h3 class="text-lg font-semibold text-white mb-4">
+                Account Settings
+              </h3>
+              <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h4 class="text-white">Email Notifications</h4>
+                    <p class="text-gray-400 text-sm">
+                      Receive updates about new beats
+                    </p>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" checked />
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h4 class="text-white">Two-Factor Authentication</h4>
+                    <p class="text-gray-400 text-sm">
+                      Add an extra layer of security
+                    </p>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" />
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h4 class="text-white">Dark Mode</h4>
+                    <p class="text-gray-400 text-sm">Toggle dark/light theme</p>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" checked />
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h4 class="text-white">Auto-Play Previews</h4>
+                    <p class="text-gray-400 text-sm">
+                      Automatically play beat previews
+                    </p>
+                  </div>
+                  <label class="switch">
+                    <input type="checkbox" />
+                    <span class="slider"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Payment Methods Card -->
+            <div class="glass-card rounded-lg p-6">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-white">
+                  Payment Methods
+                </h3>
+                <button
+                  class="text-primary hover:text-primary/80 text-sm font-medium transition-colors whitespace-nowrap"
+                >
+                  Add New
+                </button>
+              </div>
+              <div class="space-y-4">
+                <div class="flex items-center p-3 bg-gray-800/50 rounded-lg">
+                  <div
+                    class="w-10 h-10 flex items-center justify-center bg-blue-500/20 rounded-full mr-3"
+                  >
+                    <i class="ri-visa-fill text-blue-500 ri-lg"></i>
+                  </div>
+                  <div class="flex-grow">
+                    <h4 class="text-white text-sm font-medium">
+                      Visa ending in 4582
+                    </h4>
+                    <p class="text-gray-400 text-xs">Expires 05/2026</p>
+                  </div>
+                  <div class="flex items-center">
+                    <span
+                      class="text-xs text-white bg-green-500/20 text-green-500 px-2 py-1 rounded mr-2"
+                      >Default</span
+                    >
+                    <button
+                      class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                    >
+                      <i class="ri-more-2-fill"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="flex items-center p-3 bg-gray-800/50 rounded-lg">
+                  <div
+                    class="w-10 h-10 flex items-center justify-center bg-blue-400/20 rounded-full mr-3"
+                  >
+                    <i class="ri-paypal-fill text-blue-400 ri-lg"></i>
+                  </div>
+                  <div class="flex-grow">
+                    <h4 class="text-white text-sm font-medium">PayPal</h4>
+                    <p class="text-gray-400 text-xs">
+                      james.wilson@example.com
+                    </p>
+                  </div>
+                  <div>
+                    <button
+                      class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                    >
+                      <i class="ri-more-2-fill"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Middle and Right Columns -->
+          <div class="lg:col-span-2">
+            <!-- Tabs Navigation -->
+            <div class="glass-card rounded-lg overflow-hidden mb-6">
+              <div class="border-b border-gray-800">
+                <div class="flex">
+                  <button
+                    class="tab-button active px-6 py-4 text-white font-medium transition-colors"
+                    data-tab="purchased"
+                  >
+                    Purchased Beats
+                  </button>
+                  <button
+                    class="tab-button px-6 py-4 text-gray-400 hover:text-white font-medium transition-colors"
+                    data-tab="saved"
+                  >
+                    Saved Beats
+                  </button>
+                  <button
+                    class="tab-button px-6 py-4 text-gray-400 hover:text-white font-medium transition-colors"
+                    data-tab="orders"
+                  >
+                    Order History
+                  </button>
+                  <button
+                    class="tab-button px-6 py-4 text-gray-400 hover:text-white font-medium transition-colors"
+                    data-tab="analytics"
+                  >
+                    Analytics
+                  </button>
+                </div>
+              </div>
+
+              <!-- Purchased Beats Tab -->
+              <div id="purchased-tab" class="tab-content active p-6">
+                <div class="flex justify-between items-center mb-4">
+                  <h3 class="text-lg font-semibold text-white">
+                    Your Purchased Beats
+                  </h3>
+                  <div class="relative">
+                    <input
+                      type="text"
+                      placeholder="Search purchases..."
+                      class="bg-gray-800/50 border border-gray-700 text-white px-4 py-2 pr-10 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                    />
+                    <div
+                      class="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 flex items-center justify-center"
+                    >
+                      <i class="ri-search-line text-gray-400 text-sm"></i>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <!-- Purchased Beat 1 -->
+                  <div class="flex bg-gray-800/30 rounded-lg overflow-hidden">
+                    <div class="w-20 h-20 bg-gray-800 flex-shrink-0">
+                      <img
+                        src="https://readdy.ai/api/search-image?query=dark%252520moody%252520hip%252520hop%252520beat%252520visualization%25252C%252520purple%252520and%252520blue%252520neon%252520colors%25252C%252520abstract%252520sound%252520wave%252520pattern&width=100&height=100&seq=20&orientation=squarish"
+                        alt="Midnight Vibes"
+                        class="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div class="flex-grow p-3">
+                      <div class="flex justify-between">
+                        <div>
+                          <h4 class="text-white font-medium">Midnight Vibes</h4>
+                          <p class="text-gray-400 text-xs">Hip Hop • 90 BPM</p>
+                        </div>
+                        <div class="flex items-center">
+                          <button
+                            class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                          >
+                            <i class="ri-play-circle-line ri-lg"></i>
+                          </button>
+                          <div class="relative">
+                            <button
+                              class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                              id="download1"
+                            >
+                              <i class="ri-download-line ri-lg"></i>
+                            </button>
+                            <div
+                              class="hidden absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg z-10 py-2 border border-gray-700"
+                              id="downloadMenu1"
+                            >
+                              <a
+                                href="#"
+                                class="block px-4 py-2 text-sm text-white hover:bg-gray-700"
+                                >Download MP3</a
+                              >
+                              <a
+                                href="#"
+                                class="block px-4 py-2 text-sm text-white hover:bg-gray-700"
+                                >Download WAV</a
+                              >
+                              <a
+                                href="#"
+                                class="block px-4 py-2 text-sm text-white hover:bg-gray-700"
+                                >Download Stems</a
+                              >
+                              <a
+                                href="#"
+                                class="block px-4 py-2 text-sm text-white hover:bg-gray-700"
+                                >View License</a
+                              >
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="flex justify-between items-end mt-1">
+                        <span class="text-xs text-gray-400"
+                          >Purchased: Apr 20, 2025</span
+                        >
+                        <span class="text-xs text-primary"
+                          >Unlimited License</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Purchased Beat 2 -->
+                  <div class="flex bg-gray-800/30 rounded-lg overflow-hidden">
+                    <div class="w-20 h-20 bg-gray-800 flex-shrink-0">
+                      <img
+                        src="https://readdy.ai/api/search-image?query=electronic%252520trap%252520beat%252520visualization%25252C%252520blue%252520and%252520purple%252520neon%252520colors%25252C%252520futuristic%252520digital%252520interface&width=100&height=100&seq=21&orientation=squarish"
+                        alt="Future Trap"
+                        class="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div class="flex-grow p-3">
+                      <div class="flex justify-between">
+                        <div>
+                          <h4 class="text-white font-medium">Future Trap</h4>
+                          <p class="text-gray-400 text-xs">Trap • 140 BPM</p>
+                        </div>
+                        <div class="flex items-center">
+                          <button
+                            class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                          >
+                            <i class="ri-play-circle-line ri-lg"></i>
+                          </button>
+                          <div class="relative">
+                            <button
+                              class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                              id="download2"
+                            >
+                              <i class="ri-download-line ri-lg"></i>
+                            </button>
+                            <div
+                              class="hidden absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg z-10 py-2 border border-gray-700"
+                              id="downloadMenu2"
+                            >
+                              <a
+                                href="#"
+                                class="block px-4 py-2 text-sm text-white hover:bg-gray-700"
+                                >Download MP3</a
+                              >
+                              <a
+                                href="#"
+                                class="block px-4 py-2 text-sm text-white hover:bg-gray-700"
+                                >Download WAV</a
+                              >
+                              <a
+                                href="#"
+                                class="block px-4 py-2 text-sm text-white hover:bg-gray-700"
+                                >Download Stems</a
+                              >
+                              <a
+                                href="#"
+                                class="block px-4 py-2 text-sm text-white hover:bg-gray-700"
+                                >View License</a
+                              >
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="flex justify-between items-end mt-1">
+                        <span class="text-xs text-gray-400"
+                          >Purchased: Apr 15, 2025</span
+                        >
+                        <span class="text-xs text-primary"
+                          >Premium License</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Purchased Beat 3 -->
+                  <div class="flex bg-gray-800/30 rounded-lg overflow-hidden">
+                    <div class="w-20 h-20 bg-gray-800 flex-shrink-0">
+                      <img
+                        src="https://readdy.ai/api/search-image?query=r&b soul beat visualization, smooth waves, warm purple and blue tones&width=100&height=100&seq=22&orientation=squarish"
+                        alt="Soul Therapy"
+                        class="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div class="flex-grow p-3">
+                      <div class="flex justify-between">
+                        <div>
+                          <h4 class="text-white font-medium">Soul Therapy</h4>
+                          <p class="text-gray-400 text-xs">R&B • 70 BPM</p>
+                        </div>
+                        <div class="flex items-center">
+                          <div class="equalizer mr-2">
+                            <span style="height: 8px"></span>
+                            <span style="height: 12px"></span>
+                            <span style="height: 6px"></span>
+                            <span style="height: 10px"></span>
+                          </div>
+                          <div class="relative">
+                            <button
+                              class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                              id="download3"
+                            >
+                              <i class="ri-download-line ri-lg"></i>
+                            </button>
+                            <div
+                              class="hidden absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg z-10 py-2 border border-gray-700"
+                              id="downloadMenu3"
+                            >
+                              <a
+                                href="#"
+                                class="block px-4 py-2 text-sm text-white hover:bg-gray-700"
+                                >Download MP3</a
+                              >
+                              <a
+                                href="#"
+                                class="block px-4 py-2 text-sm text-white hover:bg-gray-700"
+                                >Download WAV</a
+                              >
+                              <a
+                                href="#"
+                                class="block px-4 py-2 text-sm text-white hover:bg-gray-700"
+                                >Download Stems</a
+                              >
+                              <a
+                                href="#"
+                                class="block px-4 py-2 text-sm text-white hover:bg-gray-700"
+                                >View License</a
+                              >
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="flex justify-between items-end mt-1">
+                        <span class="text-xs text-gray-400"
+                          >Purchased: Apr 10, 2025</span
+                        >
+                        <span class="text-xs text-primary"
+                          >Standard License</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Purchased Beat 4 -->
+                  <div class="flex bg-gray-800/30 rounded-lg overflow-hidden">
+                    <div class="w-20 h-20 bg-gray-800 flex-shrink-0">
+                      <img
+                        src="https://readdy.ai/api/search-image?query=drill%252520beat%252520visualization%25252C%252520dark%252520urban%252520aesthetic%25252C%252520blue%252520and%252520purple%252520neon%252520colors%25252C%252520gritty%252520texture&width=100&height=100&seq=23&orientation=squarish"
+                        alt="Urban Drill"
+                        class="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div class="flex-grow p-3">
+                      <div class="flex justify-between">
+                        <div>
+                          <h4 class="text-white font-medium">Urban Drill</h4>
+                          <p class="text-gray-400 text-xs">Drill • 140 BPM</p>
+                        </div>
+                        <div class="flex items-center">
+                          <button
+                            class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                          >
+                            <i class="ri-play-circle-line ri-lg"></i>
+                          </button>
+                          <div class="relative">
+                            <button
+                              class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                              id="download4"
+                            >
+                              <i class="ri-download-line ri-lg"></i>
+                            </button>
+                            <div
+                              class="hidden absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg z-10 py-2 border border-gray-700"
+                              id="downloadMenu4"
+                            >
+                              <a
+                                href="#"
+                                class="block px-4 py-2 text-sm text-white hover:bg-gray-700"
+                                >Download MP3</a
+                              >
+                              <a
+                                href="#"
+                                class="block px-4 py-2 text-sm text-white hover:bg-gray-700"
+                                >Download WAV</a
+                              >
+                              <a
+                                href="#"
+                                class="block px-4 py-2 text-sm text-white hover:bg-gray-700"
+                                >Download Stems</a
+                              >
+                              <a
+                                href="#"
+                                class="block px-4 py-2 text-sm text-white hover:bg-gray-700"
+                                >View License</a
+                              >
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="flex justify-between items-end mt-1">
+                        <span class="text-xs text-gray-400"
+                          >Purchased: Apr 5, 2025</span
+                        >
+                        <span class="text-xs text-primary"
+                          >Premium License</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- More beats... -->
+                  <div class="flex bg-gray-800/30 rounded-lg overflow-hidden">
+                    <div class="w-20 h-20 bg-gray-800 flex-shrink-0">
+                      <img
+                        src="https://readdy.ai/api/search-image?query=lo-fi%252520beat%252520visualization%25252C%252520chill%252520aesthetic%25252C%252520purple%252520and%252520blue%252520colors%25252C%252520relaxed%252520waveforms&width=100&height=100&seq=24&orientation=squarish"
+                        alt="Chill Waves"
+                        class="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div class="flex-grow p-3">
+                      <div class="flex justify-between">
+                        <div>
+                          <h4 class="text-white font-medium">Chill Waves</h4>
+                          <p class="text-gray-400 text-xs">Lo-Fi • 85 BPM</p>
+                        </div>
+                        <div class="flex items-center">
+                          <button
+                            class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                          >
+                            <i class="ri-play-circle-line ri-lg"></i>
+                          </button>
+                          <div class="relative">
+                            <button
+                              class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                            >
+                              <i class="ri-download-line ri-lg"></i>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="flex justify-between items-end mt-1">
+                        <span class="text-xs text-gray-400"
+                          >Purchased: Mar 28, 2025</span
+                        >
+                        <span class="text-xs text-primary"
+                          >Standard License</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="flex bg-gray-800/30 rounded-lg overflow-hidden">
+                    <div class="w-20 h-20 bg-gray-800 flex-shrink-0">
+                      <img
+                        src="https://readdy.ai/api/search-image?query=afrobeat%252520visualization%25252C%252520vibrant%252520rhythm%252520patterns%25252C%252520purple%252520and%252520blue%252520neon%252520colors%252520on%252520dark%252520background&width=100&height=100&seq=25&orientation=squarish"
+                        alt="Afro Fusion"
+                        class="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div class="flex-grow p-3">
+                      <div class="flex justify-between">
+                        <div>
+                          <h4 class="text-white font-medium">Afro Fusion</h4>
+                          <p class="text-gray-400 text-xs">
+                            Afrobeat • 105 BPM
+                          </p>
+                        </div>
+                        <div class="flex items-center">
+                          <button
+                            class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                          >
+                            <i class="ri-play-circle-line ri-lg"></i>
+                          </button>
+                          <div class="relative">
+                            <button
+                              class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                            >
+                              <i class="ri-download-line ri-lg"></i>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="flex justify-between items-end mt-1">
+                        <span class="text-xs text-gray-400"
+                          >Purchased: Mar 22, 2025</span
+                        >
+                        <span class="text-xs text-primary"
+                          >Unlimited License</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-6 flex justify-center">
+                  <button
+                    class="bg-gray-800/80 hover:bg-gray-700/80 text-white px-4 py-2 rounded-button text-sm transition-colors whitespace-nowrap"
+                  >
+                    Load More Beats
+                  </button>
+                </div>
+              </div>
+
+              <!-- Saved Beats Tab -->
+              <div id="saved-tab" class="tab-content p-6">
+                <div class="flex justify-between items-center mb-4">
+                  <h3 class="text-lg font-semibold text-white">
+                    Your Saved Beats
+                  </h3>
+                  <div class="relative">
+                    <input
+                      type="text"
+                      placeholder="Search saved..."
+                      class="bg-gray-800/50 border border-gray-700 text-white px-4 py-2 pr-10 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+                    />
+                    <div
+                      class="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 flex items-center justify-center"
+                    >
+                      <i class="ri-search-line text-gray-400 text-sm"></i>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <!-- Saved Beat 1 -->
+                  <div class="flex bg-gray-800/30 rounded-lg overflow-hidden">
+                    <div class="w-20 h-20 bg-gray-800 flex-shrink-0">
+                      <img
+                        src="https://readdy.ai/api/search-image?query=melodic%252520trap%252520beat%252520visualization%25252C%252520atmospheric%252520sound%252520waves%25252C%252520purple%252520and%252520blue%252520neon%252520colors&width=100&height=100&seq=26&orientation=squarish"
+                        alt="Melodic Heights"
+                        class="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div class="flex-grow p-3">
+                      <div class="flex justify-between">
+                        <div>
+                          <h4 class="text-white font-medium">
+                            Melodic Heights
+                          </h4>
+                          <p class="text-gray-400 text-xs">Trap • 130 BPM</p>
+                        </div>
+                        <div class="flex items-center">
+                          <button
+                            class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                          >
+                            <i class="ri-play-circle-line ri-lg"></i>
+                          </button>
+                          <button
+                            class="w-8 h-8 flex items-center justify-center text-primary hover:text-primary/80 transition-colors"
+                          >
+                            <i class="ri-heart-fill ri-lg"></i>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="flex justify-between items-end mt-1">
+                        <span class="text-xs text-gray-400">$54.99</span>
+                        <button
+                          class="bg-primary/20 hover:bg-primary/30 text-primary px-3 py-1 rounded-button text-xs font-medium transition-colors whitespace-nowrap"
+                        >
+                          Add to Cart
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Saved Beat 2 -->
+                  <div class="flex bg-gray-800/30 rounded-lg overflow-hidden">
+                    <div class="w-20 h-20 bg-gray-800 flex-shrink-0">
+                      <img
+                        src="https://readdy.ai/api/search-image?query=dark%252520pop%252520beat%252520visualization%25252C%252520moody%252520atmosphere%25252C%252520purple%252520and%252520blue%252520neon%252520colors&width=100&height=100&seq=27&orientation=squarish"
+                        alt="Neon Dreams"
+                        class="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div class="flex-grow p-3">
+                      <div class="flex justify-between">
+                        <div>
+                          <h4 class="text-white font-medium">Neon Dreams</h4>
+                          <p class="text-gray-400 text-xs">Pop • 100 BPM</p>
+                        </div>
+                        <div class="flex items-center">
+                          <button
+                            class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                          >
+                            <i class="ri-play-circle-line ri-lg"></i>
+                          </button>
+                          <button
+                            class="w-8 h-8 flex items-center justify-center text-primary hover:text-primary/80 transition-colors"
+                          >
+                            <i class="ri-heart-fill ri-lg"></i>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="flex justify-between items-end mt-1">
+                        <span class="text-xs text-gray-400">$49.99</span>
+                        <button
+                          class="bg-primary/20 hover:bg-primary/30 text-primary px-3 py-1 rounded-button text-xs font-medium transition-colors whitespace-nowrap"
+                        >
+                          Add to Cart
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Saved Beat 3 -->
+                  <div class="flex bg-gray-800/30 rounded-lg overflow-hidden">
+                    <div class="w-20 h-20 bg-gray-800 flex-shrink-0">
+                      <img
+                        src="https://readdy.ai/api/search-image?query=ambient%252520electronic%252520beat%252520visualization%25252C%252520ethereal%252520waves%25252C%252520purple%252520and%252520blue%252520neon%252520colors&width=100&height=100&seq=28&orientation=squarish"
+                        alt="Ethereal Space"
+                        class="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div class="flex-grow p-3">
+                      <div class="flex justify-between">
+                        <div>
+                          <h4 class="text-white font-medium">Ethereal Space</h4>
+                          <p class="text-gray-400 text-xs">
+                            Electronic • 95 BPM
+                          </p>
+                        </div>
+                        <div class="flex items-center">
+                          <button
+                            class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                          >
+                            <i class="ri-play-circle-line ri-lg"></i>
+                          </button>
+                          <button
+                            class="w-8 h-8 flex items-center justify-center text-primary hover:text-primary/80 transition-colors"
+                          >
+                            <i class="ri-heart-fill ri-lg"></i>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="flex justify-between items-end mt-1">
+                        <span class="text-xs text-gray-400">$44.99</span>
+                        <button
+                          class="bg-primary/20 hover:bg-primary/30 text-primary px-3 py-1 rounded-button text-xs font-medium transition-colors whitespace-nowrap"
+                        >
+                          Add to Cart
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Saved Beat 4 -->
+                  <div class="flex bg-gray-800/30 rounded-lg overflow-hidden">
+                    <div class="w-20 h-20 bg-gray-800 flex-shrink-0">
+                      <img
+                        src="https://readdy.ai/api/search-image?query=hard%252520hitting%252520hip%252520hop%252520beat%252520visualization%25252C%252520aggressive%252520sound%252520waves%25252C%252520purple%252520and%252520blue%252520neon%252520colors&width=100&height=100&seq=29&orientation=squarish"
+                        alt="Street Anthem"
+                        class="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div class="flex-grow p-3">
+                      <div class="flex justify-between">
+                        <div>
+                          <h4 class="text-white font-medium">Street Anthem</h4>
+                          <p class="text-gray-400 text-xs">Hip Hop • 95 BPM</p>
+                        </div>
+                        <div class="flex items-center">
+                          <button
+                            class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                          >
+                            <i class="ri-play-circle-line ri-lg"></i>
+                          </button>
+                          <button
+                            class="w-8 h-8 flex items-center justify-center text-primary hover:text-primary/80 transition-colors"
+                          >
+                            <i class="ri-heart-fill ri-lg"></i>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="flex justify-between items-end mt-1">
+                        <span class="text-xs text-gray-400">$54.99</span>
+                        <button
+                          class="bg-primary/20 hover:bg-primary/30 text-primary px-3 py-1 rounded-button text-xs font-medium transition-colors whitespace-nowrap"
+                        >
+                          Add to Cart
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- More saved beats... -->
+                  <div class="flex bg-gray-800/30 rounded-lg overflow-hidden">
+                    <div class="w-20 h-20 bg-gray-800 flex-shrink-0">
+                      <img
+                        src="https://readdy.ai/api/search-image?query=smooth%252520jazz%252520hip%252520hop%252520fusion%252520beat%252520visualization%25252C%252520relaxed%252520sound%252520waves%25252C%252520purple%252520and%252520blue%252520neon%252520colors&width=100&height=100&seq=30&orientation=squarish"
+                        alt="Jazz Fusion"
+                        class="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div class="flex-grow p-3">
+                      <div class="flex justify-between">
+                        <div>
+                          <h4 class="text-white font-medium">Jazz Fusion</h4>
+                          <p class="text-gray-400 text-xs">
+                            Jazz Hip Hop • 85 BPM
+                          </p>
+                        </div>
+                        <div class="flex items-center">
+                          <button
+                            class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                          >
+                            <i class="ri-play-circle-line ri-lg"></i>
+                          </button>
+                          <button
+                            class="w-8 h-8 flex items-center justify-center text-primary hover:text-primary/80 transition-colors"
+                          >
+                            <i class="ri-heart-fill ri-lg"></i>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="flex justify-between items-end mt-1">
+                        <span class="text-xs text-gray-400">$49.99</span>
+                        <button
+                          class="bg-primary/20 hover:bg-primary/30 text-primary px-3 py-1 rounded-button text-xs font-medium transition-colors whitespace-nowrap"
+                        >
+                          Add to Cart
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="flex bg-gray-800/30 rounded-lg overflow-hidden">
+                    <div class="w-20 h-20 bg-gray-800 flex-shrink-0">
+                      <img
+                        src="https://readdy.ai/api/search-image?query=modern%252520rnb%252520beat%252520visualization%25252C%252520smooth%252520sound%252520waves%25252C%252520purple%252520and%252520blue%252520neon%252520colors&width=100&height=100&seq=31&orientation=squarish"
+                        alt="Velvet Nights"
+                        class="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div class="flex-grow p-3">
+                      <div class="flex justify-between">
+                        <div>
+                          <h4 class="text-white font-medium">Velvet Nights</h4>
+                          <p class="text-gray-400 text-xs">R&B • 75 BPM</p>
+                        </div>
+                        <div class="flex items-center">
+                          <button
+                            class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                          >
+                            <i class="ri-play-circle-line ri-lg"></i>
+                          </button>
+                          <button
+                            class="w-8 h-8 flex items-center justify-center text-primary hover:text-primary/80 transition-colors"
+                          >
+                            <i class="ri-heart-fill ri-lg"></i>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="flex justify-between items-end mt-1">
+                        <span class="text-xs text-gray-400">$49.99</span>
+                        <button
+                          class="bg-primary/20 hover:bg-primary/30 text-primary px-3 py-1 rounded-button text-xs font-medium transition-colors whitespace-nowrap"
+                        >
+                          Add to Cart
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-6 flex justify-center">
+                  <button
+                    class="bg-gray-800/80 hover:bg-gray-700/80 text-white px-4 py-2 rounded-button text-sm transition-colors whitespace-nowrap"
+                  >
+                    Load More Beats
+                  </button>
+                </div>
+              </div>
+
+              <!-- Order History Tab -->
+              <div id="orders-tab" class="tab-content p-6">
+                <div class="flex justify-between items-center mb-6">
+                  <h3 class="text-lg font-semibold text-white">
+                    Your Order History
+                  </h3>
+                  <div class="custom-dropdown" id="orderFilterDropdown">
+                    <button
+                      class="bg-gray-800/50 border border-gray-700 text-white px-4 py-2 rounded text-sm flex justify-between items-center focus:outline-none focus:ring-2 focus:ring-primary !rounded-button min-w-[150px]"
+                    >
+                      <span>All Orders</span>
+                      <i class="ri-arrow-down-s-line ml-2"></i>
+                    </button>
+                    <div class="dropdown-menu glass rounded p-2">
+                      <div
+                        class="py-1 px-2 text-white hover:bg-gray-700/50 rounded cursor-pointer text-sm"
+                      >
+                        All Orders
+                      </div>
+                      <div
+                        class="py-1 px-2 text-white hover:bg-gray-700/50 rounded cursor-pointer text-sm"
+                      >
+                        Completed
+                      </div>
+                      <div
+                        class="py-1 px-2 text-white hover:bg-gray-700/50 rounded cursor-pointer text-sm"
+                      >
+                        Processing
+                      </div>
+                      <div
+                        class="py-1 px-2 text-white hover:bg-gray-700/50 rounded cursor-pointer text-sm"
+                      >
+                        Refunded
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                  <table class="min-w-full">
+                    <thead>
+                      <tr class="border-b border-gray-800">
+                        <th
+                          class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                        >
+                          Order ID
+                        </th>
+                        <th
+                          class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                        >
+                          Date
+                        </th>
+                        <th
+                          class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                        >
+                          Items
+                        </th>
+                        <th
+                          class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                        >
+                          Total
+                        </th>
+                        <th
+                          class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                        >
+                          Status
+                        </th>
+                        <th
+                          class="px-4 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider"
+                        >
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-800">
+                      <tr>
+                        <td class="px-4 py-4 text-sm text-white">
+                          #KS25042701
+                        </td>
+                        <td class="px-4 py-4 text-sm text-gray-300">
+                          Apr 27, 2025
+                        </td>
+                        <td class="px-4 py-4 text-sm text-gray-300">3 Beats</td>
+                        <td class="px-4 py-4 text-sm text-white">$154.97</td>
+                        <td class="px-4 py-4">
+                          <span
+                            class="px-2 py-1 text-xs rounded-full bg-green-500/20 text-green-500"
+                            >Completed</span
+                          >
+                        </td>
+                        <td class="px-4 py-4 text-right">
+                          <button
+                            class="text-primary hover:text-primary/80 text-sm font-medium transition-colors whitespace-nowrap"
+                          >
+                            View Details
+                          </button>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="px-4 py-4 text-sm text-white">
+                          #KS25041501
+                        </td>
+                        <td class="px-4 py-4 text-sm text-gray-300">
+                          Apr 15, 2025
+                        </td>
+                        <td class="px-4 py-4 text-sm text-gray-300">2 Beats</td>
+                        <td class="px-4 py-4 text-sm text-white">$104.98</td>
+                        <td class="px-4 py-4">
+                          <span
+                            class="px-2 py-1 text-xs rounded-full bg-green-500/20 text-green-500"
+                            >Completed</span
+                          >
+                        </td>
+                        <td class="px-4 py-4 text-right">
+                          <button
+                            class="text-primary hover:text-primary/80 text-sm font-medium transition-colors whitespace-nowrap"
+                          >
+                            View Details
+                          </button>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="px-4 py-4 text-sm text-white">
+                          #KS25040501
+                        </td>
+                        <td class="px-4 py-4 text-sm text-gray-300">
+                          Apr 5, 2025
+                        </td>
+                        <td class="px-4 py-4 text-sm text-gray-300">1 Beat</td>
+                        <td class="px-4 py-4 text-sm text-white">$54.99</td>
+                        <td class="px-4 py-4">
+                          <span
+                            class="px-2 py-1 text-xs rounded-full bg-green-500/20 text-green-500"
+                            >Completed</span
+                          >
+                        </td>
+                        <td class="px-4 py-4 text-right">
+                          <button
+                            class="text-primary hover:text-primary/80 text-sm font-medium transition-colors whitespace-nowrap"
+                          >
+                            View Details
+                          </button>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="px-4 py-4 text-sm text-white">
+                          #KS25032801
+                        </td>
+                        <td class="px-4 py-4 text-sm text-gray-300">
+                          Mar 28, 2025
+                        </td>
+                        <td class="px-4 py-4 text-sm text-gray-300">2 Beats</td>
+                        <td class="px-4 py-4 text-sm text-white">$89.98</td>
+                        <td class="px-4 py-4">
+                          <span
+                            class="px-2 py-1 text-xs rounded-full bg-green-500/20 text-green-500"
+                            >Completed</span
+                          >
+                        </td>
+                        <td class="px-4 py-4 text-right">
+                          <button
+                            class="text-primary hover:text-primary/80 text-sm font-medium transition-colors whitespace-nowrap"
+                          >
+                            View Details
+                          </button>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="px-4 py-4 text-sm text-white">
+                          #KS25032201
+                        </td>
+                        <td class="px-4 py-4 text-sm text-gray-300">
+                          Mar 22, 2025
+                        </td>
+                        <td class="px-4 py-4 text-sm text-gray-300">1 Beat</td>
+                        <td class="px-4 py-4 text-sm text-white">$49.99</td>
+                        <td class="px-4 py-4">
+                          <span
+                            class="px-2 py-1 text-xs rounded-full bg-green-500/20 text-green-500"
+                            >Completed</span
+                          >
+                        </td>
+                        <td class="px-4 py-4 text-right">
+                          <button
+                            class="text-primary hover:text-primary/80 text-sm font-medium transition-colors whitespace-nowrap"
+                          >
+                            View Details
+                          </button>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="px-4 py-4 text-sm text-white">
+                          #KS25031501
+                        </td>
+                        <td class="px-4 py-4 text-sm text-gray-300">
+                          Mar 15, 2025
+                        </td>
+                        <td class="px-4 py-4 text-sm text-gray-300">3 Beats</td>
+                        <td class="px-4 py-4 text-sm text-white">$149.97</td>
+                        <td class="px-4 py-4">
+                          <span
+                            class="px-2 py-1 text-xs rounded-full bg-green-500/20 text-green-500"
+                            >Completed</span
+                          >
+                        </td>
+                        <td class="px-4 py-4 text-right">
+                          <button
+                            class="text-primary hover:text-primary/80 text-sm font-medium transition-colors whitespace-nowrap"
+                          >
+                            View Details
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="mt-6 flex justify-center">
+                  <nav class="flex items-center space-x-2">
+                    <button
+                      class="w-8 h-8 flex items-center justify-center bg-gray-800 text-gray-400 rounded hover:bg-gray-700 transition-colors"
+                    >
+                      <i class="ri-arrow-left-s-line"></i>
+                    </button>
+                    <button
+                      class="w-8 h-8 flex items-center justify-center bg-primary text-white rounded"
+                    >
+                      1
+                    </button>
+                    <button
+                      class="w-8 h-8 flex items-center justify-center bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors"
+                    >
+                      2
+                    </button>
+                    <span class="text-gray-400">...</span>
+                    <button
+                      class="w-8 h-8 flex items-center justify-center bg-gray-800 text-white rounded hover:bg-gray-700 transition-colors"
+                    >
+                      5
+                    </button>
+                    <button
+                      class="w-8 h-8 flex items-center justify-center bg-gray-800 text-gray-400 rounded hover:bg-gray-700 transition-colors"
+                    >
+                      <i class="ri-arrow-right-s-line"></i>
+                    </button>
+                  </nav>
+                </div>
+              </div>
+
+              <!-- Analytics Tab -->
+              <div id="analytics-tab" class="tab-content p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                  <!-- Analytics Card 1 -->
+                  <div class="glass-card rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                      <h4 class="text-white font-medium">Download Activity</h4>
+                      <div
+                        class="w-8 h-8 flex items-center justify-center bg-primary/20 rounded-full"
+                      >
+                        <i class="ri-download-cloud-line text-primary"></i>
+                      </div>
+                    </div>
+                    <div class="flex items-center justify-center py-4">
+                      <div class="relative w-28 h-28">
+                        <svg class="w-full h-full" viewBox="0 0 36 36">
+                          <circle
+                            cx="18"
+                            cy="18"
+                            r="16"
+                            fill="none"
+                            stroke="#374151"
+                            stroke-width="2"
+                          ></circle>
+                          <circle
+                            class="progress-ring-circle"
+                            cx="18"
+                            cy="18"
+                            r="16"
+                            fill="none"
+                            stroke="#6d28d9"
+                            stroke-width="2"
+                            stroke-dasharray="100"
+                            stroke-dashoffset="25"
+                          ></circle>
+                          <text
+                            x="18"
+                            y="18"
+                            text-anchor="middle"
+                            dominant-baseline="middle"
+                            fill="white"
+                            font-size="8"
+                            font-weight="bold"
+                          >
+                            75%
+                          </text>
+                        </svg>
+                      </div>
+                    </div>
+                    <p class="text-center text-gray-400 text-sm">
+                      9 of 12 beats downloaded
+                    </p>
+                  </div>
+
+                  <!-- Analytics Card 2 -->
+                  <div class="glass-card rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                      <h4 class="text-white font-medium">License Usage</h4>
+                      <div
+                        class="w-8 h-8 flex items-center justify-center bg-secondary/20 rounded-full"
+                      >
+                        <i class="ri-file-list-3-line text-secondary"></i>
+                      </div>
+                    </div>
+                    <div class="h-[120px]" id="licenseChart"></div>
+                    <div
+                      class="flex justify-between mt-2 text-xs text-gray-400"
+                    >
+                      <div class="flex items-center">
+                        <span
+                          class="inline-block w-3 h-3 bg-[rgba(87,181,231,1)] rounded-full mr-1"
+                        ></span>
+                        Standard
+                      </div>
+                      <div class="flex items-center">
+                        <span
+                          class="inline-block w-3 h-3 bg-[rgba(141,211,199,1)] rounded-full mr-1"
+                        ></span>
+                        Premium
+                      </div>
+                      <div class="flex items-center">
+                        <span
+                          class="inline-block w-3 h-3 bg-[rgba(251,191,114,1)] rounded-full mr-1"
+                        ></span>
+                        Unlimited
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Analytics Card 3 -->
+                  <div class="glass-card rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-2">
+                      <h4 class="text-white font-medium">Genre Preference</h4>
+                      <div
+                        class="w-8 h-8 flex items-center justify-center bg-green-500/20 rounded-full"
+                      >
+                        <i class="ri-bar-chart-grouped-line text-green-500"></i>
+                      </div>
+                    </div>
+                    <div class="h-[120px]" id="genreChart"></div>
+                    <div
+                      class="flex justify-between mt-2 text-xs text-gray-400"
+                    >
+                      <div class="flex items-center">
+                        <span
+                          class="inline-block w-3 h-3 bg-[rgba(87,181,231,1)] rounded-full mr-1"
+                        ></span>
+                        Hip Hop
+                      </div>
+                      <div class="flex items-center">
+                        <span
+                          class="inline-block w-3 h-3 bg-[rgba(141,211,199,1)] rounded-full mr-1"
+                        ></span>
+                        Trap
+                      </div>
+                      <div class="flex items-center">
+                        <span
+                          class="inline-block w-3 h-3 bg-[rgba(251,191,114,1)] rounded-full mr-1"
+                        ></span>
+                        R&B
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Activity Timeline -->
+                <div class="glass-card rounded-lg p-6">
+                  <h3 class="text-lg font-semibold text-white mb-4">
+                    Recent Activity
+                  </h3>
+                  <div class="relative pl-8 pb-1">
+                    <div
+                      class="absolute top-0 left-3 bottom-0 w-px bg-gray-800"
+                    ></div>
+                    <div class="space-y-6">
+                      <!-- Activity Item 1 -->
+                      <div class="relative">
+                        <div
+                          class="absolute -left-8 mt-1.5 w-6 h-6 flex items-center justify-center bg-primary/20 rounded-full"
+                        >
+                          <i
+                            class="ri-shopping-cart-line text-primary text-sm"
+                          ></i>
+                        </div>
+                        <div>
+                          <h4 class="text-white font-medium">
+                            Purchased 3 Beats
+                          </h4>
+                          <p class="text-gray-400 text-sm">
+                            You purchased Midnight Vibes, Future Trap, and Soul
+                            Therapy
+                          </p>
+                          <span class="text-xs text-gray-500"
+                            >April 27, 2025 at 2:45 PM</span
+                          >
+                        </div>
+                      </div>
+                      <!-- Activity Item 2 -->
+                      <div class="relative">
+                        <div
+                          class="absolute -left-8 mt-1.5 w-6 h-6 flex items-center justify-center bg-secondary/20 rounded-full"
+                        >
+                          <i
+                            class="ri-download-line text-secondary text-sm"
+                          ></i>
+                        </div>
+                        <div>
+                          <h4 class="text-white font-medium">
+                            Downloaded Beat
+                          </h4>
+                          <p class="text-gray-400 text-sm">
+                            You downloaded Midnight Vibes (WAV + Stems)
+                          </p>
+                          <span class="text-xs text-gray-500"
+                            >April 27, 2025 at 3:10 PM</span
+                          >
+                        </div>
+                      </div>
+                      <!-- Activity Item 3 -->
+                      <div class="relative">
+                        <div
+                          class="absolute -left-8 mt-1.5 w-6 h-6 flex items-center justify-center bg-green-500/20 rounded-full"
+                        >
+                          <i class="ri-heart-line text-green-500 text-sm"></i>
+                        </div>
+                        <div>
+                          <h4 class="text-white font-medium">Saved Beats</h4>
+                          <p class="text-gray-400 text-sm">
+                            You added Melodic Heights and Neon Dreams to your
+                            wishlist
+                          </p>
+                          <span class="text-xs text-gray-500"
+                            >April 26, 2025 at 7:30 PM</span
+                          >
+                        </div>
+                      </div>
+                      <!-- Activity Item 4 -->
+                      <div class="relative">
+                        <div
+                          class="absolute -left-8 mt-1.5 w-6 h-6 flex items-center justify-center bg-primary/20 rounded-full"
+                        >
+                          <i
+                            class="ri-shopping-cart-line text-primary text-sm"
+                          ></i>
+                        </div>
+                        <div>
+                          <h4 class="text-white font-medium">
+                            Purchased 2 Beats
+                          </h4>
+                          <p class="text-gray-400 text-sm">
+                            You purchased Future Trap and Urban Drill
+                          </p>
+                          <span class="text-xs text-gray-500"
+                            >April 15, 2025 at 5:22 PM</span
+                          >
+                        </div>
+                      </div>
+                      <!-- Activity Item 5 -->
+                      <div class="relative">
+                        <div
+                          class="absolute -left-8 mt-1.5 w-6 h-6 flex items-center justify-center bg-secondary/20 rounded-full"
+                        >
+                          <i
+                            class="ri-download-line text-secondary text-sm"
+                          ></i>
+                        </div>
+                        <div>
+                          <h4 class="text-white font-medium">
+                            Downloaded Beat
+                          </h4>
+                          <p class="text-gray-400 text-sm">
+                            You downloaded Future Trap (MP3)
+                          </p>
+                          <span class="text-xs text-gray-500"
+                            >April 15, 2025 at 5:45 PM</span
+                          >
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mt-6 flex justify-center">
+                    <button
+                      class="bg-gray-800/80 hover:bg-gray-700/80 text-white px-4 py-2 rounded-button text-sm transition-colors whitespace-nowrap"
+                    >
+                      View All Activity
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Monthly Usage Chart -->
+                <div class="glass-card rounded-lg p-6 mt-6">
+                  <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-semibold text-white">
+                      Monthly Usage
+                    </h3>
+                    <div class="custom-dropdown" id="usageFilterDropdown">
+                      <button
+                        class="bg-gray-800/50 border border-gray-700 text-white px-4 py-2 rounded text-sm flex justify-between items-center focus:outline-none focus:ring-2 focus:ring-primary !rounded-button min-w-[150px]"
+                      >
+                        <span>Last 6 Months</span>
+                        <i class="ri-arrow-down-s-line ml-2"></i>
+                      </button>
+                      <div class="dropdown-menu glass rounded p-2">
+                        <div
+                          class="py-1 px-2 text-white hover:bg-gray-700/50 rounded cursor-pointer text-sm"
+                        >
+                          Last 3 Months
+                        </div>
+                        <div
+                          class="py-1 px-2 text-white hover:bg-gray-700/50 rounded cursor-pointer text-sm"
+                        >
+                          Last 6 Months
+                        </div>
+                        <div
+                          class="py-1 px-2 text-white hover:bg-gray-700/50 rounded cursor-pointer text-sm"
+                        >
+                          Last Year
+                        </div>
+                        <div
+                          class="py-1 px-2 text-white hover:bg-gray-700/50 rounded cursor-pointer text-sm"
+                        >
+                          All Time
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="h-[300px]" id="monthlyUsageChart"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 py-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div>
+            <a href="#" class="font-['Pacifico'] text-2xl text-white">Kairos</a>
+            <p class="text-gray-400 mt-4">
+              Premium beats for ambitious artists. Elevate your sound with
+              professionally crafted instrumentals.
+            </p>
+            <div class="flex space-x-4 mt-6">
+              <a
+                href="#"
+                class="w-10 h-10 flex items-center justify-center bg-gray-800 rounded-full hover:bg-gray-700 transition-colors"
+              >
+                <i class="ri-instagram-line text-white"></i>
+              </a>
+              <a
+                href="#"
+                class="w-10 h-10 flex items-center justify-center bg-gray-800 rounded-full hover:bg-gray-700 transition-colors"
+              >
+                <i class="ri-twitter-x-line text-white"></i>
+              </a>
+              <a
+                href="#"
+                class="w-10 h-10 flex items-center justify-center bg-gray-800 rounded-full hover:bg-gray-700 transition-colors"
+              >
+                <i class="ri-youtube-line text-white"></i>
+              </a>
+              <a
+                href="#"
+                class="w-10 h-10 flex items-center justify-center bg-gray-800 rounded-full hover:bg-gray-700 transition-colors"
+              >
+                <i class="ri-soundcloud-line text-white"></i>
+              </a>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-white font-semibold mb-4">Quick Links</h3>
+            <ul class="space-y-2">
+              <li>
+                <a
+                  href="https://readdy.ai/home/e00512d8-f325-40d9-a5d3-2078b039df89/1fd4effc-0aab-4567-bcec-81ebd573cc41"
+                  data-readdy="true"
+                  class="text-gray-400 hover:text-white transition-colors"
+                  >Home</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://readdy.ai/home/e00512d8-f325-40d9-a5d3-2078b039df89/4e0bf5d1-c131-48b9-82bc-bb5fa7566d84"
+                  data-readdy="true"
+                  class="text-gray-400 hover:text-white transition-colors"
+                  >Beats</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors"
+                  >Bundles</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors"
+                  >Services</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors"
+                  >Contact</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="text-white font-semibold mb-4">Support</h3>
+            <ul class="space-y-2">
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors"
+                  >FAQ</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors"
+                  >Licensing</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors"
+                  >Terms of Service</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors"
+                  >Privacy Policy</a
+                >
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="text-gray-400 hover:text-white transition-colors"
+                  >Refund Policy</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="text-white font-semibold mb-4">Contact</h3>
+            <ul class="space-y-2">
+              <li class="flex items-center text-gray-400">
+                <i class="ri-mail-line mr-2"></i>
+                info@kairosbeats.com
+              </li>
+              <li class="flex items-center text-gray-400">
+                <i class="ri-phone-line mr-2"></i>
+                +1 (555) 123-4567
+              </li>
+              <li class="flex items-center text-gray-400">
+                <i class="ri-map-pin-line mr-2"></i>
+                Los Angeles, CA
+              </li>
+            </ul>
+            <div class="mt-6">
+              <h4 class="text-white font-semibold mb-2">Payment Methods</h4>
+              <div class="flex space-x-3">
+                <i class="ri-visa-fill text-gray-400 text-2xl"></i>
+                <i class="ri-mastercard-fill text-gray-400 text-2xl"></i>
+                <i class="ri-paypal-fill text-gray-400 text-2xl"></i>
+                <i class="ri-apple-fill text-gray-400 text-2xl"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="border-t border-gray-800 mt-12 pt-8 text-center">
+          <p class="text-gray-400 text-sm">
+            © 2025 Kairos Beats. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Audio Player (Fixed Bottom) -->
+    <div
+      class="fixed bottom-0 left-0 right-0 glass border-t border-gray-800 py-3 px-4"
+    >
+      <div class="max-w-7xl mx-auto flex items-center">
+        <div class="w-12 h-12 bg-gray-800 rounded flex-shrink-0 mr-3">
+          <img
+            src="https://readdy.ai/api/search-image?query=abstract%252520sound%252520wave%252520visualization%25252C%252520minimal%252520design%25252C%252520purple%252520and%252520blue%252520colors%25252C%252520professional%252520music%252520artwork&width=100&height=100&seq=10&orientation=squarish"
+            alt="Now Playing"
+            class="w-full h-full object-cover rounded"
+          />
+        </div>
+        <div class="mr-4 flex-shrink-0">
+          <h4 class="text-white text-sm font-medium">Soul Therapy</h4>
+          <p class="text-gray-400 text-xs">R&B • 70 BPM</p>
+        </div>
+        <div class="flex items-center space-x-4 mr-6">
+          <button
+            class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+          >
+            <i class="ri-skip-back-line"></i>
+          </button>
+          <button
+            class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white"
+          >
+            <i class="ri-play-fill ri-lg"></i>
+          </button>
+          <button
+            class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+          >
+            <i class="ri-skip-forward-line"></i>
+          </button>
+        </div>
+        <div class="flex-grow flex items-center">
+          <span class="text-xs text-gray-400 mr-2">0:12</span>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value="40"
+            class="audio-progress flex-grow"
+          />
+          <span class="text-xs text-gray-400 ml-2">0:30</span>
+        </div>
+        <div class="flex items-center ml-6">
+          <button
+            class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+          >
+            <i class="ri-volume-up-line"></i>
+          </button>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value="80"
+            class="audio-progress w-20 ml-2"
+          />
+          <button
+            class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors ml-4"
+          >
+            <i class="ri-repeat-line"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cart Modal (Hidden by default) -->
+    <div class="fixed inset-0 z-50 hidden" id="cartModal">
+      <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+      <div
+        class="absolute top-0 right-0 bottom-0 w-full max-w-md glass border-l border-gray-800 transform transition-transform duration-300"
+      >
+        <div
+          class="flex justify-between items-center p-6 border-b border-gray-800"
+        >
+          <h2 class="text-xl font-bold text-white">Your Cart (3)</h2>
+          <button
+            class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+            id="closeCartButton"
+          >
+            <i class="ri-close-line ri-lg"></i>
+          </button>
+        </div>
+        <div class="p-6 overflow-y-auto max-h-[calc(100vh-200px)]">
+          <!-- Cart Item 1 -->
+          <div class="flex items-center mb-6 pb-6 border-b border-gray-800">
+            <div class="w-16 h-16 bg-gray-800 rounded flex-shrink-0 mr-4">
+              <img
+                src="https://readdy.ai/api/search-image?query=dark%252520moody%252520hip%252520hop%252520beat%252520visualization%25252C%252520purple%252520and%252520blue%252520neon%252520colors%25252C%252520abstract%252520sound%252520wave%252520pattern&width=100&height=100&seq=11&orientation=squarish"
+                alt="Midnight Vibes"
+                class="w-full h-full object-cover rounded"
+              />
+            </div>
+            <div class="flex-grow">
+              <h4 class="text-white font-medium">Midnight Vibes</h4>
+              <p class="text-gray-400 text-sm">Hip Hop • 90 BPM</p>
+            </div>
+            <div class="flex items-center">
+              <span class="text-primary font-bold mr-4">$49.99</span>
+              <button
+                class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+              >
+                <i class="ri-delete-bin-line"></i>
+              </button>
+            </div>
+          </div>
+          <!-- Cart Item 2 -->
+          <div class="flex items-center mb-6 pb-6 border-b border-gray-800">
+            <div class="w-16 h-16 bg-gray-800 rounded flex-shrink-0 mr-4">
+              <img
+                src="https://readdy.ai/api/search-image?query=electronic%252520trap%252520beat%252520visualization%25252C%252520blue%252520and%252520purple%252520neon%252520colors%25252C%252520futuristic%252520digital%252520interface&width=100&height=100&seq=12&orientation=squarish"
+                alt="Future Trap"
+                class="w-full h-full object-cover rounded"
+              />
+            </div>
+            <div class="flex-grow">
+              <h4 class="text-white font-medium">Future Trap</h4>
+              <p class="text-gray-400 text-sm">Trap • 140 BPM</p>
+            </div>
+            <div class="flex items-center">
+              <span class="text-primary font-bold mr-4">$59.99</span>
+              <button
+                class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+              >
+                <i class="ri-delete-bin-line"></i>
+              </button>
+            </div>
+          </div>
+          <!-- Cart Item 3 -->
+          <div class="flex items-center">
+            <div class="w-16 h-16 bg-gray-800 rounded flex-shrink-0 mr-4">
+              <img
+                src="https://readdy.ai/api/search-image?query=r&b soul beat visualization, smooth waves, warm purple and blue tones&width=100&height=100&seq=13&orientation=squarish"
+                alt="Soul Therapy"
+                class="w-full h-full object-cover rounded"
+              />
+            </div>
+            <div class="flex-grow">
+              <h4 class="text-white font-medium">Soul Therapy</h4>
+              <p class="text-gray-400 text-sm">R&B • 70 BPM</p>
+            </div>
+            <div class="flex items-center">
+              <span class="text-primary font-bold mr-4">$44.99</span>
+              <button
+                class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+              >
+                <i class="ri-delete-bin-line"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="p-6 border-t border-gray-800">
+          <div class="flex justify-between mb-4">
+            <span class="text-gray-300">Subtotal</span>
+            <span class="text-white font-medium">$154.97</span>
+          </div>
+          <div class="flex justify-between mb-6">
+            <span class="text-gray-300">Total</span>
+            <span class="text-primary font-bold text-xl">$154.97</span>
+          </div>
+          <button
+            class="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-button font-medium transition-colors whitespace-nowrap"
+          >
+            Proceed to Checkout
+          </button>
+          <button
+            class="w-full bg-transparent border border-white/30 hover:border-white/50 text-white py-3 rounded-button font-medium transition-colors mt-3 whitespace-nowrap"
+          >
+            Continue Shopping
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Tab functionality
+        const tabButtons = document.querySelectorAll(".tab-button");
+        const tabContents = document.querySelectorAll(".tab-content");
+
+        tabButtons.forEach((button) => {
+          button.addEventListener("click", function () {
+            const tabName = this.getAttribute("data-tab");
+
+            // Remove active class from all buttons and tabs
+            tabButtons.forEach((btn) => btn.classList.remove("active"));
+            tabContents.forEach((content) =>
+              content.classList.remove("active")
+            );
+
+            // Add active class to current button and tab
+            this.classList.add("active");
+            document.getElementById(tabName + "-tab").classList.add("active");
+          });
+        });
+
+        // Dropdown functionality
+        const dropdowns = document.querySelectorAll(".custom-dropdown");
+        dropdowns.forEach((dropdown) => {
+          const button = dropdown.querySelector("button");
+          const menu = dropdown.querySelector(".dropdown-menu");
+          const options = menu.querySelectorAll("div");
+
+          button.addEventListener("click", function () {
+            dropdown.classList.toggle("active");
+          });
+
+          options.forEach((option) => {
+            option.addEventListener("click", function () {
+              button.querySelector("span").textContent = this.textContent;
+              dropdown.classList.remove("active");
+            });
+          });
+
+          // Close dropdown when clicking outside
+          document.addEventListener("click", function (event) {
+            if (!dropdown.contains(event.target)) {
+              dropdown.classList.remove("active");
+            }
+          });
+        });
+
+        // Download menu functionality
+        const downloadButtons = document.querySelectorAll('[id^="download"]');
+        downloadButtons.forEach((button) => {
+          const menuId = button.id + "Menu";
+          const menu = document.getElementById(menuId);
+
+          if (button && menu) {
+            button.addEventListener("click", function (e) {
+              e.stopPropagation();
+              menu.classList.toggle("hidden");
+            });
+
+            // Close menu when clicking outside
+            document.addEventListener("click", function (event) {
+              if (!menu.contains(event.target) && event.target !== button) {
+                menu.classList.add("hidden");
+              }
+            });
+          }
+        });
+
+        // Cart modal functionality
+        const cartButton = document.getElementById("cartButton");
+        const cartModal = document.getElementById("cartModal");
+        const closeCartButton = document.getElementById("closeCartButton");
+
+        cartButton.addEventListener("click", function () {
+          cartModal.classList.remove("hidden");
+        });
+
+        closeCartButton.addEventListener("click", function () {
+          cartModal.classList.add("hidden");
+        });
+
+        // Close modal when clicking outside
+        cartModal.addEventListener("click", function (event) {
+          if (event.target === cartModal) {
+            cartModal.classList.add("hidden");
+          }
+        });
+
+        // Initialize charts
+        // License usage chart
+        const licenseChart = echarts.init(
+          document.getElementById("licenseChart")
+        );
+        licenseChart.setOption({
+          animation: false,
+          tooltip: {
+            trigger: "item",
+            backgroundColor: "rgba(255, 255, 255, 0.8)",
+            textStyle: {
+              color: "#1f2937",
+            },
+          },
+          series: [
+            {
+              name: "License Type",
+              type: "pie",
+              radius: ["40%", "70%"],
+              avoidLabelOverlap: false,
+              itemStyle: {
+                borderRadius: 6,
+                borderColor: "#1f2937",
+                borderWidth: 1,
+              },
+              label: {
+                show: false,
+              },
+              labelLine: {
+                show: false,
+              },
+              data: [
+                {
+                  value: 5,
+                  name: "Standard",
+                  itemStyle: { color: "rgba(87, 181, 231, 1)" },
+                },
+                {
+                  value: 4,
+                  name: "Premium",
+                  itemStyle: { color: "rgba(141, 211, 199, 1)" },
+                },
+                {
+                  value: 3,
+                  name: "Unlimited",
+                  itemStyle: { color: "rgba(251, 191, 114, 1)" },
+                },
+              ],
+            },
+          ],
+        });
+
+        // Genre preference chart
+        const genreChart = echarts.init(document.getElementById("genreChart"));
+        genreChart.setOption({
+          animation: false,
+          tooltip: {
+            trigger: "item",
+            backgroundColor: "rgba(255, 255, 255, 0.8)",
+            textStyle: {
+              color: "#1f2937",
+            },
+          },
+          series: [
+            {
+              name: "Genre",
+              type: "pie",
+              radius: ["40%", "70%"],
+              avoidLabelOverlap: false,
+              itemStyle: {
+                borderRadius: 6,
+                borderColor: "#1f2937",
+                borderWidth: 1,
+              },
+              label: {
+                show: false,
+              },
+              labelLine: {
+                show: false,
+              },
+              data: [
+                {
+                  value: 6,
+                  name: "Hip Hop",
+                  itemStyle: { color: "rgba(87, 181, 231, 1)" },
+                },
+                {
+                  value: 4,
+                  name: "Trap",
+                  itemStyle: { color: "rgba(141, 211, 199, 1)" },
+                },
+                {
+                  value: 2,
+                  name: "R&B",
+                  itemStyle: { color: "rgba(251, 191, 114, 1)" },
+                },
+              ],
+            },
+          ],
+        });
+
+        // Monthly usage chart
+        const monthlyUsageChart = echarts.init(
+          document.getElementById("monthlyUsageChart")
+        );
+        monthlyUsageChart.setOption({
+          animation: false,
+          tooltip: {
+            trigger: "axis",
+            backgroundColor: "rgba(255, 255, 255, 0.8)",
+            textStyle: {
+              color: "#1f2937",
+            },
+          },
+          grid: {
+            left: "3%",
+            right: "4%",
+            bottom: "3%",
+            top: "3%",
+            containLabel: true,
+          },
+          xAxis: {
+            type: "category",
+            data: ["Nov", "Dec", "Jan", "Feb", "Mar", "Apr"],
+            axisLine: {
+              lineStyle: {
+                color: "rgba(255, 255, 255, 0.2)",
+              },
+            },
+            axisLabel: {
+              color: "rgba(255, 255, 255, 0.6)",
+            },
+          },
+          yAxis: {
+            type: "value",
+            axisLine: {
+              lineStyle: {
+                color: "rgba(255, 255, 255, 0.2)",
+              },
+            },
+            splitLine: {
+              lineStyle: {
+                color: "rgba(255, 255, 255, 0.1)",
+              },
+            },
+            axisLabel: {
+              color: "rgba(255, 255, 255, 0.6)",
+            },
+          },
+          series: [
+            {
+              name: "Purchases",
+              type: "line",
+              smooth: true,
+              lineStyle: {
+                width: 3,
+                color: "rgba(87, 181, 231, 1)",
+              },
+              areaStyle: {
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                  {
+                    offset: 0,
+                    color: "rgba(87, 181, 231, 0.3)",
+                  },
+                  {
+                    offset: 1,
+                    color: "rgba(87, 181, 231, 0.1)",
+                  },
+                ]),
+              },
+              emphasis: {
+                focus: "series",
+              },
+              data: [2, 3, 1, 5, 3, 6],
+            },
+            {
+              name: "Downloads",
+              type: "line",
+              smooth: true,
+              lineStyle: {
+                width: 3,
+                color: "rgba(141, 211, 199, 1)",
+              },
+              areaStyle: {
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                  {
+                    offset: 0,
+                    color: "rgba(141, 211, 199, 0.3)",
+                  },
+                  {
+                    offset: 1,
+                    color: "rgba(141, 211, 199, 0.1)",
+                  },
+                ]),
+              },
+              emphasis: {
+                focus: "series",
+              },
+              data: [1, 2, 1, 4, 2, 5],
+            },
+          ],
+        });
+
+        // Handle window resize
+        window.addEventListener("resize", function () {
+          licenseChart.resize();
+          genreChart.resize();
+          monthlyUsageChart.resize();
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,38 @@
+{% load static %}
+<!-- Beat Card -->
+<div class="glass-card rounded-lg overflow-hidden">
+  <div class="relative h-48 bg-gray-800">
+    <img src="{% static beat.image %}" alt="{{ beat.title }}" class="w-full h-full object-cover" />
+    <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
+    <div class="absolute bottom-4 left-4 right-4 flex justify-between items-center">
+      <div>
+        <span class="bg-primary/80 text-white text-xs px-2 py-1 rounded">{{ beat.genre }}</span>
+        <span class="bg-gray-800/80 text-white text-xs px-2 py-1 rounded ml-2">{{ beat.bpm }} BPM</span>
+      </div>
+      <button class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-white/20 transition-colors">
+        <i class="ri-play-fill text-white ri-lg"></i>
+      </button>
+    </div>
+  </div>
+  <div class="p-4">
+    <div class="flex justify-between items-start mb-3">
+      <h3 class="text-lg font-semibold text-white">{{ beat.title }}</h3>
+      <span class="text-primary font-bold">${{ beat.price }}</span>
+    </div>
+    <p class="text-gray-400 text-sm mb-4">{{ beat.description }}</p>
+    <div class="flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <div class="equalizer">
+          <span style="height: 5px"></span>
+          <span style="height: 8px"></span>
+          <span style="height: 12px"></span>
+          <span style="height: 6px"></span>
+        </div>
+        <span class="text-xs text-gray-400">0:30</span>
+      </div>
+      <button class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-button text-sm font-medium transition-colors whitespace-nowrap">
+        Add to Cart
+      </button>
+    </div>
+  </div>
+</div> 

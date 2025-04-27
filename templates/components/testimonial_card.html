@@ -1,0 +1,25 @@
+{% load static %}<!-- Testimonial Card -->
+<div class="glass-card rounded-lg p-6">
+  <div class="flex items-center mb-4">
+    <div class="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center mr-4">
+      <i class="ri-user-line text-white ri-lg"></i>
+    </div>
+    <div>
+      <h4 class="text-white font-medium">{{ testimonial.name }}</h4>
+      <p class="text-gray-400 text-sm">{{ testimonial.role }}</p>
+    </div>
+  </div>
+  {% if testimonial.rating %}
+  <div class="flex mb-4">
+    {% with ''|center:testimonial.rating|floatformat:0 as stars %}
+      {% for _ in stars %}
+        <i class="ri-star-fill text-yellow-400"></i>
+      {% endfor %}
+    {% endwith %}
+    {% if testimonial.rating|floatformat:0 != testimonial.rating %}
+      <i class="ri-star-half-fill text-yellow-400"></i>
+    {% endif %}
+  </div>
+  {% endif %}
+  <p class="text-gray-300">{{ testimonial.content }}</p>
+</div> 

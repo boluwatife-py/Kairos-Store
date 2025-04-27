@@ -1,0 +1,85 @@
+{% load static %}
+<!-- Navigation -->
+<nav class="glass fixed top-0 left-0 right-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16">
+      <div class="flex items-center">
+        <a href="{% url 'store:home' %}" class="font-['Pacifico'] text-2xl text-white">Kairos</a>
+      </div>
+      <div class="hidden md:flex items-center space-x-8">
+        <a href="{% url 'store:home' %}" class="text-white hover:text-primary transition-colors">Home</a>
+        <a href="{% url 'store:beats' %}" class="text-white hover:text-primary transition-colors">Beats</a>
+        {% if user.is_authenticated %}
+          <a href="{% url 'store:dashboard' %}" class="text-white hover:text-primary transition-colors">Dashboard</a>
+        {% endif %}
+      </div>
+      <div class="flex items-center space-x-4">
+        <div class="w-10 h-10 flex items-center justify-center relative cursor-pointer" id="cartButton">
+          <i class="ri-shopping-cart-line text-white ri-lg"></i>
+          <span class="absolute -top-1 -right-1 bg-primary text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">3</span>
+        </div>
+        <div id="userMenuContainer" class="relative">
+          <div id="userMenuButton" class="w-10 h-10 flex items-center justify-center bg-gray-700 rounded-full cursor-pointer hover:bg-gray-600 transition-colors">
+            <i class="ri-user-line text-white ri-lg"></i>
+          </div>
+          <div id="userDropdownMenu" class="absolute right-0 top-full mt-2 w-48 glass border border-gray-700 rounded-lg shadow-lg py-2 hidden">
+            {% if user.is_authenticated %}
+              <div id="loggedInMenu">
+                <a href="{% url 'store:dashboard' %}" class="flex items-center px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 transition-colors">
+                  <i class="ri-user-3-line mr-2"></i>
+                  My Profile
+                </a>
+                <a href="{% url 'store:dashboard' %}" class="flex items-center px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 transition-colors">
+                  <i class="ri-shopping-bag-line mr-2"></i>
+                  My Orders
+                </a>
+                <a href="{% url 'store:dashboard' %}" class="flex items-center px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 transition-colors">
+                  <i class="ri-music-2-line mr-2"></i>
+                  Purchased Beats
+                </a>
+                <a href="{% url 'store:dashboard' %}" class="flex items-center px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 transition-colors">
+                  <i class="ri-settings-3-line mr-2"></i>
+                  Account Settings
+                </a>
+                <div class="h-px bg-gray-700 my-2"></div>
+                <a href="{% url 'store:logout' %}" class="flex items-center px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 transition-colors">
+                  <i class="ri-logout-box-line mr-2"></i>
+                  Logout
+                </a>
+              </div>
+            {% else %}
+              <div id="loggedOutMenu">
+                <a href="#" id="loginLink" class="flex items-center px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 transition-colors">
+                  <i class="ri-login-box-line mr-2"></i>
+                  Login
+                </a>
+                <a href="#" id="registerLink" class="flex items-center px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 transition-colors">
+                  <i class="ri-user-add-line mr-2"></i>
+                  Register
+                </a>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const userMenuButton = document.getElementById("userMenuButton");
+    const userDropdownMenu = document.getElementById("userDropdownMenu");
+
+    userMenuButton.addEventListener("click", (e) => {
+      e.stopPropagation();
+      userDropdownMenu.classList.toggle("hidden");
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!userMenuButton.contains(e.target) && !userDropdownMenu.contains(e.target)) {
+        userDropdownMenu.classList.add("hidden");
+      }
+    });
+  });
+</script> 
