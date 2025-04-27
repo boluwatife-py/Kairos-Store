@@ -2,7 +2,7 @@
 <!-- Beat Card -->
 <div class="glass-card rounded-lg overflow-hidden">
   <div class="relative h-48 bg-gray-800">
-    <img src="{{ beat.image.url }}" alt="{{ beat.title }}" class="w-full h-full object-cover" />
+    <img src="{{ beat.get_image_url }}" alt="{{ beat.title }}" class="w-full h-full object-cover" />
     <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
     <div class="absolute bottom-4 left-4 right-4 flex justify-between items-center">
       <div>
@@ -54,8 +54,9 @@
       const data = await response.json();
       
       if (response.status === 401 && data.requires_auth) {
+        // Show login modal with option to switch to register
         showLoginModal();
-        showToast('Please login to continue', 'error');
+        showToast('Please login or register to continue', 'error');
         return;
       }
       

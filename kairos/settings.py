@@ -139,3 +139,9 @@ AUTH_USER_MODEL = 'store.CustomUser'
 LOGIN_URL = 'store:login'
 LOGIN_REDIRECT_URL = 'store:dashboard'
 LOGOUT_REDIRECT_URL = 'store:home'
+
+# Debug settings
+if DEBUG:
+    # Serve media files in development
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = BASE_DIR / 'media'

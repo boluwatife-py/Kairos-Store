@@ -86,9 +86,13 @@
 <section class="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
   <h2 class="text-3xl font-bold text-white mb-8">Featured Beats</h2>
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {% include 'components/beat_card.html' with beat=featured_beats.0 %}
-    {% include 'components/beat_card.html' with beat=featured_beats.1 %}
-    {% include 'components/beat_card.html' with beat=featured_beats.2 %}
+    {% for beat in featured_beats %}
+      {% include 'components/beat_card.html' with beat=beat %}
+    {% empty %}
+      <div class="col-span-3 text-center py-12">
+        <p class="text-gray-400">No featured beats available at the moment.</p>
+      </div>
+    {% endfor %}
   </div>
 </section>
 
@@ -96,14 +100,18 @@
 <section class="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
   <h2 class="text-3xl font-bold text-white mb-8">New Releases</h2>
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {% include 'components/beat_card.html' with beat=new_releases.0 %}
-    {% include 'components/beat_card.html' with beat=new_releases.1 %}
-    {% include 'components/beat_card.html' with beat=new_releases.2 %}
+    {% for beat in new_releases %}
+      {% include 'components/beat_card.html' with beat=beat %}
+    {% empty %}
+      <div class="col-span-3 text-center py-12">
+        <p class="text-gray-400">No new releases available at the moment.</p>
+      </div>
+    {% endfor %}
   </div>
   <div class="mt-10 text-center">
-    <button class="bg-transparent border border-white/30 hover:border-white/50 text-white px-6 py-3 rounded-button font-medium transition-colors whitespace-nowrap">
+    <a href="{% url 'store:beats' %}" class="bg-transparent border border-white/30 hover:border-white/50 text-white px-6 py-3 rounded-button font-medium transition-colors whitespace-nowrap">
       View All Beats
-    </button>
+    </a>
   </div>
 </section>
 
@@ -111,18 +119,48 @@
 <section class="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
   <h2 class="text-3xl font-bold text-white mb-8">Beat Bundles</h2>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    {% include 'components/bundle_card.html' with bundle=bundles.0 %}
-    {% include 'components/bundle_card.html' with bundle=bundles.1 %}
+    {% for bundle in bundles %}
+      {% include 'components/bundle_card.html' with bundle=bundle %}
+    {% empty %}
+      <div class="col-span-2 text-center py-12">
+        <p class="text-gray-400">No bundles available at the moment.</p>
+      </div>
+    {% endfor %}
   </div>
 </section>
 
 <!-- Testimonials -->
 <section class="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-  <h2 class="text-3xl font-bold text-white mb-8 text-center">What Artists Say</h2>
+  <h2 class="text-3xl font-bold text-white mb-8">What Our Artists Say</h2>
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    {% include 'components/testimonial_card.html' with testimonial=testimonials.0 %}
-    {% include 'components/testimonial_card.html' with testimonial=testimonials.1 %}
-    {% include 'components/testimonial_card.html' with testimonial=testimonials.2 %}
+    {% for testimonial in testimonials %}
+      <div class="glass-card rounded-lg p-6">
+        <div class="flex items-center mb-4">
+          <div class="w-12 h-12 bg-gray-800 rounded-full flex-shrink-0"></div>
+          <div class="ml-4">
+            <h4 class="text-white font-medium">{{ testimonial.name }}</h4>
+            <p class="text-gray-400 text-sm">{{ testimonial.role }}</p>
+          </div>
+        </div>
+        <p class="text-gray-300 mb-4">{{ testimonial.content }}</p>
+        <div class="flex items-center">
+          <div class="flex text-yellow-400">
+            {% for i in "12345" %}
+              {% if forloop.counter <= testimonial.rating %}
+                <i class="ri-star-fill"></i>
+              {% else %}
+                <i class="ri-star-line"></i>
+              {% endif %}
+            {% endfor %}
+          </div>
+          <span class="text-gray-400 text-sm ml-2">{{ testimonial.rating }}/5</span>
+        </div>
+      </div>
+    {% empty %}
+      <div class="col-span-3 text-center py-12">
+        <p class="text-gray-400">No testimonials available at the moment.</p>
+      </div>
+    {% endfor %}
   </div>
 </section>
 

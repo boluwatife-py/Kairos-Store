@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.http import JsonResponse
 from functools import wraps
 from .models import Beat, Bundle, OrderItem, Testimonial, Cart, CartItem, Order
@@ -21,10 +21,32 @@ def login_required_json(view_func):
     return _wrapped_view
 
 def home(request):
-    featured_beats = Beat.objects.filter(is_featured=True)[:3]
-    new_releases = Beat.objects.filter(is_new_release=True)[:3]
-    bundles = Bundle.objects.all()[:2]
-    testimonials = Testimonial.objects.all()[:3]
+    # Get featured beats that are active and have all required fields
+    featured_beats = Beat.objects.filter(
+        is_featured=True,
+        is_active=True,
+        image__isnull=False,
+        audio_file__isnull=False
+    ).order_by('-created_at')[:3]
+
+    # Get new releases that are active and have all required fields
+    new_releases = Beat.objects.filter(
+        is_new_release=True,
+        is_active=True,
+        image__isnull=False,
+        audio_file__isnull=False
+    ).order_by('-created_at')[:3]
+
+    # Get active bundles
+    bundles = Bundle.objects.filter(
+        is_active=True,
+        image__isnull=False
+    ).order_by('-created_at')[:2]
+
+    # Get active testimonials
+    testimonials = Testimonial.objects.filter(
+        is_active=True
+    ).order_by('-created_at')[:3]
 
     context = {
         'featured_beats': featured_beats,
@@ -158,3 +180,15 @@ def terms(request):
 
 def privacy(request):
     return render(request, 'store/privacy.html')
+
+def custom_logout(request):
+    if request.method == 'POST':
+        logout(request)
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Logged out successfully'
+        })
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Invalid request method'
+    }, status=405)

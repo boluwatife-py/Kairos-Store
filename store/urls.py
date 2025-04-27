@@ -15,7 +15,7 @@ urlpatterns = [
     
     # Authentication URLs
     path('login/', views.custom_login, name='login'),
-    path('logout/', auth_views.LogoutView.as_view(next_page='store:home'), name='logout'),
+    path('logout/', views.custom_logout, name='logout'),
     path('register/', views.register, name='register'),
     path('password-reset/', auth_views.PasswordResetView.as_view(template_name='store/password_reset.html'), name='password_reset'),
     path('password-reset/done/', auth_views.PasswordResetDoneView.as_view(template_name='store/password_reset_done.html'), name='password_reset_done'),

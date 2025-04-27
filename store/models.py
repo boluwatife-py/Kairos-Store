@@ -43,9 +43,23 @@ class Beat(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     is_featured = models.BooleanField(default=False)
     is_new_release = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True, null=True, blank=True)
 
     def __str__(self):
         return self.title
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def get_image_url(self):
+        if self.image:
+            return self.image.url
+        return '/static/images/default-beat.jpg'
+
+    def get_audio_url(self):
+        if self.audio_file:
+            return self.audio_file.url
+        return None
 
 class Bundle(models.Model):
     title = models.CharField(max_length=200)
@@ -57,6 +71,7 @@ class Bundle(models.Model):
     beats = models.ManyToManyField(Beat)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.title
@@ -65,15 +80,22 @@ class Bundle(models.Model):
     def beat_count(self):
         return self.beats.count()
 
+    class Meta:
+        ordering = ['-created_at']
+
 class Testimonial(models.Model):
     name = models.CharField(max_length=100)
     role = models.CharField(max_length=100)
     content = models.TextField()
     rating = models.DecimalField(max_digits=3, decimal_places=1)
     created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return f"{self.name} - {self.role}"
+
+    class Meta:
+        ordering = ['-created_at']
 
 class Cart(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
