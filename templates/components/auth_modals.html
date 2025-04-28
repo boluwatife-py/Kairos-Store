@@ -111,6 +111,85 @@
   </div>
 </div>
 
+<!-- Password Reset Modal -->
+<div id="passwordResetModal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+  <div
+    class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md"
+  >
+    <div class="glass rounded-lg border border-gray-800 shadow-xl">
+      <div
+        class="flex justify-between items-center p-6 border-b border-gray-800"
+      >
+        <h2 class="text-xl font-bold text-white">Reset Your Password</h2>
+        <button
+          id="closePasswordResetModal"
+          class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+        >
+          <i class="ri-close-line ri-lg"></i>
+        </button>
+      </div>
+      <div class="p-6">
+        <form id="passwordResetForm">
+          <div class="mb-6">
+            <p class="text-gray-300 mb-4">
+              Enter your email address and we'll send you instructions to
+              reset your password.
+            </p>
+            <label
+              for="resetEmail"
+              class="block text-sm font-medium text-gray-300 mb-2"
+              >Email</label
+            >
+            <input
+              type="email"
+              id="resetEmail"
+              class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              placeholder="Enter your email"
+            />
+          </div>
+          <button
+            type="submit"
+            class="w-full bg-primary hover:bg-primary/90 text-white py-2.5 rounded-button font-medium transition-colors mb-4 whitespace-nowrap"
+          >
+            Reset Password
+          </button>
+          <p class="text-center">
+            <a
+              href="#"
+              id="backToLoginLink"
+              class="text-sm text-primary hover:text-primary/80 transition-colors"
+              >Back to Login</a
+            >
+          </p>
+        </form>
+        <div id="resetConfirmation" class="hidden">
+          <div class="text-center">
+            <div
+              class="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-primary/20 rounded-full"
+            >
+              <i class="ri-mail-send-line text-primary text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-white mb-2">
+              Check Your Email
+            </h3>
+            <p class="text-gray-300 mb-6">
+              We've sent password reset instructions to your email address.
+            </p>
+            <button
+              id="resetDoneButton"
+              class="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-button font-medium transition-colors whitespace-nowrap"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <!-- Toast Container -->
 <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col items-end"></div>
 

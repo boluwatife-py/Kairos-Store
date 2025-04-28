@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login, authenticate, logout
 from django.http import JsonResponse
+from django.db.models import Q
 from functools import wraps
 from .models import Beat, Bundle, OrderItem, Testimonial, Cart, CartItem, Order
 from .forms import CustomUserCreationForm
@@ -57,9 +58,57 @@ def home(request):
     return render(request, 'home.html', context)
 
 def beats(request):
-    beats = Beat.objects.all()
+    # Get search query
+    search_query = request.GET.get('search', '')
+    genre = request.GET.get('genre', '')
+    bpm_min = request.GET.get('bpm_min', '')
+    bpm_max = request.GET.get('bpm_max', '')
+    sort_by = request.GET.get('sort', '-created_at')
+
+    # Start with all active beats
+    beats = Beat.objects.filter(is_active=True)
+
+    # Apply search filter
+    if search_query:
+        beats = beats.filter(
+            Q(title__icontains=search_query) |
+            Q(genre__icontains=search_query) |
+            Q(description__icontains=search_query)
+        )
+
+    # Apply genre filter
+    if genre:
+        beats = beats.filter(genre=genre)
+
+    # Apply BPM range filter
+    if bpm_min:
+        beats = beats.filter(bpm__gte=bpm_min)
+    if bpm_max:
+        beats = beats.filter(bpm__lte=bpm_max)
+
+    # Apply sorting
+    if sort_by == 'price_asc':
+        beats = beats.order_by('price')
+    elif sort_by == 'price_desc':
+        beats = beats.order_by('-price')
+    elif sort_by == 'bpm_asc':
+        beats = beats.order_by('bpm')
+    elif sort_by == 'bpm_desc':
+        beats = beats.order_by('-bpm')
+    else:  # Default to newest first
+        beats = beats.order_by('-created_at')
+
+    # Get unique genres for filter
+    genres = Beat.objects.filter(is_active=True).values_list('genre', flat=True).distinct()
+
     context = {
         'beats': beats,
+        'genres': genres,
+        'search_query': search_query,
+        'selected_genre': genre,
+        'bpm_min': bpm_min,
+        'bpm_max': bpm_max,
+        'sort_by': sort_by,
     }
     return render(request, 'beats.html', context)
 
