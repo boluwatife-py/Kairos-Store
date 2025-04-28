@@ -7,7 +7,9 @@ from django.http import JsonResponse
 from django.db.models import Q
 from functools import wraps
 from .models import Beat, Bundle, OrderItem, Testimonial, Cart, CartItem, Order
-from .forms import CustomUserCreationForm
+from .forms import CustomUserCreationForm, CustomAuthenticationForm
+from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
+from django.urls import reverse_lazy
 
 def login_required_json(view_func):
     @wraps(view_func)
@@ -241,3 +243,20 @@ def custom_logout(request):
         'status': 'error',
         'message': 'Invalid request method'
     }, status=405)
+
+class CustomPasswordResetView(PasswordResetView):
+    template_name = 'store/password_reset.html'
+    email_template_name = 'store/password_reset_email.html'
+    subject_template_name = 'store/password_reset_subject.txt'
+    html_email_template_name = 'store/password_reset_email.html'
+    success_url = reverse_lazy('store:password_reset_done')
+
+class CustomPasswordResetDoneView(PasswordResetDoneView):
+    template_name = 'store/password_reset_done.html'
+
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+    template_name = 'store/password_reset_confirm.html'
+    success_url = reverse_lazy('store:password_reset_complete')
+
+class CustomPasswordResetCompleteView(PasswordResetCompleteView):
+    template_name = 'store/password_reset_complete.html'

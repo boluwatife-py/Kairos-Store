@@ -4,100 +4,100 @@
 {% block title %}Kairos Store - Dashboard{% endblock %}
 
 {% block content %}
-<main class="pt-24 pb-32">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <!-- Dashboard Header -->
+    <main class="pt-24 pb-32">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Dashboard Header -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-      <div>
-        <h1 class="text-3xl font-bold text-white">My Dashboard</h1>
-        <p class="text-gray-400 mt-1">
-          Manage your account, purchases, and favorites
-        </p>
-      </div>
-      <div class="mt-4 md:mt-0">
-        <button
-          class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-button font-medium transition-colors whitespace-nowrap flex items-center"
-        >
-          <i class="ri-download-cloud-line mr-2"></i>
-          Download All Purchases
-        </button>
-      </div>
-    </div>
-
-    <!-- Dashboard Overview -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      <!-- Stats Card 1 -->
-      <div class="glass-card rounded-lg p-6">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-semibold text-white">Purchased Beats</h3>
-          <div
-            class="w-10 h-10 flex items-center justify-center bg-primary/20 rounded-full"
-          >
-            <i class="ri-music-2-line text-primary"></i>
-          </div>
-        </div>
-        <div class="flex items-end justify-between">
           <div>
-            <span class="text-3xl font-bold text-white">12</span>
-            <p class="text-gray-400 text-sm mt-1">Total beats owned</p>
+            <h1 class="text-3xl font-bold text-white">My Dashboard</h1>
+            <p class="text-gray-400 mt-1">
+              Manage your account, purchases, and favorites
+            </p>
           </div>
-          <div class="h-16 flex items-end">
-            <div class="w-6 h-8 bg-primary/20 rounded-t-sm mr-1"></div>
-            <div class="w-6 h-10 bg-primary/30 rounded-t-sm mr-1"></div>
-            <div class="w-6 h-12 bg-primary/40 rounded-t-sm mr-1"></div>
-            <div class="w-6 h-16 bg-primary/60 rounded-t-sm"></div>
+          <div class="mt-4 md:mt-0">
+            <button
+              class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-button font-medium transition-colors whitespace-nowrap flex items-center"
+            >
+              <i class="ri-download-cloud-line mr-2"></i>
+              Download All Purchases
+            </button>
           </div>
         </div>
-      </div>
 
-      <!-- Stats Card 2 -->
-      <div class="glass-card rounded-lg p-6">
-        <div class="flex items-center justify-between mb-4">
+        <!-- Dashboard Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <!-- Stats Card 1 -->
+          <div class="glass-card rounded-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-white">Purchased Beats</h3>
+              <div
+                class="w-10 h-10 flex items-center justify-center bg-primary/20 rounded-full"
+              >
+                <i class="ri-music-2-line text-primary"></i>
+              </div>
+            </div>
+            <div class="flex items-end justify-between">
+              <div>
+                <span class="text-3xl font-bold text-white">12</span>
+                <p class="text-gray-400 text-sm mt-1">Total beats owned</p>
+              </div>
+              <div class="h-16 flex items-end">
+                <div class="w-6 h-8 bg-primary/20 rounded-t-sm mr-1"></div>
+                <div class="w-6 h-10 bg-primary/30 rounded-t-sm mr-1"></div>
+                <div class="w-6 h-12 bg-primary/40 rounded-t-sm mr-1"></div>
+                <div class="w-6 h-16 bg-primary/60 rounded-t-sm"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stats Card 2 -->
+          <div class="glass-card rounded-lg p-6">
+            <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold text-white">Total Spent</h3>
-          <div
+              <div
             class="w-10 h-10 flex items-center justify-center bg-primary/20 rounded-full"
-          >
+              >
             <i class="ri-wallet-3-line text-primary"></i>
-          </div>
-        </div>
-        <div class="flex items-end justify-between">
-          <div>
+              </div>
+            </div>
+            <div class="flex items-end justify-between">
+              <div>
             <span class="text-3xl font-bold text-white">$299.99</span>
             <p class="text-gray-400 text-sm mt-1">Lifetime spending</p>
-          </div>
-          <div class="h-16 flex items-end">
+              </div>
+              <div class="h-16 flex items-end">
             <div class="w-6 h-8 bg-primary/20 rounded-t-sm mr-1"></div>
             <div class="w-6 h-10 bg-primary/30 rounded-t-sm mr-1"></div>
             <div class="w-6 h-12 bg-primary/40 rounded-t-sm mr-1"></div>
             <div class="w-6 h-16 bg-primary/60 rounded-t-sm"></div>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
 
-      <!-- Stats Card 3 -->
-      <div class="glass-card rounded-lg p-6">
-        <div class="flex items-center justify-between mb-4">
+          <!-- Stats Card 3 -->
+          <div class="glass-card rounded-lg p-6">
+            <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold text-white">Downloads</h3>
-          <div
+              <div
             class="w-10 h-10 flex items-center justify-center bg-primary/20 rounded-full"
-          >
+              >
             <i class="ri-download-cloud-line text-primary"></i>
-          </div>
-        </div>
-        <div class="flex items-end justify-between">
-          <div>
+              </div>
+            </div>
+            <div class="flex items-end justify-between">
+              <div>
             <span class="text-3xl font-bold text-white">24</span>
             <p class="text-gray-400 text-sm mt-1">Total downloads</p>
-          </div>
+              </div>
           <div class="h-16 flex items-end">
             <div class="w-6 h-8 bg-primary/20 rounded-t-sm mr-1"></div>
             <div class="w-6 h-10 bg-primary/30 rounded-t-sm mr-1"></div>
             <div class="w-6 h-12 bg-primary/40 rounded-t-sm mr-1"></div>
             <div class="w-6 h-16 bg-primary/60 rounded-t-sm"></div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
 
     <!-- Dashboard Tabs -->
     <div class="glass rounded-lg p-6">
@@ -106,7 +106,7 @@
         <button class="tab-button text-gray-400 pb-4">Orders</button>
         <button class="tab-button text-gray-400 pb-4">Favorites</button>
         <button class="tab-button text-gray-400 pb-4">Settings</button>
-      </div>
+            </div>
 
       <!-- Tab Content -->
       <div class="tab-content active">
@@ -116,33 +116,33 @@
           {% empty %}
             <div class="col-span-3 text-center py-12">
               <p class="text-gray-400">No purchased beats available.</p>
-            </div>
+                  </div>
           {% endfor %}
+                </div>
+                  </div>
         </div>
       </div>
-    </div>
-  </div>
-</main>
+    </main>
 {% endblock %}
 
 {% block extra_js %}
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    // Tab functionality
-    const tabButtons = document.querySelectorAll(".tab-button");
-    const tabContents = document.querySelectorAll(".tab-content");
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Tab functionality
+        const tabButtons = document.querySelectorAll(".tab-button");
+        const tabContents = document.querySelectorAll(".tab-content");
 
     tabButtons.forEach((button, index) => {
       button.addEventListener("click", () => {
         // Remove active class from all buttons and contents
-        tabButtons.forEach((btn) => btn.classList.remove("active"));
+            tabButtons.forEach((btn) => btn.classList.remove("active"));
         tabContents.forEach((content) => content.classList.remove("active"));
 
         // Add active class to clicked button and corresponding content
         button.classList.add("active");
         tabContents[index].classList.add("active");
+          });
+        });
       });
-    });
-  });
-</script>
+    </script>
 {% endblock %}

@@ -17,8 +17,8 @@
               <input 
                 type="text" 
                 name="search" 
-                placeholder="Search beats by name, genre or mood..." 
-                class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                placeholder="Search beats by name" 
+                class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-0 focus:border-transparent"
                 value="{{ request.GET.search }}"
               />
             </form>
@@ -116,7 +116,7 @@
       
       if (response.ok) {
         showToast(data.message);
-        window.location.reload();
+        window.location.href = "{% url 'store:home' %}";
       } else {
         showToast(data.message, 'error');
       }
