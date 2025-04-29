@@ -51,6 +51,91 @@
         background-color: #1f2937;
         color: #f9fafb;
       }
+      .custom-checkbox {
+          position: relative;
+          display: inline-block;
+          width: 18px;
+          height: 18px;
+          margin-right: 8px;
+      }
+      .custom-checkbox input {
+          opacity: 0;
+          width: 0;
+          height: 0;
+      }
+      .checkmark {
+          position: absolute;
+          top: 0;
+          left: 0;
+          height: 18px;
+          width: 18px;
+          background-color: #1e293b;
+          border: 1px solid #4b5563;
+          border-radius: 4px;
+          transition: all 0.2s ease;
+      }
+      .custom-checkbox input:checked ~ .checkmark {
+          background-color: #8b5cf6;
+          border-color: #8b5cf6;
+      }
+      .checkmark:after {
+          content: "";
+          position: absolute;
+          display: none;
+      }
+      .custom-checkbox input:checked ~ .checkmark:after {
+          display: block;
+      }
+      .custom-checkbox .checkmark:after {
+          left: 6px;
+          top: 2px;
+          width: 5px;
+          height: 10px;
+          border: solid white;
+          border-width: 0 2px 2px 0;
+          transform: rotate(45deg);
+      }
+      .custom-radio {
+          position: relative;
+          display: inline-block;
+          width: 18px;
+          height: 18px;
+          margin-right: 8px;
+      }
+      .custom-radio input {
+          opacity: 0;
+          width: 0;
+          height: 0;
+      }
+      .radio-mark {
+          position: absolute;
+          top: 0;
+          left: 0;
+          height: 18px;
+          width: 18px;
+          background-color: #1e293b;
+          border: 1px solid #4b5563;
+          border-radius: 50%;
+          transition: all 0.2s ease;
+      }
+      .custom-radio input:checked ~ .radio-mark {
+          background-color: #1e293b;
+          border-color: #8b5cf6;
+      }
+      .radio-mark:after {
+          content: "";
+          position: absolute;
+          display: none;
+          top: 4px;
+          left: 4px;
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: #8b5cf6;
+      }
+      .custom-radio input:checked ~ .radio-mark:after {
+          display: block;
+      }
       .glass {
         background: rgba(31, 41, 55, 0.7);
         backdrop-filter: blur(10px);
@@ -230,6 +315,7 @@
 
     {% block extra_js %}{% endblock %}
     <script src="{% static 'js/cart.js' %}"></script>
+    <script src="{% static 'js/beat_card.js' %}"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         // Auth Modals

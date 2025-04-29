@@ -10,6 +10,7 @@ from .models import Beat, Bundle, OrderItem, Testimonial, Cart, CartItem, Order,
 from .forms import CustomUserCreationForm, CustomAuthenticationForm
 from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
 from django.urls import reverse_lazy
+from django.http import Http404
 
 def login_required_json(view_func):
     @wraps(view_func)
@@ -208,10 +209,24 @@ def cart(request):
         'total_price': float(cart.total_price)
     })
 
+@login_required
+def checkout(request, order_id):
+    # Get the order and verify it belongs to the user and is not completed
+    order = get_object_or_404(Order, id=order_id, user=request.user, status='pending')
+    
+    # Get order items
+    order_items = order.orderitem_set.all().select_related('beat')
+    context = {
+        'order': order,
+        'order_items': order_items,
+        'total_price': order.total_price
+    }
+    return render(request, 'checkout.html', context)
+
 @login_required_json
-def checkout(request):
-    cart = get_object_or_404(Cart, user=request.user)
+def create_order(request):
     if request.method == 'POST':
+        cart = get_object_or_404(Cart, user=request.user)
         order = Order.objects.create(
             user=request.user,
             total_price=cart.total_price
@@ -226,13 +241,12 @@ def checkout(request):
         cart.delete()
         return JsonResponse({
             'status': 'success',
-            'message': 'Order placed successfully!'
+            'message': 'Order placed successfully!',
+            'redirect': f'/checkout/{order.id}/'
         })
     
-    return JsonResponse({
-        'status': 'error',
-        'message': 'Invalid request method'
-    }, status=405)
+    # Raise 404 for GET requests
+    raise Http404("Page not found")
 
 def register(request):
     if request.method == 'POST':

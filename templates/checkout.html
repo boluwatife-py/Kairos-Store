@@ -1,441 +1,336 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout - Premium Beats</title>
-    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
-    <script>tailwind.config={theme:{extend:{colors:{primary:'#8b5cf6',secondary:'#a78bfa'},borderRadius:{'none':'0px','sm':'4px',DEFAULT:'8px','md':'12px','lg':'16px','xl':'20px','2xl':'24px','3xl':'32px','full':'9999px','button':'8px'}}}}</script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
-    <style>
-        :where([class^="ri-"])::before { content: "\f3c2"; }
-        body {
-            background-color: #0f172a;
-            color: #f8fafc;
-            font-family: 'Inter', sans-serif;
-        }
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        .custom-checkbox {
-            position: relative;
-            display: inline-block;
-            width: 18px;
-            height: 18px;
-            margin-right: 8px;
-        }
-        .custom-checkbox input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        .checkmark {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 18px;
-            width: 18px;
-            background-color: #1e293b;
-            border: 1px solid #4b5563;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-        }
-        .custom-checkbox input:checked ~ .checkmark {
-            background-color: #8b5cf6;
-            border-color: #8b5cf6;
-        }
-        .checkmark:after {
-            content: "";
-            position: absolute;
-            display: none;
-        }
-        .custom-checkbox input:checked ~ .checkmark:after {
-            display: block;
-        }
-        .custom-checkbox .checkmark:after {
-            left: 6px;
-            top: 2px;
-            width: 5px;
-            height: 10px;
-            border: solid white;
-            border-width: 0 2px 2px 0;
-            transform: rotate(45deg);
-        }
-        .custom-radio {
-            position: relative;
-            display: inline-block;
-            width: 18px;
-            height: 18px;
-            margin-right: 8px;
-        }
-        .custom-radio input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        .radio-mark {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 18px;
-            width: 18px;
-            background-color: #1e293b;
-            border: 1px solid #4b5563;
-            border-radius: 50%;
-            transition: all 0.2s ease;
-        }
-        .custom-radio input:checked ~ .radio-mark {
-            background-color: #1e293b;
-            border-color: #8b5cf6;
-        }
-        .radio-mark:after {
-            content: "";
-            position: absolute;
-            display: none;
-            top: 4px;
-            left: 4px;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #8b5cf6;
-        }
-        .custom-radio input:checked ~ .radio-mark:after {
-            display: block;
-        }
-    </style>
-</head>
-<body>
-    <header class="bg-[#0f172a] border-b border-gray-800">
-        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
-            <div class="flex items-center">
-                <a href="#" class="text-2xl font-['Pacifico'] text-white mr-8">logo</a>
-                <nav class="hidden md:flex space-x-6">
-                    <a href="#" class="text-gray-300 hover:text-white transition">Home</a>
-                    <a href="#" class="text-gray-300 hover:text-white transition">Beats</a>
-                    <a href="#" class="text-gray-300 hover:text-white transition">Licenses</a>
-                    <a href="#" class="text-gray-300 hover:text-white transition">Services</a>
-                    <a href="#" class="text-primary font-medium">Checkout</a>
-                </nav>
-            </div>
-            <div class="flex items-center space-x-4">
-                <div class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-800 text-white">
-                    <i class="ri-user-line"></i>
-                </div>
-            </div>
-        </div>
-    </header>
+{% extends 'base.html' %} {% load static %} {% block title %}Kairos Store -
+Checkout{% endblock %} {% block content %}
+<main class="pt-32 pb-32 container mx-auto px-4 py-8 min-h-screen">
+  <div class="text-center mb-8">
+    <h1 class="text-3xl font-bold mb-2">Checkout</h1>
+    <p class="text-gray-400">
+      Complete your purchase to get your premium beats
+    </p>
+  </div>
 
-    <main class="container mx-auto px-4 py-8 min-h-screen">
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold mb-2">Checkout</h1>
-            <p class="text-gray-400">Complete your purchase to get your premium beats</p>
+  <div class="flex flex-col lg:flex-row gap-8">
+    <!-- Left column: Form -->
+    <div class="w-full lg:w-2/3">
+      <!-- Customer Information -->
+      <div class="bg-gray-900 rounded p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4">Customer Information</h2>
+
+        <div class="mb-4">
+          <label
+            for="email"
+            class="block text-sm font-medium text-gray-300 mb-1"
+            >Email Address</label
+          >
+          <input
+            type="email"
+            id="email"
+            class="w-full bg-gray-800 border border-gray-700 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+            placeholder="your@email.com"
+          />
         </div>
 
-        <div class="flex flex-col lg:flex-row gap-8">
-            <!-- Left column: Form -->
-            <div class="w-full lg:w-2/3">
-                <!-- Customer Information -->
-                <div class="bg-gray-900 rounded p-6 mb-6">
-                    <h2 class="text-xl font-semibold mb-4">Customer Information</h2>
-                    
-                    <div class="mb-4">
-                        <label for="email" class="block text-sm font-medium text-gray-300 mb-1">Email Address</label>
-                        <input type="email" id="email" class="w-full bg-gray-800 border border-gray-700 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary" placeholder="your@email.com">
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label for="firstName" class="block text-sm font-medium text-gray-300 mb-1">First Name</label>
-                            <input type="text" id="firstName" class="w-full bg-gray-800 border border-gray-700 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary" placeholder="John">
-                        </div>
-                        <div>
-                            <label for="lastName" class="block text-sm font-medium text-gray-300 mb-1">Last Name</label>
-                            <input type="text" id="lastName" class="w-full bg-gray-800 border border-gray-700 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Doe">
-                        </div>
-                    </div>
-                    
-                    <div class="mb-4">
-                        <label for="country" class="block text-sm font-medium text-gray-300 mb-1">Country / Region</label>
-                        <div class="relative">
-                            <select id="country" class="w-full bg-gray-800 border border-gray-700 rounded text-white px-4 py-2 appearance-none focus:outline-none focus:ring-2 focus:ring-primary pr-8">
-                                <option value="us">United States</option>
-                                <option value="ca">Canada</option>
-                                <option value="uk">United Kingdom</option>
-                                <option value="au">Australia</option>
-                                <option value="jp">Japan</option>
-                                <option value="de">Germany</option>
-                                <option value="fr">France</option>
-                            </select>
-                            <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                                <i class="ri-arrow-down-s-line text-gray-400"></i>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-4">
-                        <label for="address" class="block text-sm font-medium text-gray-300 mb-1">Address</label>
-                        <input type="text" id="address" class="w-full bg-gray-800 border border-gray-700 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary" placeholder="123 Music Street">
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label for="city" class="block text-sm font-medium text-gray-300 mb-1">City</label>
-                            <input type="text" id="city" class="w-full bg-gray-800 border border-gray-700 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Los Angeles">
-                        </div>
-                        <div>
-                            <label for="state" class="block text-sm font-medium text-gray-300 mb-1">State</label>
-                            <input type="text" id="state" class="w-full bg-gray-800 border border-gray-700 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary" placeholder="California">
-                        </div>
-                        <div>
-                            <label for="zip" class="block text-sm font-medium text-gray-300 mb-1">ZIP Code</label>
-                            <input type="text" id="zip" class="w-full bg-gray-800 border border-gray-700 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary" placeholder="90001">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Payment Method -->
-                <div class="bg-gray-900 rounded p-6 mb-6">
-                    <h2 class="text-xl font-semibold mb-4">Payment Method</h2>
-                    
-                    <div class="space-y-4">
-                        <div class="flex items-center p-4 border border-gray-700 rounded bg-gray-800">
-                            <label class="custom-radio">
-                                <input type="radio" name="payment" checked>
-                                <span class="radio-mark"></span>
-                            </label>
-                            <div class="ml-2 flex-1">
-                                <span class="font-medium">Credit / Debit Card</span>
-                            </div>
-                            <div class="flex space-x-2">
-                                <div class="w-8 h-8 flex items-center justify-center text-white">
-                                    <i class="ri-visa-fill text-xl"></i>
-                                </div>
-                                <div class="w-8 h-8 flex items-center justify-center text-white">
-                                    <i class="ri-mastercard-fill text-xl"></i>
-                                </div>
-                                <div class="w-8 h-8 flex items-center justify-center text-white">
-                                    <i class="ri-american-express-fill text-xl"></i>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div id="card-details" class="p-4 border border-gray-700 rounded bg-gray-800 space-y-4">
-                            <div>
-                                <label for="cardNumber" class="block text-sm font-medium text-gray-300 mb-1">Card Number</label>
-                                <input type="text" id="cardNumber" class="w-full bg-gray-700 border border-gray-600 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary" placeholder="1234 5678 9012 3456">
-                            </div>
-                            
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label for="expiry" class="block text-sm font-medium text-gray-300 mb-1">Expiry Date</label>
-                                    <input type="text" id="expiry" class="w-full bg-gray-700 border border-gray-600 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary" placeholder="MM/YY">
-                                </div>
-                                <div>
-                                    <label for="cvv" class="block text-sm font-medium text-gray-300 mb-1">CVV</label>
-                                    <input type="text" id="cvv" class="w-full bg-gray-700 border border-gray-600 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary" placeholder="123">
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-center p-4 border border-gray-700 rounded bg-gray-800">
-                            <label class="custom-radio">
-                                <input type="radio" name="payment">
-                                <span class="radio-mark"></span>
-                            </label>
-                            <div class="ml-2 flex-1">
-                                <span class="font-medium">PayPal</span>
-                            </div>
-                            <div class="w-8 h-8 flex items-center justify-center text-white">
-                                <i class="ri-paypal-fill text-xl"></i>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-center p-4 border border-gray-700 rounded bg-gray-800">
-                            <label class="custom-radio">
-                                <input type="radio" name="payment">
-                                <span class="radio-mark"></span>
-                            </label>
-                            <div class="ml-2 flex-1">
-                                <span class="font-medium">Apple Pay</span>
-                            </div>
-                            <div class="w-8 h-8 flex items-center justify-center text-white">
-                                <i class="ri-apple-fill text-xl"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right column: Order summary -->
-            <div class="w-full lg:w-1/3">
-                <div class="bg-gray-900 rounded p-6 sticky top-4">
-                    <h2 class="text-xl font-semibold mb-4">Order Summary</h2>
-                    
-                    <div class="space-y-4 mb-6">
-                        <!-- Item 1 -->
-                        <div class="flex border-b border-gray-800 pb-4">
-                            <div class="w-16 h-16 bg-gray-800 rounded flex-shrink-0 flex items-center justify-center">
-                                <i class="ri-music-2-line text-2xl text-primary"></i>
-                            </div>
-                            <div class="ml-4 flex-1">
-                                <div class="flex justify-between">
-                                    <h3 class="font-medium">Midnight Groove</h3>
-                                    <button class="text-gray-400 hover:text-red-500">
-                                        <i class="ri-close-line"></i>
-                                    </button>
-                                </div>
-                                <p class="text-sm text-gray-400">Premium License</p>
-                                <p class="text-primary font-medium">$49.99</p>
-                            </div>
-                        </div>
-                        
-                        <!-- Item 2 -->
-                        <div class="flex border-b border-gray-800 pb-4">
-                            <div class="w-16 h-16 bg-gray-800 rounded flex-shrink-0 flex items-center justify-center">
-                                <i class="ri-music-2-line text-2xl text-primary"></i>
-                            </div>
-                            <div class="ml-4 flex-1">
-                                <div class="flex justify-between">
-                                    <h3 class="font-medium">Urban Sunset</h3>
-                                    <button class="text-gray-400 hover:text-red-500">
-                                        <i class="ri-close-line"></i>
-                                    </button>
-                                </div>
-                                <p class="text-sm text-gray-400">Standard License</p>
-                                <p class="text-primary font-medium">$29.99</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-2 border-b border-gray-800 pb-4 mb-4">
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Subtotal</span>
-                            <span>$79.98</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Tax</span>
-                            <span>$7.99</span>
-                        </div>
-                    </div>
-                    
-                    <div class="flex justify-between font-bold text-lg mb-6">
-                        <span>Total</span>
-                        <span class="text-primary">$87.97</span>
-                    </div>
-                    
-                    <div class="mb-6">
-                        <label class="flex items-center">
-                            <div class="custom-checkbox">
-                                <input type="checkbox">
-                                <span class="checkmark"></span>
-                            </div>
-                            <span class="text-sm text-gray-300">I agree to the <a href="#" class="text-primary hover:underline">Terms of Service</a> and <a href="#" class="text-primary hover:underline">Privacy Policy</a></span>
-                        </label>
-                    </div>
-                    
-                    <button class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-button flex items-center justify-center">
-                        <i class="ri-lock-line mr-2"></i>
-                        Complete Purchase
-                    </button>
-                    
-                    <div class="mt-4 flex items-center justify-center text-sm text-gray-400">
-                        <i class="ri-shield-check-line mr-2 text-green-500"></i>
-                        Secure checkout powered by Stripe
-                    </div>
-                </div>
-            </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label
+              for="firstName"
+              class="block text-sm font-medium text-gray-300 mb-1"
+              >First Name</label
+            >
+            <input
+              type="text"
+              id="firstName"
+              class="w-full bg-gray-800 border border-gray-700 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="John"
+            />
+          </div>
+          <div>
+            <label
+              for="lastName"
+              class="block text-sm font-medium text-gray-300 mb-1"
+              >Last Name</label
+            >
+            <input
+              type="text"
+              id="lastName"
+              class="w-full bg-gray-800 border border-gray-700 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="Doe"
+            />
+          </div>
         </div>
-    </main>
 
-    <footer class="bg-gray-900 border-t border-gray-800 mt-12">
-        <div class="container mx-auto px-4 py-8">
-            <div class="flex flex-wrap justify-between">
-                <div class="w-full md:w-auto mb-6 md:mb-0">
-                    <a href="#" class="text-2xl font-['Pacifico'] text-white mb-4 inline-block">logo</a>
-                    <p class="text-gray-400 max-w-xs">Premium beats for ambitious artists. Elevate your sound with professional quality.</p>
-                </div>
-                
-                <div class="w-full md:w-auto">
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-8">
-                        <div>
-                            <h3 class="text-white font-medium mb-4">Shop</h3>
-                            <ul class="space-y-2">
-                                <li><a href="#" class="text-gray-400 hover:text-white transition">All Beats</a></li>
-                                <li><a href="#" class="text-gray-400 hover:text-white transition">Licenses</a></li>
-                                <li><a href="#" class="text-gray-400 hover:text-white transition">Services</a></li>
-                                <li><a href="#" class="text-gray-400 hover:text-white transition">Free Beats</a></li>
-                            </ul>
-                        </div>
-                        
-                        <div>
-                            <h3 class="text-white font-medium mb-4">Support</h3>
-                            <ul class="space-y-2">
-                                <li><a href="#" class="text-gray-400 hover:text-white transition">Contact Us</a></li>
-                                <li><a href="#" class="text-gray-400 hover:text-white transition">FAQ</a></li>
-                                <li><a href="#" class="text-gray-400 hover:text-white transition">Terms of Service</a></li>
-                                <li><a href="#" class="text-gray-400 hover:text-white transition">Privacy Policy</a></li>
-                            </ul>
-                        </div>
-                        
-                        <div>
-                            <h3 class="text-white font-medium mb-4">Connect</h3>
-                            <div class="flex space-x-4">
-                                <a href="#" class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-800 text-white hover:bg-primary transition">
-                                    <i class="ri-instagram-line"></i>
-                                </a>
-                                <a href="#" class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-800 text-white hover:bg-primary transition">
-                                    <i class="ri-youtube-line"></i>
-                                </a>
-                                <a href="#" class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-800 text-white hover:bg-primary transition">
-                                    <i class="ri-twitter-x-line"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <div class="mb-4">
+          <label
+            for="country"
+            class="block text-sm font-medium text-gray-300 mb-1"
+            >Country / Region</label
+          >
+          <div class="relative">
+            <select
+              id="country"
+              class="w-full bg-gray-800 border border-gray-700 rounded text-white px-4 py-2 appearance-none focus:outline-none focus:ring-2 focus:ring-primary pr-8"
+            >
+              <option value="us">United States</option>
+              <option value="ca">Canada</option>
+              <option value="uk">United Kingdom</option>
+              <option value="au">Australia</option>
+              <option value="jp">Japan</option>
+              <option value="de">Germany</option>
+              <option value="fr">France</option>
+            </select>
+            <div
+              class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none"
+            >
+              <i class="ri-arrow-down-s-line text-gray-400"></i>
             </div>
-            
-            <div class="mt-8 pt-6 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center">
-                <p class="text-gray-500 text-sm mb-4 md:mb-0">© 2025 Premium Beats. All rights reserved.</p>
-                
-                <div class="flex items-center space-x-4">
-                    <div class="w-8 h-8 flex items-center justify-center text-gray-400">
-                        <i class="ri-visa-fill text-xl"></i>
-                    </div>
-                    <div class="w-8 h-8 flex items-center justify-center text-gray-400">
-                        <i class="ri-mastercard-fill text-xl"></i>
-                    </div>
-                    <div class="w-8 h-8 flex items-center justify-center text-gray-400">
-                        <i class="ri-paypal-fill text-xl"></i>
-                    </div>
-                    <div class="w-8 h-8 flex items-center justify-center text-gray-400">
-                        <i class="ri-apple-fill text-xl"></i>
-                    </div>
-                </div>
-            </div>
+          </div>
         </div>
-    </footer>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const paymentRadios = document.querySelectorAll('input[name="payment"]');
-            const cardDetails = document.getElementById('card-details');
-            
-            paymentRadios.forEach(radio => {
-                radio.addEventListener('change', function() {
-                    if (this.checked && this.parentElement.nextElementSibling.textContent.trim() === 'Credit / Debit Card') {
-                        cardDetails.classList.remove('hidden');
-                    } else {
-                        cardDetails.classList.add('hidden');
-                    }
-                });
-            });
-        });
-    </script>
-</body>
-</html>
+        <div class="mb-4">
+          <label
+            for="address"
+            class="block text-sm font-medium text-gray-300 mb-1"
+            >Address</label
+          >
+          <input
+            type="text"
+            id="address"
+            class="w-full bg-gray-800 border border-gray-700 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+            placeholder="123 Music Street"
+          />
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label
+              for="city"
+              class="block text-sm font-medium text-gray-300 mb-1"
+              >City</label
+            >
+            <input
+              type="text"
+              id="city"
+              class="w-full bg-gray-800 border border-gray-700 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="Los Angeles"
+            />
+          </div>
+          <div>
+            <label
+              for="state"
+              class="block text-sm font-medium text-gray-300 mb-1"
+              >State</label
+            >
+            <input
+              type="text"
+              id="state"
+              class="w-full bg-gray-800 border border-gray-700 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="California"
+            />
+          </div>
+          <div>
+            <label
+              for="zip"
+              class="block text-sm font-medium text-gray-300 mb-1"
+              >ZIP Code</label
+            >
+            <input
+              type="text"
+              id="zip"
+              class="w-full bg-gray-800 border border-gray-700 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="90001"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Method -->
+      <div class="bg-gray-900 rounded p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4">Payment Method</h2>
+
+        <div class="space-y-4">
+          <div
+            class="flex items-center p-4 border border-gray-700 rounded bg-gray-800"
+          >
+            <label class="custom-radio">
+              <input type="radio" name="payment" checked />
+              <span class="radio-mark"></span>
+            </label>
+            <div class="ml-2 flex-1">
+              <span class="font-medium">Credit / Debit Card</span>
+            </div>
+            <div class="flex space-x-2">
+              <div class="w-8 h-8 flex items-center justify-center text-white">
+                <i class="ri-visa-fill text-xl"></i>
+              </div>
+              <div class="w-8 h-8 flex items-center justify-center text-white">
+                <i class="ri-mastercard-fill text-xl"></i>
+              </div>
+              <div class="w-8 h-8 flex items-center justify-center text-white">
+                <i class="ri-american-express-fill text-xl"></i>
+              </div>
+            </div>
+          </div>
+
+          <div
+            id="card-details"
+            class="p-4 border border-gray-700 rounded bg-gray-800 space-y-4"
+          >
+            <div>
+              <label
+                for="cardNumber"
+                class="block text-sm font-medium text-gray-300 mb-1"
+                >Card Number</label
+              >
+              <input
+                type="text"
+                id="cardNumber"
+                class="w-full bg-gray-700 border border-gray-600 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="1234 5678 9012 3456"
+              />
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label
+                  for="expiry"
+                  class="block text-sm font-medium text-gray-300 mb-1"
+                  >Expiry Date</label
+                >
+                <input
+                  type="text"
+                  id="expiry"
+                  class="w-full bg-gray-700 border border-gray-600 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="MM/YY"
+                />
+              </div>
+              <div>
+                <label
+                  for="cvv"
+                  class="block text-sm font-medium text-gray-300 mb-1"
+                  >CVV</label
+                >
+                <input
+                  type="text"
+                  id="cvv"
+                  class="w-full bg-gray-700 border border-gray-600 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="123"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="flex items-center p-4 border border-gray-700 rounded bg-gray-800"
+          >
+            <label class="custom-radio">
+              <input type="radio" name="payment" />
+              <span class="radio-mark"></span>
+            </label>
+            <div class="ml-2 flex-1">
+              <span class="font-medium">PayPal</span>
+            </div>
+            <div class="w-8 h-8 flex items-center justify-center text-white">
+              <i class="ri-paypal-fill text-xl"></i>
+            </div>
+          </div>
+
+          <div
+            class="flex items-center p-4 border border-gray-700 rounded bg-gray-800"
+          >
+            <label class="custom-radio">
+              <input type="radio" name="payment" />
+              <span class="radio-mark"></span>
+            </label>
+            <div class="ml-2 flex-1">
+              <span class="font-medium">Apple Pay</span>
+            </div>
+            <div class="w-8 h-8 flex items-center justify-center text-white">
+              <i class="ri-apple-fill text-xl"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right column: Order summary -->
+    <div class="w-full lg:w-1/3">
+      <div class="bg-gray-900 rounded p-6 sticky top-24">
+        <h2 class="text-xl font-semibold text-white mb-4">Order Summary</h2>
+        <div id="checkoutItems" class="space-y-4">
+          {% for item in order_items %}
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <img src="{{ item.beat.get_image_url }}" alt="{{ item.beat.title }}" class="w-12 h-12 rounded object-cover" />
+              <div>
+                <h4 class="text-white font-medium">{{ item.beat.title }}</h4>
+                <p class="text-gray-400 text-sm">{{ item.beat.genre }} • {{ item.beat.bpm }} BPM</p>
+              </div>
+            </div>
+            <span class="text-primary font-bold">${{ item.total_price|floatformat:2 }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="mt-6 border-t border-gray-700 pt-4">
+          <div class="flex justify-between items-center">
+            <span class="text-white font-medium">Total:</span>
+            <span id="checkoutTotal" class="text-primary font-bold text-xl">${{ order.total_price|floatformat:2 }}</span>
+          </div>
+        </div>
+
+        <div class="mb-6">
+          <label class="flex items-center">
+            <div class="custom-checkbox">
+              <input type="checkbox" />
+              <span class="checkmark"></span>
+            </div>
+            <span class="text-sm text-gray-300"
+              >I agree to the
+              <a href="#" class="text-primary hover:underline"
+                >Terms of Service</a
+              >
+              and
+              <a href="#" class="text-primary hover:underline"
+                >Privacy Policy</a
+              ></span
+            >
+          </label>
+        </div>
+
+        <button
+          class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-button flex items-center justify-center"
+        >
+          <i class="ri-lock-line mr-2"></i>
+          Complete Purchase
+        </button>
+
+        <div
+          class="mt-4 flex items-center justify-center text-sm text-gray-400"
+        >
+          <i class="ri-shield-check-line mr-2 text-green-500"></i>
+          Secure checkout powered by Stripe
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %} {% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const paymentRadios = document.querySelectorAll('input[name="payment"]');
+    const cardDetails = document.getElementById("card-details");
+
+    paymentRadios.forEach((radio) => {
+      radio.addEventListener("change", function () {
+        if (
+          this.checked &&
+          this.parentElement.nextElementSibling.textContent.trim() ===
+            "Credit / Debit Card"
+        ) {
+          cardDetails.classList.remove("hidden");
+        } else {
+          cardDetails.classList.add("hidden");
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}
