@@ -4,6 +4,8 @@ let isPlaying = false;
 let isRepeat = false;
 let volume = 0.8; // Default volume
 let isSeeking = false;
+let currentPlaylist = []; // Array to store current playlist
+let currentIndex = -1; // Current index in playlist
 
 // Function to play a beat sample
 function playSample(beatId, sampleUrl) {
@@ -39,12 +41,16 @@ function playSample(beatId, sampleUrl) {
         currentBeatId = beatId;
         isPlaying = true;
 
+        // Update playlist and current index
+        updatePlaylist(beatId);
+
         // Set up audio event listeners
         currentAudio.addEventListener('play', () => {
             updatePlayButton(beatId, true);
             updatePlayerPlayButton(true);
             showAudioPlayer(beatId);
             startEqualizer(beatId);
+            updateNavigationButtons();
         });
 
         currentAudio.addEventListener('pause', () => {
@@ -232,6 +238,72 @@ function stopEqualizer(beatId) {
     });
 }
 
+// Update playlist and current index
+function updatePlaylist(beatId) {
+    try {
+        // Get all beat cards on the page
+        const beatCards = document.querySelectorAll('[data-beat-id]');
+        currentPlaylist = Array.from(beatCards).map(card => {
+            const playButton = card.querySelector('.play-button');
+            if (!playButton) return null;
+            
+            // Get the sample URL from the data attribute
+            const sampleUrl = playButton.getAttribute('data-sample-url');
+            if (!sampleUrl) return null;
+            
+            return {
+                id: card.dataset.beatId,
+                sampleUrl: sampleUrl
+            };
+        }).filter(beat => beat !== null);
+        
+        // Find current index
+        currentIndex = currentPlaylist.findIndex(beat => beat.id === beatId);
+        updateNavigationButtons();
+    } catch (error) {
+        console.error('Error updating playlist:', error);
+        // Reset playlist if there's an error
+        currentPlaylist = [];
+        currentIndex = -1;
+        updateNavigationButtons();
+    }
+}
+
+// Play previous track
+function playPrevious() {
+    if (currentIndex > 0) {
+        const prevBeat = currentPlaylist[currentIndex - 1];
+        playSample(prevBeat.id, prevBeat.sampleUrl);
+    }
+}
+
+// Play next track
+function playNext() {
+    if (currentIndex < currentPlaylist.length - 1) {
+        const nextBeat = currentPlaylist[currentIndex + 1];
+        playSample(nextBeat.id, nextBeat.sampleUrl);
+    }
+}
+
+// Update navigation buttons state
+function updateNavigationButtons() {
+    const player = document.getElementById('audioPlayer');
+    if (!player) return;
+
+    const prevBtn = player.querySelector('.ri-skip-back-line').parentElement;
+    const nextBtn = player.querySelector('.ri-skip-forward-line').parentElement;
+
+    if (prevBtn) {
+        prevBtn.classList.toggle('opacity-50', currentIndex <= 0);
+        prevBtn.classList.toggle('cursor-not-allowed', currentIndex <= 0);
+    }
+
+    if (nextBtn) {
+        nextBtn.classList.toggle('opacity-50', currentIndex >= currentPlaylist.length - 1);
+        nextBtn.classList.toggle('cursor-not-allowed', currentIndex >= currentPlaylist.length - 1);
+    }
+}
+
 // Initialize audio player controls
 document.addEventListener('DOMContentLoaded', function() {
     const player = document.getElementById('audioPlayer');
@@ -335,14 +407,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Previous button
         prevBtn.addEventListener('click', () => {
-            // Implement previous track logic
-            console.log('Previous track');
+            if (currentIndex > 0) {
+                playPrevious();
+            }
         });
 
         // Next button
         nextBtn.addEventListener('click', () => {
-            // Implement next track logic
-            console.log('Next track');
+            if (currentIndex < currentPlaylist.length - 1) {
+                playNext();
+            }
         });
     }
 });

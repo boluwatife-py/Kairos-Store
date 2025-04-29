@@ -12,7 +12,9 @@
         <span class="bg-primary/80 text-white text-xs px-2 py-1 rounded">{{ beat.genre }}</span>
         <span class="bg-gray-800/80 text-white text-xs px-2 py-1 rounded ml-2">{{ beat.bpm }} BPM</span>
       </div>
-      <button class="play-button w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-white/20 transition-colors" onclick="playSample({{ beat.id }}, '{{ beat.get_sample_url }}')">
+      <button class="play-button w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-white/20 transition-colors" 
+              data-sample-url="{{ beat.get_sample_url }}"
+              onclick="playSample({{ beat.id }}, '{{ beat.get_sample_url }}')">
         <i class="ri-play-fill text-white ri-lg"></i>
       </button>
     </div>
