@@ -3,10 +3,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login, authenticate, logout
-from django.http import JsonResponse
-from django.db.models import Q
+from django.http import JsonResponse, FileResponse
+from django.db.models import Q, Sum
 from functools import wraps
-from .models import Beat, Bundle, OrderItem, Testimonial, Cart, CartItem, Order
+from .models import Beat, Bundle, OrderItem, Testimonial, Cart, CartItem, Order, Favorite
 from .forms import CustomUserCreationForm, CustomAuthenticationForm
 from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
 from django.urls import reverse_lazy
@@ -50,6 +50,10 @@ def home(request):
     testimonials = Testimonial.objects.filter(
         is_active=True
     ).order_by('-created_at')[:3]
+
+    # Set user on beats for purchased check
+    for beat in list(featured_beats) + list(new_releases):
+        beat.set_user(request.user)
 
     context = {
         'featured_beats': featured_beats,
@@ -116,9 +120,44 @@ def beats(request):
 
 @login_required
 def dashboard(request):
-    user_orders = Order.objects.filter(user=request.user)
+    # Get user's purchased beats
+    purchased_beats = Beat.objects.filter(
+        orderitem__order__user=request.user,
+        orderitem__order__status='completed'
+    ).distinct()
+
+    # Set user on beats for purchased check
+    for beat in purchased_beats:
+        beat.set_user(request.user)
+
+    # Get user's orders
+    orders = Order.objects.filter(user=request.user).order_by('-created_at')
+
+    # Calculate total spent
+    total_spent = Order.objects.filter(
+        user=request.user,
+        status='completed'
+    ).aggregate(total=Sum('total_price'))['total'] or 0
+
+    # Get download count (for future implementation)
+    download_count = 0  # This will be implemented when we add download tracking
+
+    # Get favorite beats
+    favorite_beats = Beat.objects.filter(
+        favorite__user=request.user
+    ).distinct()
+
+    # Set user on favorite beats for purchased check
+    for beat in favorite_beats:
+        beat.set_user(request.user)
+
     context = {
-        'orders': user_orders,
+        'purchased_beats': purchased_beats,
+        'orders': orders,
+        'total_spent': total_spent,
+        'download_count': download_count,
+        'purchased_count': purchased_beats.count(),
+        'favorite_beats': favorite_beats,
     }
     return render(request, 'dashboard.html', context)
 
@@ -149,10 +188,25 @@ def remove_from_cart(request, cart_item_id):
 @login_required
 def cart(request):
     cart, created = Cart.objects.get_or_create(user=request.user)
-    context = {
-        'cart': cart,
-    }
-    return render(request, 'cart.html', context)
+    cart_items = cart.cartitem_set.all().select_related('beat')
+    
+    items_data = [{
+        'id': item.id,
+        'beat': {
+            'title': item.beat.title,
+            'genre': item.beat.genre,
+            'bpm': item.beat.bpm,
+            'price': float(item.beat.price),
+            'image_url': item.beat.get_image_url()
+        },
+        'quantity': item.quantity,
+        'total_price': float(item.total_price)
+    } for item in cart_items]
+    
+    return JsonResponse({
+        'items': items_data,
+        'total_price': float(cart.total_price)
+    })
 
 @login_required_json
 def checkout(request):
@@ -260,3 +314,50 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
 
 class CustomPasswordResetCompleteView(PasswordResetCompleteView):
     template_name = 'store/password_reset_complete.html'
+
+@login_required
+def download_beat(request, beat_id):
+    beat = get_object_or_404(Beat, id=beat_id)
+    
+    # Check if user has purchased the beat
+    has_purchased = OrderItem.objects.filter(
+        order__user=request.user,
+        beat=beat,
+        order__status='completed'
+    ).exists()
+    
+    if not has_purchased:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'You need to purchase this beat before downloading it'
+        }, status=403)
+    
+    if not beat.audio_file:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Audio file not found'
+        }, status=404)
+    
+    # Serve the file
+    response = FileResponse(beat.audio_file, as_attachment=True)
+    response['Content-Disposition'] = f'attachment; filename="{beat.title}.mp3"'
+    return response
+
+@login_required_json
+def toggle_favorite(request, beat_id):
+    beat = get_object_or_404(Beat, id=beat_id)
+    favorite, created = Favorite.objects.get_or_create(user=request.user, beat=beat)
+    
+    if not created:
+        favorite.delete()
+        is_favorite = False
+        message = 'Beat removed from favorites'
+    else:
+        is_favorite = True
+        message = 'Beat added to favorites'
+    
+    return JsonResponse({
+        'status': 'success',
+        'message': message,
+        'is_favorite': is_favorite
+    })

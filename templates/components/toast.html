@@ -1,57 +1,98 @@
 {% load static %}
-<div id="toast" class="fixed top-4 right-4 z-50 hidden">
-  <div class="glass rounded-lg border border-gray-800 shadow-xl p-4 min-w-[300px]">
-    <div class="flex items-start">
-      <div class="flex-shrink-0">
-        <i id="toastIcon" class="ri-information-line text-xl"></i>
-      </div>
-      <div class="ml-3 w-0 flex-1">
-        <p id="toastMessage" class="text-sm font-medium text-white"></p>
-      </div>
-      <div class="ml-4 flex-shrink-0 flex">
-        <button id="closeToast" class="text-gray-400 hover:text-white transition-colors">
-          <i class="ri-close-line text-xl"></i>
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- Toast Container -->
+<div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2"></div>
 
 <script>
-  function showToast(message, type = 'info') {
-    const toast = document.getElementById('toast');
-    const toastMessage = document.getElementById('toastMessage');
-    const toastIcon = document.getElementById('toastIcon');
+  function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `bg-gray-900/95 backdrop-blur-sm rounded-md border border-gray-800/50 shadow-lg p-3 min-w-[280px] max-w-md transform transition-all duration-300 ease-out translate-y-2 opacity-0`;
     
-    // Set message
-    toastMessage.textContent = message;
+    // Create toast content
+    const content = document.createElement('div');
+    content.className = 'flex items-start';
     
-    // Set icon based on type
+    // Create icon container
+    const iconContainer = document.createElement('div');
+    iconContainer.className = 'flex-shrink-0';
+    
+    // Set icon and colors based on type
+    let icon, bgColor, borderColor;
     switch(type) {
       case 'success':
-        toastIcon.className = 'ri-checkbox-circle-line text-green-500 text-xl';
+        icon = 'ri-checkbox-circle-line';
+        bgColor = 'bg-green-500/10';
+        borderColor = 'border-green-500/20';
         break;
       case 'error':
-        toastIcon.className = 'ri-error-warning-line text-red-500 text-xl';
+        icon = 'ri-error-warning-line';
+        bgColor = 'bg-red-500/10';
+        borderColor = 'border-red-500/20';
         break;
       case 'warning':
-        toastIcon.className = 'ri-alert-line text-yellow-500 text-xl';
+        icon = 'ri-alert-line';
+        bgColor = 'bg-yellow-500/10';
+        borderColor = 'border-yellow-500/20';
         break;
       default:
-        toastIcon.className = 'ri-information-line text-blue-500 text-xl';
+        icon = 'ri-information-line';
+        bgColor = 'bg-blue-500/10';
+        borderColor = 'border-blue-500/20';
     }
     
-    // Show toast
-    toast.classList.remove('hidden');
+    // Create icon wrapper with background
+    const iconWrapper = document.createElement('div');
+    iconWrapper.className = `w-8 h-8 rounded-md ${bgColor} ${borderColor} border flex items-center justify-center`;
+    iconWrapper.innerHTML = `<i class="${icon} text-lg ${type === 'success' ? 'text-green-400' : type === 'error' ? 'text-red-400' : type === 'warning' ? 'text-yellow-400' : 'text-blue-400'}"></i>`;
+    iconContainer.appendChild(iconWrapper);
     
-    // Auto hide after 5 seconds
+    // Create message container
+    const messageContainer = document.createElement('div');
+    messageContainer.className = 'ml-3 flex-1 pt-1';
+    
+    // Handle both string and object messages
+    if (typeof message === 'object') {
+      if (message.errors) {
+        // Get the first error message
+        const firstError = Object.values(message.errors)[0][0];
+        messageContainer.textContent = firstError;
+      } else {
+        messageContainer.textContent = message.message || 'An error occurred';
+      }
+    } else {
+      messageContainer.textContent = message;
+    }
+    
+    // Create close button
+    const closeButton = document.createElement('button');
+    closeButton.className = 'ml-4 text-gray-500 hover:text-gray-300 transition-colors';
+    closeButton.innerHTML = '<i class="ri-close-line text-lg"></i>';
+    closeButton.onclick = () => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(2px)';
+      setTimeout(() => toast.remove(), 300);
+    };
+    
+    // Add elements to toast
+    content.appendChild(iconContainer);
+    content.appendChild(messageContainer);
+    content.appendChild(closeButton);
+    toast.appendChild(content);
+    
+    // Add toast to container
+    const container = document.getElementById('toastContainer');
+    container.appendChild(toast);
+    
+    // Trigger animation
+    requestAnimationFrame(() => {
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateY(0)';
+    });
+    
+    // Auto remove after 4 seconds
     setTimeout(() => {
-      toast.classList.add('hidden');
-    }, 5000);
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(2px)';
+      setTimeout(() => toast.remove(), 300);
+    }, 4000);
   }
-  
-  // Close toast when clicking close button
-  document.getElementById('closeToast').addEventListener('click', () => {
-    document.getElementById('toast').classList.add('hidden');
-  });
 </script> 

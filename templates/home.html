@@ -129,40 +129,6 @@
   </div>
 </section>
 
-<!-- Testimonials -->
-<section class="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-  <h2 class="text-3xl font-bold text-white mb-8">What Our Artists Say</h2>
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    {% for testimonial in testimonials %}
-      <div class="glass-card rounded-lg p-6">
-        <div class="flex items-center mb-4">
-          <div class="w-12 h-12 bg-gray-800 rounded-full flex-shrink-0"></div>
-          <div class="ml-4">
-            <h4 class="text-white font-medium">{{ testimonial.name }}</h4>
-            <p class="text-gray-400 text-sm">{{ testimonial.role }}</p>
-          </div>
-        </div>
-        <p class="text-gray-300 mb-4">{{ testimonial.content }}</p>
-        <div class="flex items-center">
-          <div class="flex text-yellow-400">
-            {% for i in "12345" %}
-              {% if forloop.counter <= testimonial.rating %}
-                <i class="ri-star-fill"></i>
-              {% else %}
-                <i class="ri-star-line"></i>
-              {% endif %}
-            {% endfor %}
-          </div>
-          <span class="text-gray-400 text-sm ml-2">{{ testimonial.rating }}/5</span>
-        </div>
-      </div>
-    {% empty %}
-      <div class="col-span-3 text-center py-12">
-        <p class="text-gray-400">No testimonials available at the moment.</p>
-      </div>
-    {% endfor %}
-  </div>
-</section>
 
 <!-- Newsletter -->
 <section class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

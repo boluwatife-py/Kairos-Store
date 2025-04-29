@@ -4,6 +4,9 @@
   <div class="relative h-48 bg-gray-800">
     <img src="{{ beat.get_image_url }}" alt="{{ beat.title }}" class="w-full h-full object-cover" />
     <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
+    <button class="favorite-button absolute top-2 right-2 text-gray-400 hover:text-primary transition-colors bg-black/20 p-2 rounded-full backdrop-blur-sm" data-beat-id="{{ beat.id }}">
+      <i class="ri-heart-{% if beat.is_favorite %}fill text-primary{% else %}line{% endif %} text-xl"></i>
+    </button>
     <div class="absolute bottom-4 left-4 right-4 flex justify-between items-center">
       <div>
         <span class="bg-primary/80 text-white text-xs px-2 py-1 rounded">{{ beat.genre }}</span>
@@ -30,12 +33,22 @@
         </div>
         <span class="text-xs text-gray-400">0:30</span>
       </div>
-      <button 
-        onclick="handleAddToCart({{ beat.id }}, '{{ beat.title }}')"
-        class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-button text-sm font-medium transition-colors whitespace-nowrap"
-      >
-        Add to Cart
-      </button>
+      {% if beat.is_purchased %}
+        <button 
+          onclick="handleDownload({{ beat.id }}, '{{ beat.title }}')"
+          class="bg-green-500/10 hover:bg-green-500/20 text-green-400 px-4 py-2 rounded-button text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-2"
+        >
+          <i class="ri-download-line"></i>
+          Download
+        </button>
+      {% else %}
+        <button 
+          onclick="handleAddToCart({{ beat.id }}, '{{ beat.title }}')"
+          class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-button text-sm font-medium transition-colors whitespace-nowrap"
+        >
+          Add to Cart
+        </button>
+      {% endif %}
     </div>
   </div>
 </div>
@@ -62,12 +75,80 @@
       
       if (response.ok) {
         showToast(data.message);
-        // Update cart count if needed
+        // Update cart count immediately
+        const cartCount = document.querySelector('#cartButton span');
+        const currentCount = parseInt(cartCount.textContent || '0');
+        cartCount.textContent = currentCount + 1;
+        cartCount.classList.remove('hidden');
       } else {
-        showToast(data, 'error');
+        showToast(data.message || 'Error adding to cart', 'error');
       }
     } catch (error) {
-      showToast({ message: 'An error occurred. Please try again.' }, 'error');
+      showToast('An error occurred. Please try again.', 'error');
     }
   }
+
+  async function handleDownload(beatId, beatTitle) {
+    try {
+      const response = await fetch(`/download/${beatId}/`, {
+        method: 'GET',
+        headers: {
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+      });
+      
+      if (response.ok) {
+        // Create a temporary link to download the file
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${beatTitle}.mp3`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        showToast('Download started!');
+      } else {
+        const data = await response.json();
+        showToast(data.message || 'Error downloading beat', 'error');
+      }
+    } catch (error) {
+      showToast('An error occurred while downloading', 'error');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    // Favorite button functionality
+    const favoriteButtons = document.querySelectorAll('.favorite-button');
+    favoriteButtons.forEach(button => {
+      button.addEventListener('click', async function() {
+        const beatId = this.dataset.beatId;
+        try {
+          const response = await fetch(`/store/toggle-favorite/${beatId}/`, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': getCookie('csrftoken'),
+              'Content-Type': 'application/json'
+            }
+          });
+          const data = await response.json();
+          if (data.status === 'success') {
+            const icon = this.querySelector('i');
+            if (data.is_favorite) {
+              icon.classList.remove('ri-heart-line');
+              icon.classList.add('ri-heart-fill', 'text-primary');
+            } else {
+              icon.classList.remove('ri-heart-fill', 'text-primary');
+              icon.classList.add('ri-heart-line');
+            }
+            showToast(data.message);
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          showToast('Error updating favorite status', 'error');
+        }
+      });
+    });
+  });
 </script> 

@@ -2,7 +2,7 @@
 {% load static %}
 <div class="glass-card rounded-lg overflow-hidden">
   <div class="relative h-64 bg-gray-800">
-    <img src="{% static bundle.image %}" alt="{{ bundle.title }}" class="w-full h-full object-cover" />
+    <img src="{{ bundle.image.url }}" alt="{{ bundle.title }}" class="w-full h-full object-cover" />
     <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
     <div class="absolute bottom-4 left-4">
       <span class="bg-primary text-white text-sm px-3 py-1 rounded-full font-medium">{{ bundle.beat_count }} Beats</span>

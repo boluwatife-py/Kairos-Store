@@ -7,7 +7,7 @@
     <main class="pt-24 pb-32">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Dashboard Header -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <div>
             <h1 class="text-3xl font-bold text-white">My Dashboard</h1>
             <p class="text-gray-400 mt-1">
@@ -30,15 +30,13 @@
           <div class="glass-card rounded-lg p-6">
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-lg font-semibold text-white">Purchased Beats</h3>
-              <div
-                class="w-10 h-10 flex items-center justify-center bg-primary/20 rounded-full"
-              >
+              <div class="w-10 h-10 flex items-center justify-center bg-primary/20 rounded-full">
                 <i class="ri-music-2-line text-primary"></i>
               </div>
             </div>
             <div class="flex items-end justify-between">
               <div>
-                <span class="text-3xl font-bold text-white">12</span>
+                <span class="text-3xl font-bold text-white">{{ purchased_count }}</span>
                 <p class="text-gray-400 text-sm mt-1">Total beats owned</p>
               </div>
               <div class="h-16 flex items-end">
@@ -53,23 +51,21 @@
           <!-- Stats Card 2 -->
           <div class="glass-card rounded-lg p-6">
             <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-semibold text-white">Total Spent</h3>
-              <div
-            class="w-10 h-10 flex items-center justify-center bg-primary/20 rounded-full"
-              >
-            <i class="ri-wallet-3-line text-primary"></i>
+              <h3 class="text-lg font-semibold text-white">Total Spent</h3>
+              <div class="w-10 h-10 flex items-center justify-center bg-primary/20 rounded-full">
+                <i class="ri-wallet-3-line text-primary"></i>
               </div>
             </div>
             <div class="flex items-end justify-between">
               <div>
-            <span class="text-3xl font-bold text-white">$299.99</span>
-            <p class="text-gray-400 text-sm mt-1">Lifetime spending</p>
+                <span class="text-3xl font-bold text-white">${{ total_spent|floatformat:2 }}</span>
+                <p class="text-gray-400 text-sm mt-1">Lifetime spending</p>
               </div>
               <div class="h-16 flex items-end">
-            <div class="w-6 h-8 bg-primary/20 rounded-t-sm mr-1"></div>
-            <div class="w-6 h-10 bg-primary/30 rounded-t-sm mr-1"></div>
-            <div class="w-6 h-12 bg-primary/40 rounded-t-sm mr-1"></div>
-            <div class="w-6 h-16 bg-primary/60 rounded-t-sm"></div>
+                <div class="w-6 h-8 bg-primary/20 rounded-t-sm mr-1"></div>
+                <div class="w-6 h-10 bg-primary/30 rounded-t-sm mr-1"></div>
+                <div class="w-6 h-12 bg-primary/40 rounded-t-sm mr-1"></div>
+                <div class="w-6 h-16 bg-primary/60 rounded-t-sm"></div>
               </div>
             </div>
           </div>
@@ -77,49 +73,124 @@
           <!-- Stats Card 3 -->
           <div class="glass-card rounded-lg p-6">
             <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-semibold text-white">Downloads</h3>
-              <div
-            class="w-10 h-10 flex items-center justify-center bg-primary/20 rounded-full"
-              >
-            <i class="ri-download-cloud-line text-primary"></i>
+              <h3 class="text-lg font-semibold text-white">Downloads</h3>
+              <div class="w-10 h-10 flex items-center justify-center bg-primary/20 rounded-full">
+                <i class="ri-download-cloud-line text-primary"></i>
               </div>
             </div>
             <div class="flex items-end justify-between">
               <div>
-            <span class="text-3xl font-bold text-white">24</span>
-            <p class="text-gray-400 text-sm mt-1">Total downloads</p>
+                <span class="text-3xl font-bold text-white">{{ download_count }}</span>
+                <p class="text-gray-400 text-sm mt-1">Total downloads</p>
               </div>
-          <div class="h-16 flex items-end">
-            <div class="w-6 h-8 bg-primary/20 rounded-t-sm mr-1"></div>
-            <div class="w-6 h-10 bg-primary/30 rounded-t-sm mr-1"></div>
-            <div class="w-6 h-12 bg-primary/40 rounded-t-sm mr-1"></div>
-            <div class="w-6 h-16 bg-primary/60 rounded-t-sm"></div>
+              <div class="h-16 flex items-end">
+                <div class="w-6 h-8 bg-primary/20 rounded-t-sm mr-1"></div>
+                <div class="w-6 h-10 bg-primary/30 rounded-t-sm mr-1"></div>
+                <div class="w-6 h-12 bg-primary/40 rounded-t-sm mr-1"></div>
+                <div class="w-6 h-16 bg-primary/60 rounded-t-sm"></div>
               </div>
             </div>
           </div>
         </div>
 
-    <!-- Dashboard Tabs -->
-    <div class="glass rounded-lg p-6">
-      <div class="flex space-x-8 border-b border-gray-700 mb-6">
-        <button class="tab-button active text-white pb-4">Purchased Beats</button>
-        <button class="tab-button text-gray-400 pb-4">Orders</button>
-        <button class="tab-button text-gray-400 pb-4">Favorites</button>
-        <button class="tab-button text-gray-400 pb-4">Settings</button>
-            </div>
+        <!-- Dashboard Tabs -->
+        <div class="glass rounded-lg p-6">
+          <div class="flex space-x-8 border-b border-gray-700 mb-6">
+            <button class="tab-button active text-white pb-4" data-tab="purchased">Purchased Beats</button>
+            <button class="tab-button text-gray-400 pb-4" data-tab="orders">Orders</button>
+            <button class="tab-button text-gray-400 pb-4" data-tab="favorites">Favorites</button>
+            <button class="tab-button text-gray-400 pb-4" data-tab="settings">Settings</button>
+          </div>
 
-      <!-- Tab Content -->
-      <div class="tab-content active">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {% for beat in purchased_beats %}
-            {% include 'components/beat_card.html' with beat=beat %}
-          {% empty %}
-            <div class="col-span-3 text-center py-12">
-              <p class="text-gray-400">No purchased beats available.</p>
-                  </div>
-          {% endfor %}
+          <!-- Tab Content -->
+          <div class="tab-content active" id="purchased-tab">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {% for beat in purchased_beats %}
+                {% include 'components/beat_card.html' with beat=beat %}
+              {% empty %}
+                <div class="col-span-3 text-center py-12">
+                  <p class="text-gray-400">No purchased beats available.</p>
                 </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Orders Tab Content -->
+          <div class="tab-content hidden" id="orders-tab">
+            <div class="space-y-3">
+              {% for order in orders %}
+                <div class="glass-card rounded-lg p-3">
+                  <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-3">
+                      <div class="w-10 h-10 flex items-center justify-center bg-primary/20 rounded-full">
+                        <i class="ri-shopping-cart-line text-primary"></i>
+                      </div>
+                      <div>
+                        <h4 class="text-white font-medium">Order #{{ order.id }}</h4>
+                        <p class="text-gray-400 text-sm">{{ order.created_at|date:"F j, Y" }}</p>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <span class="text-primary font-bold">${{ order.total_price|floatformat:2 }}</span>
+                      <span class="ml-2 px-2 py-0.5 rounded-full text-xs {% if order.status == 'completed' %}bg-green-500/20 text-green-400{% elif order.status == 'pending' %}bg-yellow-500/20 text-yellow-400{% else %}bg-gray-500/20 text-gray-400{% endif %}">
+                        {{ order.status|title }}
+                      </span>
+                    </div>
                   </div>
+                  <div class="mt-2 pl-13">
+                    <div class="space-y-1">
+                      {% for item in order.orderitem_set.all %}
+                        <div class="flex justify-between items-center text-sm">
+                          <span class="text-gray-300">{{ item.beat.title }}</span>
+                          <span class="text-gray-400">${{ item.price|floatformat:2 }}</span>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+              {% empty %}
+                <div class="text-center py-12">
+                  <p class="text-gray-400">No orders available.</p>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Favorites Tab Content -->
+          <div class="tab-content hidden" id="favorites-tab">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {% for beat in favorite_beats %}
+                {% include 'components/beat_card.html' with beat=beat %}
+              {% empty %}
+                <div class="col-span-3 text-center py-12">
+                  <p class="text-gray-400">No favorite beats yet.</p>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Settings Tab Content -->
+          <div class="tab-content hidden" id="settings-tab">
+            <div class="max-w-2xl mx-auto">
+              <form class="space-y-6">
+                <div>
+                  <label class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+                  <input type="email" value="{{ user.email }}" class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" disabled />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-300 mb-2">Change Password</label>
+                  <input type="password" placeholder="Current password" class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent mb-3" />
+                  <input type="password" placeholder="New password" class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent mb-3" />
+                  <input type="password" placeholder="Confirm new password" class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
+                </div>
+                <div>
+                  <button type="submit" class="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-button font-medium transition-colors">
+                    Save Changes
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
     </main>
@@ -132,17 +203,49 @@
         const tabButtons = document.querySelectorAll(".tab-button");
         const tabContents = document.querySelectorAll(".tab-content");
 
-    tabButtons.forEach((button, index) => {
-      button.addEventListener("click", () => {
-        // Remove active class from all buttons and contents
-            tabButtons.forEach((btn) => btn.classList.remove("active"));
-        tabContents.forEach((content) => content.classList.remove("active"));
+        function switchTab(tabId) {
+          // Hide all tab contents
+          tabContents.forEach(content => {
+            content.classList.add('hidden');
+            content.classList.remove('active');
+          });
 
-        // Add active class to clicked button and corresponding content
-        button.classList.add("active");
-        tabContents[index].classList.add("active");
+          // Remove active class from all buttons
+          tabButtons.forEach(button => {
+            button.classList.remove('active');
+            button.classList.remove('text-white');
+            button.classList.add('text-gray-400');
+          });
+
+          // Show selected tab content
+          const selectedContent = document.getElementById(`${tabId}-tab`);
+          if (selectedContent) {
+            selectedContent.classList.remove('hidden');
+            selectedContent.classList.add('active');
+          }
+
+          // Update button styles
+          const selectedButton = document.querySelector(`[data-tab="${tabId}"]`);
+          if (selectedButton) {
+            selectedButton.classList.add('active');
+            selectedButton.classList.add('text-white');
+            selectedButton.classList.remove('text-gray-400');
+          }
+        }
+
+        // Add click event listeners to tab buttons
+        tabButtons.forEach(button => {
+          button.addEventListener("click", () => {
+            const tabId = button.getAttribute('data-tab');
+            switchTab(tabId);
           });
         });
+
+        // Handle URL hash for direct tab access
+        if (window.location.hash) {
+          const tabId = window.location.hash.substring(1);
+          switchTab(tabId);
+        }
       });
     </script>
 {% endblock %}

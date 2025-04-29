@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User, AbstractUser, BaseUserManager
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
+from django.core.validators import MinValueValidator
+from django.utils import timezone
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -34,16 +36,17 @@ class Beat(models.Model):
     title = models.CharField(max_length=200)
     genre = models.CharField(max_length=100)
     bpm = models.IntegerField()
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     description = models.TextField()
-    image = models.ImageField(upload_to='beats/')
-    audio_file = models.FileField(upload_to='beats/audio/')
+    image = models.ImageField(upload_to='beats/images/', null=True, blank=True)
+    audio_file = models.FileField(upload_to='beats/audio/', null=True, blank=True)
     duration = models.DurationField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_featured = models.BooleanField(default=False)
     is_new_release = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True, null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    _user = None
 
     def __str__(self):
         return self.title
@@ -60,6 +63,28 @@ class Beat(models.Model):
         if self.audio_file:
             return self.audio_file.url
         return None
+
+    @property
+    def is_purchased(self):
+        if not self._user or not self._user.is_authenticated:
+            return False
+        return OrderItem.objects.filter(
+            order__user=self._user,
+            beat=self,
+            order__status='completed'
+        ).exists()
+
+    @property
+    def is_favorite(self):
+        if not self._user or not self._user.is_authenticated:
+            return False
+        return Favorite.objects.filter(
+            user=self._user,
+            beat=self
+        ).exists()
+
+    def set_user(self, user):
+        self._user = user
 
 class Bundle(models.Model):
     title = models.CharField(max_length=200)
@@ -149,3 +174,14 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.quantity}x {self.beat.title} in Order #{self.order.id}"
+
+class Favorite(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    beat = models.ForeignKey(Beat, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'beat')
+
+    def __str__(self):
+        return f"{self.user.email} - {self.beat.title}"

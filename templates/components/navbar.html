@@ -18,7 +18,7 @@
                 type="text" 
                 name="search" 
                 placeholder="Search beats by name" 
-                class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-0 focus:border-transparent"
+                class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2 rounded-md focus:outline-none focus:ring-0"
                 value="{{ request.GET.search }}"
               />
             </form>
@@ -27,7 +27,7 @@
         <!-- Cart Button -->
         <div class="w-10 h-10 flex items-center justify-center relative cursor-pointer" id="cartButton">
           <i class="ri-shopping-cart-line text-white ri-lg"></i>
-          <span class="absolute -top-1 -right-1 bg-primary text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">3</span>
+          <span class="absolute -top-1 -right-1 bg-primary text-white text-xs w-5 h-5 flex items-center justify-center rounded-full hidden">0</span>
         </div>
         {% if user.is_authenticated %}
           <div class="relative" id="userMenuContainer">
