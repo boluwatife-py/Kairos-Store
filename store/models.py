@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.utils import timezone
+from django.urls import reverse
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -34,18 +35,18 @@ class CustomUser(AbstractUser):
 
 class Beat(models.Model):
     title = models.CharField(max_length=200)
+    description = models.TextField()
     genre = models.CharField(max_length=100)
     bpm = models.IntegerField()
-    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
-    description = models.TextField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)
     image = models.ImageField(upload_to='beats/images/', null=True, blank=True)
-    audio_file = models.FileField(upload_to='beats/audio/', null=True, blank=True)
-    duration = models.DurationField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    sample_audio = models.FileField(upload_to='beats/samples/', help_text='30-second sample preview')
+    full_audio = models.FileField(upload_to='beats/full/', help_text='Full track for purchase')
     is_featured = models.BooleanField(default=False)
     is_new_release = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     _user = None
 
     def __str__(self):
@@ -59,9 +60,14 @@ class Beat(models.Model):
             return self.image.url
         return '/static/images/default-beat.jpg'
 
-    def get_audio_url(self):
-        if self.audio_file:
-            return self.audio_file.url
+    def get_sample_url(self):
+        if self.sample_audio:
+            return self.sample_audio.url
+        return None
+
+    def get_full_audio_url(self):
+        if self.full_audio:
+            return self.full_audio.url
         return None
 
     @property

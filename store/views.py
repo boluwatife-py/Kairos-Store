@@ -30,7 +30,8 @@ def home(request):
         is_featured=True,
         is_active=True,
         image__isnull=False,
-        audio_file__isnull=False
+        sample_audio__isnull=False,
+        full_audio__isnull=False
     ).order_by('-created_at')[:3]
 
     # Get new releases that are active and have all required fields
@@ -38,7 +39,8 @@ def home(request):
         is_new_release=True,
         is_active=True,
         image__isnull=False,
-        audio_file__isnull=False
+        sample_audio__isnull=False,
+        full_audio__isnull=False
     ).order_by('-created_at')[:3]
 
     # Get active bundles
@@ -346,14 +348,14 @@ def download_beat(request, beat_id):
             'message': 'You need to purchase this beat before downloading it'
         }, status=403)
     
-    if not beat.audio_file:
+    if not beat.full_audio:
         return JsonResponse({
             'status': 'error',
             'message': 'Audio file not found'
         }, status=404)
     
     # Serve the file
-    response = FileResponse(beat.audio_file, as_attachment=True)
+    response = FileResponse(beat.full_audio, as_attachment=True)
     response['Content-Disposition'] = f'attachment; filename="{beat.title}.mp3"'
     return response
 

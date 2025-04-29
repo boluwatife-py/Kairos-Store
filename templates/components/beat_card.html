@@ -1,6 +1,6 @@
 {% load static %}
 <!-- Beat Card -->
-<div class="glass-card rounded-lg overflow-hidden">
+<div class="glass-card rounded-lg overflow-hidden" data-beat-id="{{ beat.id }}">
   <div class="relative h-48 bg-gray-800">
     <img src="{{ beat.get_image_url }}" alt="{{ beat.title }}" class="w-full h-full object-cover" />
     <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
@@ -12,7 +12,7 @@
         <span class="bg-primary/80 text-white text-xs px-2 py-1 rounded">{{ beat.genre }}</span>
         <span class="bg-gray-800/80 text-white text-xs px-2 py-1 rounded ml-2">{{ beat.bpm }} BPM</span>
       </div>
-      <button class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-white/20 transition-colors">
+      <button class="play-button w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-white/20 transition-colors" onclick="playSample({{ beat.id }}, '{{ beat.get_sample_url }}')">
         <i class="ri-play-fill text-white ri-lg"></i>
       </button>
     </div>

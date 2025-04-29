@@ -3,9 +3,21 @@ from .models import Beat, Bundle, Testimonial, Cart, CartItem, Order, OrderItem
 
 @admin.register(Beat)
 class BeatAdmin(admin.ModelAdmin):
-    list_display = ('title', 'genre', 'bpm', 'price', 'is_featured', 'is_new_release')
-    list_filter = ('genre', 'is_featured', 'is_new_release')
-    search_fields = ('title', 'description')
+    list_display = ('title', 'genre', 'bpm', 'price', 'is_featured', 'is_new_release', 'is_active', 'created_at')
+    list_filter = ('genre', 'is_featured', 'is_new_release', 'is_active')
+    search_fields = ('title', 'description', 'genre')
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('title', 'description', 'genre', 'bpm', 'price')
+        }),
+        ('Media', {
+            'fields': ('image', 'sample_audio', 'full_audio'),
+            'description': 'Upload a 30-second sample preview and the full track for purchase.'
+        }),
+        ('Status', {
+            'fields': ('is_featured', 'is_new_release', 'is_active')
+        }),
+    )
 
 @admin.register(Bundle)
 class BundleAdmin(admin.ModelAdmin):

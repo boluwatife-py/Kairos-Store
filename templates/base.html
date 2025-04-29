@@ -271,18 +271,23 @@
         width: 2px;
         background-color: #6d28d9;
         border-radius: 1px;
+      }
+      .equalizer.playing span {
+        width: 2px;
+        background-color: #6d28d9;
+        border-radius: 1px;
         animation: equalize 1s infinite;
       }
-      .equalizer span:nth-child(1) {
+      .equalizer.playing span:nth-child(1) {
         animation-delay: 0.1s;
       }
-      .equalizer span:nth-child(2) {
+      .equalizer.playing span:nth-child(2) {
         animation-delay: 0.3s;
       }
-      .equalizer span:nth-child(3) {
+      .equalizer.playing span:nth-child(3) {
         animation-delay: 0.5s;
       }
-      .equalizer span:nth-child(4) {
+      .equalizer.playing span:nth-child(4) {
         animation-delay: 0.2s;
       }
       @keyframes equalize {
@@ -316,6 +321,7 @@
     {% block extra_js %}{% endblock %}
     <script src="{% static 'js/cart.js' %}"></script>
     <script src="{% static 'js/beat_card.js' %}"></script>
+    <script src="{% static 'js/audio_player.js' %}"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         // Auth Modals
