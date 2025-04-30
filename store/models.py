@@ -203,12 +203,15 @@ class Order(models.Model):
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    beat = models.ForeignKey(Beat, on_delete=models.CASCADE)
+    beat = models.ForeignKey(Beat, on_delete=models.CASCADE, null=True, blank=True)
+    bundle = models.ForeignKey(Bundle, on_delete=models.CASCADE, null=True, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.IntegerField(default=1)
 
     def __str__(self):
-        return f"{self.quantity}x {self.beat.title} in Order #{self.order.id}"
+        if self.beat:
+            return f"{self.quantity}x {self.beat.title} in Order #{self.order.id}"
+        return f"{self.quantity}x {self.bundle.title} (Bundle) in Order #{self.order.id}"
 
 class Favorite(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

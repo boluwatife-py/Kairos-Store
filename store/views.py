@@ -214,7 +214,7 @@ def add_to_cart(request, beat_id):
     beat = get_object_or_404(Beat, id=beat_id)
     cart, created = Cart.objects.get_or_create(user=request.user)
         
-    # Check if beat is already in cart
+    # Check if beat is already in cart as an individual item
     if CartItem.objects.filter(cart=cart, beat=beat).exists():
         return JsonResponse({
             'status': 'error',
@@ -303,55 +303,164 @@ def checkout(request, order_id):
     }
     return render(request, 'checkout.html', context)
 
-@require_auth
+@login_required
 def create_order(request):
-    cart = get_object_or_404(Cart, user=request.user)
-    cart_items = cart.cartitem_set.all().select_related('beat', 'bundle')
+    """Create a new order from cart items and process payment"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
     
-    if not cart_items.exists():
+    try:
+        # Get cart items through the cart relationship
+        cart_items = CartItem.objects.filter(cart__user=request.user).select_related('beat', 'bundle')
+        
+        # Validate cart is not empty
+        if not cart_items.exists():
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Your cart is empty. Please add items before creating an order.'
+            }, status=400)
+        
+        # Validate all items are still available and prices are current
+        for item in cart_items:
+            if item.beat:
+                if not item.beat.is_active:
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': f'Beat "{item.beat.title}" is no longer available.'
+                    }, status=400)
+                if item.beat.price != item.price:
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': f'Price for "{item.beat.title}" has changed. Please refresh your cart.'
+                    }, status=400)
+            elif item.bundle:
+                if not item.bundle.is_active:
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': f'Bundle "{item.bundle.title}" is no longer available.'
+                    }, status=400)
+                if item.bundle.discounted_price != item.price:
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': f'Price for bundle "{item.bundle.title}" has changed. Please refresh your cart.'
+                    }, status=400)
+        
+        # Calculate total price
+        total_price = sum(item.total_price for item in cart_items)
+        
+        # Get payment data from request
+        try:
+            payment_data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid payment data format.'
+            }, status=400)
+        
+        # Validate payment data
+        required_fields = ['payment_method', 'payment_details']
+        for field in required_fields:
+            if field not in payment_data:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': f'Missing required payment field: {field}'
+                }, status=400)
+        
+        # Create the order with initial status
+        order = Order.objects.create(
+            user=request.user,
+            total_price=total_price,
+            status='pending',
+            payment_method=payment_data['payment_method'],
+            payment_details=payment_data['payment_details']
+        )
+        
+        # Track beats that have been added to the order
+        added_beats = set()
+        
+        # First, add all bundles to ensure we don't block beats that are part of bundles
+        for item in cart_items:
+            if item.bundle:
+                # Create a single order item for the bundle
+                OrderItem.objects.create(
+                    order=order,
+                    bundle=item.bundle,
+                    price=item.bundle.discounted_price,
+                    quantity=item.quantity
+                )
+                # Track all beats in this bundle
+                added_beats.update(item.bundle.beats.all())
+        
+        # Then add individual beats that aren't part of any bundle
+        for item in cart_items:
+            if item.beat and item.beat.id not in added_beats:
+                OrderItem.objects.create(
+                    order=order,
+                    beat=item.beat,
+                    price=item.beat.price,
+                    quantity=item.quantity
+                )
+                added_beats.add(item.beat.id)
+        
+        # Process payment (implement your payment gateway integration here)
+        try:
+            # This is where you would integrate with your payment processor
+            # For example: Stripe, PayPal, etc.
+            payment_success = process_payment(order, payment_data)
+            
+            if not payment_success:
+                # If payment fails, delete the order and return error
+                order.delete()
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Payment processing failed. Please try again or use a different payment method.'
+                }, status=400)
+            
+            # Update order status to completed
+            order.status = 'completed'
+            order.save()
+            
+            # Clear the cart
+            cart_items.delete()
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Order created and payment processed successfully!',
+                'order_id': order.id,
+                'order_details': {
+                    'total_price': float(order.total_price),
+                    'items_count': order.orderitem_set.count(),
+                    'status': order.status
+                }
+            })
+            
+        except Exception as e:
+            # If payment processing fails, delete the order and return error
+            order.delete()
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Payment processing error: {str(e)}'
+            }, status=500)
+            
+    except Exception as e:
         return JsonResponse({
             'status': 'error',
-            'message': 'Your cart is empty'
-        })
+            'message': f'An unexpected error occurred: {str(e)}'
+        }, status=500)
+
+def process_payment(order, payment_data):
+    """
+    Process payment for an order using the specified payment method.
+    This is a placeholder function - implement your actual payment processing logic here.
+    """
+    # TODO: Implement actual payment processing logic
+    # This could involve:
+    # 1. Stripe integration
+    # 2. PayPal integration
+    # 3. Other payment gateways
     
-    # Create order
-    order = Order.objects.create(
-        user=request.user,
-        status='pending'
-    )
-    
-    # Add items to order
-    total_price = 0
-    for item in cart_items:
-        if item.beat:
-            price = item.beat.price
-            OrderItem.objects.create(
-                order=order,
-                beat=item.beat,
-                price=price
-            )
-            total_price += price
-        elif item.bundle:
-            price = item.bundle.price
-            OrderItem.objects.create(
-                order=order,
-                bundle=item.bundle,
-                price=price
-            )
-            total_price += price
-    
-    # Update order total
-    order.total_price = total_price
-    order.save()
-    
-    # Clear cart
-    cart_items.delete()
-    
-    return JsonResponse({
-        'status': 'success',
-        'message': 'Order created successfully',
-        'order_id': order.id
-    })
+    # For now, return True to simulate successful payment
+    return True
 
 def register(request):
     if request.method == 'POST':
@@ -515,23 +624,53 @@ def add_bundle_to_cart(request, bundle_id):
     if CartItem.objects.filter(cart=cart, bundle=bundle).exists():
         return JsonResponse({
             'status': 'error',
-            'message': 'Bundle is already in your cart'
+            'message': 'This bundle is already in your cart. Please check your cart before adding it again.'
         })
     
-    # Check if any beat in the bundle is already in cart
-    for beat in bundle.beats.all():
-        if CartItem.objects.filter(cart=cart, beat=beat).exists():
-            return JsonResponse({
-                'status': 'error',
-                'message': f'One or more beats from this bundle are already in your cart'
-            })
+    # Get all beats in the bundle
+    bundle_beats = set(bundle.beats.all())
+    
+    # Get all beats currently in cart (both individual and from other bundles)
+    cart_items = CartItem.objects.filter(cart=cart).select_related('beat', 'bundle')
+    existing_beats = {}  # Dictionary to track where each beat is from
+    
+    for item in cart_items:
+        if item.beat:
+            existing_beats[item.beat] = 'individual item'
+        elif item.bundle:
+            for beat in item.bundle.beats.all():
+                existing_beats[beat] = f'bundle "{item.bundle.title}"'
+    
+    # Check for overlapping beats
+    overlapping_beats = bundle_beats.intersection(existing_beats.keys())
+    if overlapping_beats:
+        # Group beats by their source
+        beats_by_source = {}
+        for beat in overlapping_beats:
+            source = existing_beats[beat]
+            if source not in beats_by_source:
+                beats_by_source[source] = []
+            beats_by_source[source].append(beat.title)
+        
+        # Build detailed message
+        message_parts = ['Unable to add this bundle because some beats are already in your cart:']
+        for source, beats in beats_by_source.items():
+            message_parts.append(f"\n• {', '.join(beats)} (from {source})")
+        message_parts.append("\nTo avoid double payment, please either:")
+        message_parts.append("1. Remove these beats from your cart first")
+        message_parts.append("2. Purchase them as part of this bundle instead")
+        
+        return JsonResponse({
+            'status': 'error',
+            'message': ''.join(message_parts)
+        })
     
     # Add bundle to cart
     CartItem.objects.create(cart=cart, bundle=bundle)
     
     return JsonResponse({
         'status': 'success',
-        'message': f'{bundle.title} added to cart!'
+        'message': f'{bundle.title} has been added to your cart! You can now proceed to checkout.'
     })
 
 @require_http_methods(["POST"])

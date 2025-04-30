@@ -141,7 +141,11 @@
                     <div class="space-y-1">
                       {% for item in order.orderitem_set.all %}
                         <div class="flex justify-between items-center text-sm">
-                          <span class="text-gray-300">{{ item.beat.title }}</span>
+                          {% if item.beat %}
+                            <span class="text-gray-300">{{ item.beat.title }}</span>
+                          {% elif item.bundle %}
+                            <span class="text-gray-300">{{ item.bundle.title }} <span class="text-gray-400">(Bundle)</span></span>
+                          {% endif %}
                           <span class="text-gray-400">${{ item.price|floatformat:2 }}</span>
                         </div>
                       {% endfor %}
@@ -247,14 +251,17 @@
                   <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2">Current Password</label>
                     <input type="password" name="current_password" placeholder="Enter current password" class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
+                    <div class="error-message text-red-500 text-sm mt-1 hidden"></div>
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2">New Password</label>
                     <input type="password" name="new_password" placeholder="Enter new password" class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
+                    <div class="error-message text-red-500 text-sm mt-1 hidden"></div>
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2">Confirm New Password</label>
                     <input type="password" name="confirm_password" placeholder="Confirm new password" class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
+                    <div class="error-message text-red-500 text-sm mt-1 hidden"></div>
                   </div>
                   <div class="flex justify-end">
                     <button type="button" id="changePasswordBtn" class="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-button font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary flex items-center justify-center min-w-[140px]" disabled>
@@ -422,10 +429,18 @@
           });
         });
 
-        // Track password form changes
+        // Track password form changes and add input event listeners
         const passwordInputs = passwordForm.querySelectorAll('input');
         passwordInputs.forEach(input => {
+          // Add change detection
           input.addEventListener('input', checkFormChanges);
+          
+          // Add error clearing
+          input.addEventListener('input', function() {
+            const errorDiv = this.nextElementSibling;
+            this.classList.remove('border-red-500');
+            errorDiv.classList.add('hidden');
+          });
         });
 
         // Tab functionality
@@ -596,9 +611,33 @@
           };
         }
 
+        // Function to show error message
+        function showFieldError(fieldName, message) {
+          const field = passwordForm.querySelector(`[name="${fieldName}"]`);
+          const errorDiv = field.nextElementSibling;
+          field.classList.add('border-red-500');
+          errorDiv.textContent = message;
+          errorDiv.classList.remove('hidden');
+        }
+
+        // Function to clear all errors
+        function clearErrors() {
+          const errorDivs = passwordForm.querySelectorAll('.error-message');
+          const inputs = passwordForm.querySelectorAll('input');
+          errorDivs.forEach(div => {
+            div.textContent = '';
+            div.classList.add('hidden');
+          });
+          inputs.forEach(input => {
+            input.classList.remove('border-red-500');
+          });
+        }
+
         // Change password handler
         changePasswordBtn.addEventListener('click', async function() {
           const button = this;
+          clearErrors();
+          
           const passwordData = new FormData(passwordForm);
           const currentPassword = passwordData.get('current_password');
           const newPassword = passwordData.get('new_password');
@@ -606,20 +645,20 @@
           
           // Validate current password
           if (!currentPassword) {
-            showNotification('Please enter your current password', 'error');
+            showFieldError('current_password', 'Please enter your current password');
             return;
           }
           
           // Validate new password
           const validation = validatePassword(newPassword);
           if (!validation.isValid) {
-            showNotification(validation.errors.join('\n'), 'error');
+            showFieldError('new_password', validation.errors.join('\n'));
             return;
           }
           
           // Check if passwords match
           if (newPassword !== confirmPassword) {
-            showNotification('New passwords do not match', 'error');
+            showFieldError('confirm_password', 'New passwords do not match');
             return;
           }
           
@@ -647,10 +686,19 @@
               passwordForm.reset();
               checkFormChanges();
             } else {
-              showNotification(data.error || 'Error changing password', 'error');
+              // Handle specific error cases
+              if (data.message.includes('Current password is incorrect')) {
+                showFieldError('current_password', 'Current password is incorrect');
+              } else if (data.message.includes('New passwords do not match')) {
+                showFieldError('confirm_password', 'New passwords do not match');
+              } else {
+                // Handle password strength validation errors
+                const errors = data.message.split('\n');
+                showFieldError('new_password', errors.join('\n'));
+              }
             }
           } catch (error) {
-            showNotification('Error changing password', 'error');
+            showFieldError('new_password', 'An error occurred while changing password');
           } finally {
             setButtonLoading(button, false);
           }
@@ -682,6 +730,145 @@
             setButtonLoading(button, false);
           }
         });
+
+        // Cart functionality
+        async function addToCart(beatId) {
+          try {
+            const response = await fetch(`/api/cart/add/${beatId}/`, {
+              method: 'POST',
+              headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json',
+              }
+            });
+
+            const data = await response.json();
+            
+            if (response.status === 401) {
+              // User is not authenticated
+              showNotification('Please login to add items to cart', 'error');
+              // Optionally redirect to login page
+              window.location.href = '/login/';
+              return;
+            }
+            
+            if (response.ok) {
+              showNotification(data.message, 'success');
+              updateCartCount();
+            } else {
+              showNotification(data.message || 'Error adding to cart', 'error');
+            }
+          } catch (error) {
+            showNotification('Error adding to cart', 'error');
+          }
+        }
+
+        async function removeFromCart(cartItemId) {
+          try {
+            const response = await fetch(`/api/cart/remove/${cartItemId}/`, {
+              method: 'POST',
+              headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json',
+              }
+            });
+
+            const data = await response.json();
+            
+            if (response.status === 401) {
+              // User is not authenticated
+              showNotification('Please login to manage your cart', 'error');
+              window.location.href = '/login/';
+              return;
+            }
+            
+            if (response.ok) {
+              showNotification(data.message, 'success');
+              updateCartCount();
+              // Optionally refresh cart items display
+              loadCartItems();
+            } else {
+              showNotification(data.message || 'Error removing from cart', 'error');
+            }
+          } catch (error) {
+            showNotification('Error removing from cart', 'error');
+          }
+        }
+
+        async function loadCartItems() {
+          try {
+            const response = await fetch('/api/cart/', {
+              headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json',
+              }
+            });
+
+            const data = await response.json();
+            
+            if (response.status === 401) {
+              // User is not authenticated
+              showNotification('Please login to view your cart', 'error');
+              window.location.href = '/login/';
+              return;
+            }
+            
+            if (response.ok) {
+              // Update cart display with data.items
+              updateCartDisplay(data.items);
+              updateCartTotal(data.total_price);
+            } else {
+              showNotification(data.message || 'Error loading cart', 'error');
+            }
+          } catch (error) {
+            showNotification('Error loading cart', 'error');
+          }
+        }
+
+        async function updateCartCount() {
+          try {
+            const response = await fetch('/api/cart/count/', {
+              headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json',
+              }
+            });
+
+            const data = await response.json();
+            
+            if (response.status === 401) {
+              // User is not authenticated, set count to 0
+              document.querySelector('.cart-count').textContent = '0';
+              return;
+            }
+            
+            if (response.ok) {
+              document.querySelector('.cart-count').textContent = data.count;
+            }
+          } catch (error) {
+            console.error('Error updating cart count:', error);
+          }
+        }
+
+        // Add click handlers for cart buttons
+        document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+          button.addEventListener('click', function() {
+            const beatId = this.dataset.beatId;
+            addToCart(beatId);
+          });
+        });
+
+        document.querySelectorAll('.remove-from-cart-btn').forEach(button => {
+          button.addEventListener('click', function() {
+            const cartItemId = this.dataset.cartItemId;
+            removeFromCart(cartItemId);
+          });
+        });
+
+        // Load cart items on page load if on cart page
+        if (document.querySelector('.cart-items-container')) {
+          loadCartItems();
+        }
       });
     </script>
 {% endblock %}

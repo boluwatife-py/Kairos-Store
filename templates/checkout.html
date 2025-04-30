@@ -259,13 +259,21 @@ Checkout{% endblock %} {% block content %}
           {% for item in order_items %}
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-3">
-              <img src="{{ item.beat.get_image_url }}" alt="{{ item.beat.title }}" class="w-12 h-12 rounded object-cover" />
-              <div>
-                <h4 class="text-white font-medium">{{ item.beat.title }}</h4>
-                <p class="text-gray-400 text-sm">{{ item.beat.genre }} • {{ item.beat.bpm }} BPM</p>
-              </div>
+              {% if item.beat %}
+                <img src="{{ item.beat.get_image_url }}" alt="{{ item.beat.title }}" class="w-12 h-12 rounded object-cover" />
+                <div>
+                  <h4 class="text-white font-medium">{{ item.beat.title }}</h4>
+                  <p class="text-gray-400 text-sm">{{ item.beat.genre }} • {{ item.beat.bpm }} BPM</p>
+                </div>
+              {% elif item.bundle %}
+                <img src="{{ item.bundle.image.url }}" alt="{{ item.bundle.title }}" class="w-12 h-12 rounded object-cover" />
+                <div>
+                  <h4 class="text-white font-medium">{{ item.bundle.title }}</h4>
+                  <p class="text-gray-400 text-sm">Bundle • {{ item.bundle.beat_count }} beats</p>
+                </div>
+              {% endif %}
             </div>
-            <span class="text-primary font-bold">${{ item.total_price|floatformat:2 }}</span>
+            <span class="text-primary font-bold">${{ item.price|floatformat:2 }}</span>
           </div>
           {% endfor %}
         </div>
