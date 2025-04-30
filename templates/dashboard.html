@@ -179,34 +179,255 @@
 
           <!-- Settings Tab Content -->
           <div class="tab-content hidden" id="settings-tab">
-            <div class="max-w-2xl mx-auto">
-              <form class="space-y-6">
-                <div>
-                  <label class="block text-sm font-medium text-gray-300 mb-2">Email</label>
-                  <input type="email" value="{{ user.email }}" class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" disabled />
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-300 mb-2">Change Password</label>
-                  <input type="password" placeholder="Current password" class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent mb-3" />
-                  <input type="password" placeholder="New password" class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent mb-3" />
-                  <input type="password" placeholder="Confirm new password" class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
-                </div>
-                <div>
-                  <button type="submit" class="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-button font-medium transition-colors">
-                    Save Changes
-                  </button>
-                </div>
-              </form>
+            <div class="max-w-4xl mx-auto">
+              <!-- Profile Settings -->
+              <div class="glass-card rounded-lg p-6 mb-6">
+                <h3 class="text-xl font-bold text-white mb-6">Profile Settings</h3>
+                <form id="profileForm" class="space-y-6">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-300 mb-2">First Name</label>
+                      <input type="text" name="first_name" value="{{ user.first_name }}" class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-300 mb-2">Last Name</label>
+                      <input type="text" name="last_name" value="{{ user.last_name }}" class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+                    <input type="email" value="{{ user.email }}" class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" disabled />
+                    <p class="text-gray-400 text-sm mt-1">Email cannot be changed</p>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Bio</label>
+                    <textarea name="bio" rows="4" class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Tell us about yourself...">{{ user.userprofile.bio|default:'' }}</textarea>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Notification Preferences -->
+              <div class="glass-card rounded-lg p-6 mb-6">
+                <h3 class="text-xl font-bold text-white mb-6">Notification Preferences</h3>
+                <form id="notificationForm" class="space-y-4">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <h4 class="text-white font-medium">Email Notifications</h4>
+                      <p class="text-gray-400 text-sm">Receive updates about new beats and promotions</p>
+                    </div>
+                    <button type="button" class="notification-toggle w-11 h-6 bg-gray-700 rounded-full relative cursor-pointer transition-colors duration-200 ease-in-out" data-setting="email_notifications" data-value="{{ user.userprofile.email_notifications|yesno:'true,false' }}">
+                      <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 ease-in-out transform translate-x-0"></span>
+                    </button>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <h4 class="text-white font-medium">Order Updates</h4>
+                      <p class="text-gray-400 text-sm">Get notified about your order status</p>
+                    </div>
+                    <button type="button" class="notification-toggle w-11 h-6 bg-gray-700 rounded-full relative cursor-pointer transition-colors duration-200 ease-in-out" data-setting="order_updates" data-value="{{ user.userprofile.order_updates|yesno:'true,false' }}">
+                      <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 ease-in-out transform translate-x-0"></span>
+                    </button>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <h4 class="text-white font-medium">New Releases</h4>
+                      <p class="text-gray-400 text-sm">Be the first to know about new beats</p>
+                    </div>
+                    <button type="button" class="notification-toggle w-11 h-6 bg-gray-700 rounded-full relative cursor-pointer transition-colors duration-200 ease-in-out" data-setting="new_releases" data-value="{{ user.userprofile.new_releases|yesno:'true,false' }}">
+                      <span class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 ease-in-out transform translate-x-0"></span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Password Settings -->
+              <div class="glass-card rounded-lg p-6 mb-6">
+                <h3 class="text-xl font-bold text-white mb-6">Change Password</h3>
+                <form id="passwordForm" class="space-y-6">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Current Password</label>
+                    <input type="password" name="current_password" placeholder="Enter current password" class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">New Password</label>
+                    <input type="password" name="new_password" placeholder="Enter new password" class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Confirm New Password</label>
+                    <input type="password" name="confirm_password" placeholder="Confirm new password" class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
+                  </div>
+                  <div class="flex justify-end">
+                    <button type="button" id="changePasswordBtn" class="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-button font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary flex items-center justify-center min-w-[140px]" disabled>
+                      <span class="button-text">Change Password</span>
+                      <div class="loading-spinner hidden">
+                        <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      </div>
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Delete Account -->
+              <div class="glass-card rounded-lg p-6 mb-6 border border-red-500/20">
+                <h3 class="text-xl font-bold text-red-500 mb-6">Delete Account</h3>
+                <p class="text-gray-400 mb-6">Once you delete your account, there is no going back. Please be certain.</p>
+                <button type="button" id="deleteAccountBtn" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2.5 rounded-button font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red-500 flex items-center justify-center min-w-[120px]">
+                  <span class="button-text">Delete Account</span>
+                  <div class="loading-spinner hidden">
+                    <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  </div>
+                </button>
+              </div>
+
+              <!-- Save Changes Button -->
+              <div class="mt-8 flex justify-end">
+                <button type="button" id="saveSettings" class="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-button font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary flex items-center justify-center min-w-[120px]" disabled>
+                  <span class="button-text">Save Changes</span>
+                  <div class="loading-spinner hidden">
+                    <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  </div>
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </main>
+
+    <!-- Delete Account Confirmation Modal -->
+    <div id="deleteAccountModal" class="fixed inset-0 z-50 hidden">
+      <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md">
+        <div class="glass rounded-lg border border-red-500/20 shadow-xl">
+          <div class="flex justify-between items-center p-6 border-b border-gray-800">
+            <h2 class="text-xl font-bold text-red-500">Delete Account</h2>
+            <button id="closeDeleteAccountModal" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+              <i class="ri-close-line ri-lg"></i>
+            </button>
+          </div>
+          <div class="p-6">
+            <div class="mb-6">
+              <p class="text-gray-300 mb-4">This action cannot be undone. Please type your security code to confirm.</p>
+              <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-300 mb-2">Security Code</label>
+                <input type="text" id="securityCode" class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" placeholder="Enter security code" />
+              </div>
+              <p class="text-sm text-gray-400">Type "DELETE" to confirm</p>
+            </div>
+            <div class="flex justify-end space-x-4">
+              <button id="cancelDeleteAccount" class="px-6 py-2.5 text-gray-300 hover:text-white transition-colors">
+                Cancel
+              </button>
+              <button id="confirmDeleteAccount" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2.5 rounded-button font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red-500 flex items-center justify-center min-w-[120px]" disabled>
+                <span class="button-text">Delete Account</span>
+                <div class="loading-spinner hidden">
+                  <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 {% endblock %}
 
 {% block extra_js %}
     <script>
       document.addEventListener("DOMContentLoaded", function () {
+        // Initialize form elements first
+        const profileForm = document.getElementById('profileForm');
+        const passwordForm = document.getElementById('passwordForm');
+        const saveSettingsBtn = document.getElementById('saveSettings');
+        const changePasswordBtn = document.getElementById('changePasswordBtn');
+        const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+        const confirmDeleteAccountBtn = document.getElementById('confirmDeleteAccount');
+        const securityCodeInput = document.getElementById('securityCode');
+        const toggles = document.querySelectorAll('.notification-toggle');
+
+        // Function to check if forms have changes
+        function checkFormChanges() {
+          const profileData = new FormData(profileForm);
+          const passwordData = new FormData(passwordForm);
+          
+          // Check profile form changes
+          const hasProfileChanges = Array.from(profileData.entries()).some(([key, value]) => {
+            const element = profileForm.querySelector(`[name="${key}"]`);
+            if (!element) return false;
+            
+            // Handle textarea and input elements differently
+            const originalValue = element.tagName.toLowerCase() === 'textarea' 
+              ? element.defaultValue.trim() 
+              : element.defaultValue;
+            const currentValue = value.trim();
+            
+            return currentValue !== originalValue;
+          });
+          
+          // Check password form changes
+          const hasPasswordChanges = Array.from(passwordData.entries()).some(([_, value]) => value !== '');
+          
+          // Check notification toggle changes
+          const hasNotificationChanges = Array.from(toggles).some(toggle => {
+            const originalValue = toggle.dataset.initialValue;
+            const currentValue = toggle.classList.contains('bg-primary').toString();
+            return originalValue !== currentValue;
+          });
+          
+          // Enable save button if there are any profile or notification changes
+          saveSettingsBtn.disabled = !(hasProfileChanges || hasNotificationChanges);
+          
+          // Enable password button if there are password changes
+          changePasswordBtn.disabled = !hasPasswordChanges;
+        }
+
+        // Add input event listeners to all form fields
+        const formInputs = profileForm.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+          input.addEventListener('input', checkFormChanges);
+          // Store initial value after DOM is loaded
+          input.defaultValue = input.value;
+        });
+
+        // Initialize notification toggles
+        toggles.forEach(toggle => {
+          const isEnabled = toggle.dataset.value === 'true';
+          if (isEnabled) {
+            toggle.classList.add('bg-primary');
+            toggle.querySelector('span').classList.add('translate-x-5');
+          }
+          // Store initial state
+          toggle.dataset.initialValue = toggle.dataset.value;
+        });
+
+        // Toggle click handler
+        toggles.forEach(toggle => {
+          toggle.addEventListener('click', function() {
+            const isEnabled = this.classList.contains('bg-primary');
+            this.classList.toggle('bg-primary');
+            this.querySelector('span').classList.toggle('translate-x-5');
+            this.dataset.value = (!isEnabled).toString();
+            checkFormChanges();
+          });
+        });
+
+        // Track password form changes
+        const passwordInputs = passwordForm.querySelectorAll('input');
+        passwordInputs.forEach(input => {
+          input.addEventListener('input', checkFormChanges);
+        });
+
         // Tab functionality
         const tabButtons = document.querySelectorAll(".tab-button");
         const tabContents = document.querySelectorAll(".tab-content");
@@ -254,6 +475,213 @@
           const tabId = window.location.hash.substring(1);
           switchTab(tabId);
         }
+
+        // Delete Account Modal
+        deleteAccountBtn.addEventListener('click', () => {
+          document.getElementById('deleteAccountModal').classList.remove('hidden');
+        });
+
+        document.getElementById('closeDeleteAccountModal').addEventListener('click', () => {
+          document.getElementById('deleteAccountModal').classList.add('hidden');
+        });
+
+        document.getElementById('cancelDeleteAccount').addEventListener('click', () => {
+          document.getElementById('deleteAccountModal').classList.add('hidden');
+        });
+
+        // Security code validation
+        securityCodeInput.addEventListener('input', () => {
+          confirmDeleteAccountBtn.disabled = securityCodeInput.value !== 'DELETE';
+        });
+
+        // Function to set button loading state
+        function setButtonLoading(button, isLoading) {
+          const buttonText = button.querySelector('.button-text');
+          const loadingSpinner = button.querySelector('.loading-spinner');
+          
+          if (isLoading) {
+            button.disabled = true;
+            buttonText.classList.add('opacity-0');
+            loadingSpinner.classList.remove('hidden');
+          } else {
+            button.disabled = false;
+            buttonText.classList.remove('opacity-0');
+            loadingSpinner.classList.add('hidden');
+          }
+        }
+
+        // Save settings handler
+        document.getElementById('saveSettings').addEventListener('click', async function() {
+          const button = this;
+          setButtonLoading(button, true);
+          
+          const profileData = new FormData(document.getElementById('profileForm'));
+          const notificationData = new FormData();
+          
+          // Get notification preferences
+          toggles.forEach(toggle => {
+            const value = toggle.classList.contains('bg-primary').toString();
+            notificationData.append(toggle.dataset.setting, value);
+          });
+
+          const requestData = {
+            profile: Object.fromEntries(profileData),
+            notifications: Object.fromEntries(notificationData)
+          };
+
+          try {
+            const response = await fetch('/api/settings/update/', {
+              method: 'POST',
+              headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(requestData)
+            });
+
+            const data = await response.json();
+            
+            if (response.ok) {
+              showNotification('Settings saved successfully', 'success');
+              // Reset form default values
+              Array.from(profileForm.elements).forEach(element => {
+                if (element.type !== 'submit') {
+                  element.defaultValue = element.value;
+                }
+              });
+              // Update toggle initial values
+              toggles.forEach(toggle => {
+                toggle.dataset.initialValue = toggle.dataset.value;
+              });
+              checkFormChanges();
+            } else {
+              showNotification(data.error || 'Error saving settings', 'error');
+            }
+          } catch (error) {
+            showNotification('Error saving settings', 'error');
+          } finally {
+            setButtonLoading(button, false);
+          }
+        });
+
+        // Password validation function
+        function validatePassword(password) {
+          const minLength = 8;
+          const hasUpperCase = /[A-Z]/.test(password);
+          const hasLowerCase = /[a-z]/.test(password);
+          const hasNumbers = /\d/.test(password);
+          const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+          
+          const errors = [];
+          
+          if (password.length < minLength) {
+            errors.push(`Password must be at least ${minLength} characters long`);
+          }
+          if (!hasUpperCase) {
+            errors.push('Password must contain at least one uppercase letter');
+          }
+          if (!hasLowerCase) {
+            errors.push('Password must contain at least one lowercase letter');
+          }
+          if (!hasNumbers) {
+            errors.push('Password must contain at least one number');
+          }
+          if (!hasSpecialChar) {
+            errors.push('Password must contain at least one special character');
+          }
+          
+          return {
+            isValid: errors.length === 0,
+            errors: errors
+          };
+        }
+
+        // Change password handler
+        changePasswordBtn.addEventListener('click', async function() {
+          const button = this;
+          const passwordData = new FormData(passwordForm);
+          const currentPassword = passwordData.get('current_password');
+          const newPassword = passwordData.get('new_password');
+          const confirmPassword = passwordData.get('confirm_password');
+          
+          // Validate current password
+          if (!currentPassword) {
+            showNotification('Please enter your current password', 'error');
+            return;
+          }
+          
+          // Validate new password
+          const validation = validatePassword(newPassword);
+          if (!validation.isValid) {
+            showNotification(validation.errors.join('\n'), 'error');
+            return;
+          }
+          
+          // Check if passwords match
+          if (newPassword !== confirmPassword) {
+            showNotification('New passwords do not match', 'error');
+            return;
+          }
+          
+          setButtonLoading(button, true);
+          
+          try {
+            const response = await fetch('/api/settings/update/', {
+              method: 'POST',
+              headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                password: {
+                  current_password: currentPassword,
+                  new_password: newPassword,
+                  confirm_password: confirmPassword
+                }
+              })
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+              showNotification('Password changed successfully', 'success');
+              passwordForm.reset();
+              checkFormChanges();
+            } else {
+              showNotification(data.error || 'Error changing password', 'error');
+            }
+          } catch (error) {
+            showNotification('Error changing password', 'error');
+          } finally {
+            setButtonLoading(button, false);
+          }
+        });
+
+        // Handle delete account confirmation
+        confirmDeleteAccountBtn.addEventListener('click', async () => {
+          const button = this;
+          setButtonLoading(button, true);
+          
+          try {
+            const response = await fetch('/api/settings/delete-account/', {
+              method: 'POST',
+              headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json',
+              }
+            });
+
+            if (response.ok) {
+              window.location.href = '/';
+            } else {
+              const data = await response.json();
+              showNotification(data.error || 'Error deleting account', 'error');
+            }
+          } catch (error) {
+            showNotification('Error deleting account', 'error');
+          } finally {
+            setButtonLoading(button, false);
+          }
+        });
       });
     </script>
 {% endblock %}

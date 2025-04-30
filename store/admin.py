@@ -1,5 +1,37 @@
 from django.contrib import admin
-from .models import Beat, Bundle, Testimonial, Cart, CartItem, Order, OrderItem
+from django.contrib.auth.admin import UserAdmin
+from .models import CustomUser, UserProfile, Beat, Bundle, Testimonial, Cart, CartItem, Order, OrderItem, Favorite
+
+class UserProfileInline(admin.StackedInline):
+    model = UserProfile
+    can_delete = False
+    verbose_name_plural = 'Profile'
+
+class CustomUserAdmin(UserAdmin):
+    inlines = (UserProfileInline,)
+    list_display = ('email', 'first_name', 'last_name', 'is_staff')
+    search_fields = ('email', 'first_name', 'last_name')
+    ordering = ('email',)
+    fieldsets = (
+        (None, {'fields': ('email', 'password')}),
+        ('Personal info', {'fields': ('first_name', 'last_name')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Important dates', {'fields': ('last_login', 'date_joined')}),
+    )
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('email', 'password1', 'password2'),
+        }),
+    )
+
+admin.site.register(CustomUser, CustomUserAdmin)
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'email_notifications', 'order_updates', 'new_releases', 'promotions')
+    list_filter = ('email_notifications', 'order_updates', 'new_releases', 'promotions')
+    search_fields = ('user__email',)
 
 @admin.register(Beat)
 class BeatAdmin(admin.ModelAdmin):
@@ -45,3 +77,7 @@ class OrderAdmin(admin.ModelAdmin):
 @admin.register(OrderItem)
 class OrderItemAdmin(admin.ModelAdmin):
     list_display = ('order', 'beat', 'price', 'quantity')
+
+@admin.register(Favorite)
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = ('user', 'beat', 'created_at')

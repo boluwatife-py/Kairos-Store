@@ -11,16 +11,29 @@ from .forms import CustomUserCreationForm, CustomAuthenticationForm
 from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
 from django.urls import reverse_lazy, reverse
 from django.http import Http404
+from django.views.decorators.http import require_http_methods
+from django.contrib.auth.hashers import check_password
+from .validators import validate_password_strength
+from django.core.exceptions import ValidationError
+import json
 
-def login_required_json(view_func):
+def require_auth(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
-            return JsonResponse({
-                'status': 'error',
-                'message': 'Please login to continue',
-                'requires_auth': True
-            }, status=401)
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/json':
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Please login to continue',
+                    'requires_auth': True
+                }, status=401)
+            else:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Please login to continue',
+                    'requires_auth': True,
+                    'redirect': '/'
+                }, status=401)
         return view_func(request, *args, **kwargs)
     return _wrapped_view
 
@@ -153,7 +166,7 @@ def beat_detail(request, beat_id):
     }
     return render(request, 'beat_detail.html', context)
 
-@login_required
+@require_auth
 def dashboard(request):
     # Get user's purchased beats
     purchased_beats = Beat.objects.filter(
@@ -196,7 +209,7 @@ def dashboard(request):
     }
     return render(request, 'dashboard.html', context)
 
-@login_required_json
+@require_auth
 def add_to_cart(request, beat_id):
     beat = get_object_or_404(Beat, id=beat_id)
     cart, created = Cart.objects.get_or_create(user=request.user)
@@ -225,7 +238,7 @@ def add_to_cart(request, beat_id):
         'message': f'{beat.title} added to cart!'
     })
 
-@login_required_json
+@require_auth
 def remove_from_cart(request, cart_item_id):
     cart_item = get_object_or_404(CartItem, id=cart_item_id, cart__user=request.user)
     cart_item.delete()
@@ -234,7 +247,7 @@ def remove_from_cart(request, cart_item_id):
         'message': 'Item removed from cart!'
     })
 
-@login_required
+@require_auth
 def cart(request):
     cart, created = Cart.objects.get_or_create(user=request.user)
     cart_items = cart.cartitem_set.all().select_related('beat', 'bundle')
@@ -271,7 +284,7 @@ def cart(request):
         'total_price': float(cart.total_price)
     })
 
-@login_required
+@require_auth
 def checkout(request, order_id):
     # Get the order and verify it belongs to the user and is not completed
     order = get_object_or_404(Order, id=order_id, user=request.user)
@@ -290,41 +303,55 @@ def checkout(request, order_id):
     }
     return render(request, 'checkout.html', context)
 
-@login_required_json
+@require_auth
 def create_order(request):
-    if request.method == 'POST':
-        cart = get_object_or_404(Cart, user=request.user)
-        order = Order.objects.create(
-            user=request.user,
-            total_price=cart.total_price
-        )
-        for item in cart.cartitem_set.all():
-            if item.beat:
-                OrderItem.objects.create(
-                    order=order,
-                    beat=item.beat,
-                    price=item.beat.price,
-                    quantity=item.quantity
-                )
-            elif item.bundle:
-                # Create order items for each beat in the bundle
-                for beat in item.bundle.beats.all():
-                    OrderItem.objects.create(
-                        order=order,
-                        beat=beat,
-                        price=beat.price,
-                        quantity=item.quantity
-                    )
-        cart.delete()
+    cart = get_object_or_404(Cart, user=request.user)
+    cart_items = cart.cartitem_set.all().select_related('beat', 'bundle')
+    
+    if not cart_items.exists():
         return JsonResponse({
-            'status': 'success',
-            'message': 'Order created successfully',
-            'redirect': reverse('store:checkout', args=[order.id])
+            'status': 'error',
+            'message': 'Your cart is empty'
         })
+    
+    # Create order
+    order = Order.objects.create(
+        user=request.user,
+        status='pending'
+    )
+    
+    # Add items to order
+    total_price = 0
+    for item in cart_items:
+        if item.beat:
+            price = item.beat.price
+            OrderItem.objects.create(
+                order=order,
+                beat=item.beat,
+                price=price
+            )
+            total_price += price
+        elif item.bundle:
+            price = item.bundle.price
+            OrderItem.objects.create(
+                order=order,
+                bundle=item.bundle,
+                price=price
+            )
+            total_price += price
+    
+    # Update order total
+    order.total_price = total_price
+    order.save()
+    
+    # Clear cart
+    cart_items.delete()
+    
     return JsonResponse({
-        'status': 'error',
-        'message': 'Invalid request method'
-    }, status=400)
+        'status': 'success',
+        'message': 'Order created successfully',
+        'order_id': order.id
+    })
 
 def register(request):
     if request.method == 'POST':
@@ -407,51 +434,45 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
 class CustomPasswordResetCompleteView(PasswordResetCompleteView):
     template_name = 'store/password_reset_complete.html'
 
-@login_required
+@require_auth
 def download_beat(request, beat_id):
     beat = get_object_or_404(Beat, id=beat_id)
     
     # Check if user has purchased the beat
     has_purchased = OrderItem.objects.filter(
         order__user=request.user,
-        beat=beat,
-        order__status='completed'
+        order__status='completed',
+        beat=beat
     ).exists()
     
     if not has_purchased:
         return JsonResponse({
             'status': 'error',
-            'message': 'You need to purchase this beat before downloading it'
-        }, status=403)
+            'message': 'You need to purchase this beat before downloading'
+        })
     
-    if not beat.full_audio:
-        return JsonResponse({
-            'status': 'error',
-            'message': 'Audio file not found'
-        }, status=404)
-    
-    # Serve the file
+    # Return the file
     response = FileResponse(beat.full_audio, as_attachment=True)
     response['Content-Disposition'] = f'attachment; filename="{beat.title}.mp3"'
     return response
 
-@login_required_json
+@require_auth
 def toggle_favorite(request, beat_id):
     beat = get_object_or_404(Beat, id=beat_id)
     favorite, created = Favorite.objects.get_or_create(user=request.user, beat=beat)
     
     if not created:
         favorite.delete()
-        is_favorite = False
-        message = 'Beat removed from favorites'
-    else:
-        is_favorite = True
-        message = 'Beat added to favorites'
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Beat removed from favorites',
+            'is_favorite': False
+        })
     
     return JsonResponse({
         'status': 'success',
-        'message': message,
-        'is_favorite': is_favorite
+        'message': 'Beat added to favorites',
+        'is_favorite': True
     })
 
 def get_bundle_beats(request, bundle_id):
@@ -485,50 +506,107 @@ def get_bundle_beats(request, bundle_id):
         'beats': beats_data
     })
 
-@login_required
+@require_auth
 def add_bundle_to_cart(request, bundle_id):
-    try:
-        bundle = Bundle.objects.get(id=bundle_id)
-        cart, created = Cart.objects.get_or_create(user=request.user)
-        
-        # Check if bundle is already in cart
-        if CartItem.objects.filter(cart=cart, bundle=bundle).exists():
+    bundle = get_object_or_404(Bundle, id=bundle_id)
+    cart, created = Cart.objects.get_or_create(user=request.user)
+    
+    # Check if bundle is already in cart
+    if CartItem.objects.filter(cart=cart, bundle=bundle).exists():
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Bundle is already in your cart'
+        })
+    
+    # Check if any beat in the bundle is already in cart
+    for beat in bundle.beats.all():
+        if CartItem.objects.filter(cart=cart, beat=beat).exists():
             return JsonResponse({
                 'status': 'error',
-                'message': 'Bundle is already in your cart'
+                'message': f'One or more beats from this bundle are already in your cart'
             })
+    
+    # Add bundle to cart
+    CartItem.objects.create(cart=cart, bundle=bundle)
+    
+    return JsonResponse({
+        'status': 'success',
+        'message': f'{bundle.title} added to cart!'
+    })
+
+@require_http_methods(["POST"])
+@require_auth
+def update_settings(request):
+    try:
+        data = json.loads(request.body)
+        user = request.user
         
-        # Get all beats in the bundle
-        bundle_beats = bundle.beats.all()
+        # Update profile
+        if 'profile' in data:
+            profile = data['profile']
+            
+            if 'first_name' in profile:
+                user.first_name = profile['first_name']
+            if 'last_name' in profile:
+                user.last_name = profile['last_name']
+            if 'bio' in profile:
+                user.userprofile.bio = profile['bio']
+            
+            user.save()
+            user.userprofile.save()
         
-        # Remove any individual beats that are in the bundle from the cart
-        removed_beats = []
-        for beat in bundle_beats:
-            cart_item = CartItem.objects.filter(cart=cart, beat=beat).first()
-            if cart_item:
-                removed_beats.append(beat.title)
-                cart_item.delete()
+        # Update password
+        if 'password' in data:
+            password = data['password']
+            
+            # First check if current password is correct
+            if not check_password(password['current_password'], user.password):
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Current password is incorrect'
+                }, status=400)
+            
+            # Then check if new passwords match
+            if password['new_password'] != password['confirm_password']:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'New passwords do not match'
+                }, status=400)
+            
+            # Finally validate password strength
+            try:
+                validate_password_strength(password['new_password'])
+            except ValidationError as e:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': '\n'.join(e.messages)
+                }, status=400)
+            
+            # If all validations pass, update the password
+            user.set_password(password['new_password'])
+            user.save()
         
-        # Add bundle to cart
-        CartItem.objects.create(cart=cart, bundle=bundle)
-        
-        # Prepare message
-        message = f'{bundle.title} added to cart'
-        if removed_beats:
-            message += f' (removed individual beats: {", ".join(removed_beats)})'
+        # Update notification preferences
+        if 'notifications' in data:
+            notifications = data['notifications']
+            profile = user.userprofile
+            
+            if 'email_notifications' in notifications:
+                profile.email_notifications = notifications['email_notifications'] == 'true'
+            if 'order_updates' in notifications:
+                profile.order_updates = notifications['order_updates'] == 'true'
+            if 'new_releases' in notifications:
+                profile.new_releases = notifications['new_releases'] == 'true'
+            
+            profile.save()
         
         return JsonResponse({
             'status': 'success',
-            'message': message,
-            'removed_beats': removed_beats
+            'message': 'Settings updated successfully'
         })
-    except Bundle.DoesNotExist:
-        return JsonResponse({
-            'status': 'error',
-            'message': 'Bundle not found'
-        })
+        
     except Exception as e:
         return JsonResponse({
             'status': 'error',
             'message': str(e)
-        })
+        }, status=400)

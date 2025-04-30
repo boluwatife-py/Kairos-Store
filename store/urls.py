@@ -29,4 +29,5 @@ urlpatterns = [
     path('login/', views.custom_login, name='login'),
     path('logout/', views.custom_logout, name='logout'),
     path('register/', views.register, name='register'),
+    path('api/settings/update/', views.update_settings, name='update_settings'),
 ] 

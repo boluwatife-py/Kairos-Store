@@ -5,6 +5,8 @@ from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.utils import timezone
 from django.urls import reverse
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -32,6 +34,28 @@ class CustomUser(AbstractUser):
     
     def __str__(self):
         return self.email
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='userprofile')
+    bio = models.TextField(blank=True, null=True)
+    email_notifications = models.BooleanField(default=True)
+    order_updates = models.BooleanField(default=True)
+    new_releases = models.BooleanField(default=True)
+    promotions = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Profile for {self.user.email}"
+
+@receiver(post_save, sender=CustomUser)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+
+@receiver(post_save, sender=CustomUser)
+def save_user_profile(sender, instance, **kwargs):
+    instance.userprofile.save()
 
 class Beat(models.Model):
     title = models.CharField(max_length=200)
