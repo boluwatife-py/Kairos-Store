@@ -33,12 +33,13 @@ async function handleAddToCart(beatId, beatTitle) {
       return;
     }
     
-    if (response.ok) {
+    if (response.ok && data.status === 'success') {
       showToast(data.message);
-      // Update cart count immediately
+      // Fetch actual cart count from server
+      const cartResponse = await fetch('/cart/');
+      const cartData = await cartResponse.json();
       const cartCount = document.querySelector('#cartButton span');
-      const currentCount = parseInt(cartCount.textContent || '0');
-      cartCount.textContent = currentCount + 1;
+      cartCount.textContent = cartData.items.length;
       cartCount.classList.remove('hidden');
     } else {
       showToast(data.message || 'Error adding to cart', 'error');

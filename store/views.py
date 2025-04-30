@@ -200,11 +200,25 @@ def dashboard(request):
 def add_to_cart(request, beat_id):
     beat = get_object_or_404(Beat, id=beat_id)
     cart, created = Cart.objects.get_or_create(user=request.user)
-    cart_item, created = CartItem.objects.get_or_create(cart=cart, beat=beat)
+        
+    # Check if beat is already in cart
+    if CartItem.objects.filter(cart=cart, beat=beat).exists():
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Beat is already in your cart'
+        })
     
-    if not created:
-        cart_item.quantity += 1
-        cart_item.save()
+    # Check if beat is part of any bundle in cart
+    bundle_cart_items = CartItem.objects.filter(cart=cart, bundle__isnull=False)
+    for cart_item in bundle_cart_items:
+        if beat in cart_item.bundle.beats.all():
+            return JsonResponse({
+                'status': 'error',
+                'message': f'This beat is already in your cart as part of the bundle: {cart_item.bundle.title}'
+            })
+    
+    # Add beat to cart
+    CartItem.objects.create(cart=cart, beat=beat)
     
     return JsonResponse({
         'status': 'success',
@@ -471,47 +485,50 @@ def get_bundle_beats(request, bundle_id):
         'beats': beats_data
     })
 
-@login_required_json
+@login_required
 def add_bundle_to_cart(request, bundle_id):
-    print(f"Adding bundle {bundle_id} to cart for user {request.user}")
-    
-    if request.method != 'POST':
-        print(f"Invalid request method: {request.method}")
-        return JsonResponse({
-            'status': 'error',
-            'message': 'Invalid request method'
-        }, status=405)
-
     try:
-        bundle = get_object_or_404(Bundle, id=bundle_id, is_active=True)
-        print(f"Found bundle: {bundle.title}")
-        
+        bundle = Bundle.objects.get(id=bundle_id)
         cart, created = Cart.objects.get_or_create(user=request.user)
-        print(f"Cart {'created' if created else 'retrieved'} for user")
         
         # Check if bundle is already in cart
         if CartItem.objects.filter(cart=cart, bundle=bundle).exists():
-            print(f"Bundle {bundle.title} already in cart")
             return JsonResponse({
                 'status': 'error',
                 'message': 'Bundle is already in your cart'
-            }, status=400)
+            })
+        
+        # Get all beats in the bundle
+        bundle_beats = bundle.beats.all()
+        
+        # Remove any individual beats that are in the bundle from the cart
+        removed_beats = []
+        for beat in bundle_beats:
+            cart_item = CartItem.objects.filter(cart=cart, beat=beat).first()
+            if cart_item:
+                removed_beats.append(beat.title)
+                cart_item.delete()
         
         # Add bundle to cart
-        cart_item = CartItem.objects.create(
-            cart=cart,
-            bundle=bundle,
-            quantity=1
-        )
-        print(f"Created cart item for bundle {bundle.title}")
+        CartItem.objects.create(cart=cart, bundle=bundle)
+        
+        # Prepare message
+        message = f'{bundle.title} added to cart'
+        if removed_beats:
+            message += f' (removed individual beats: {", ".join(removed_beats)})'
         
         return JsonResponse({
             'status': 'success',
-            'message': f'{bundle.title} added to cart!'
+            'message': message,
+            'removed_beats': removed_beats
         })
-    except Exception as e:
-        print(f"Error adding bundle to cart: {str(e)}")
+    except Bundle.DoesNotExist:
         return JsonResponse({
             'status': 'error',
-            'message': f'Error adding bundle to cart: {str(e)}'
-        }, status=500)
+            'message': 'Bundle not found'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        })

@@ -199,7 +199,6 @@ document.addEventListener('DOMContentLoaded', function() {
   // Handle add to cart
   addToCartBtn.addEventListener('click', function() {
     const bundleId = this.dataset.bundleId;
-    console.log('Adding bundle to cart:', { bundleId });
     
     if (bundleId) {
       fetch(`/add-to-cart/bundle/${bundleId}/`, {
@@ -210,28 +209,35 @@ document.addEventListener('DOMContentLoaded', function() {
         },
       })
       .then(response => {
-        console.log('Response status:', response.status);
-        return response.json().then(data => {
-          console.log('Response data:', data);
-          return { response, data };
-        });
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
       })
-      .then(({ response, data }) => {
-        if (response.ok) {
+      .then(data => {
+        if (data.status === 'success') {
           showNotification(data.message, 'success');
           modal.classList.add('hidden');
-          updateCartCount();
+          // Fetch actual cart count from server
+          return fetch('/cart/').then(response => response.json());
         } else {
-          console.error('Error response:', data);
           showNotification(data.message || 'Error adding bundle to cart', 'error');
+          throw new Error('Failed to add bundle');
+        }
+      })
+      .then(cartData => {
+        // Update cart badge with actual count
+        const cartBadge = document.querySelector('#cartButton span');
+        if (cartBadge) {
+          cartBadge.textContent = cartData.items.length;
+          cartBadge.classList.remove('hidden');
         }
       })
       .catch(error => {
-        console.error('Error adding bundle to cart:', error);
-        showNotification('Error adding bundle to cart', 'error');
+        if (error.message !== 'Failed to add bundle') {
+          showNotification('Error adding bundle to cart', 'error');
+        }
       });
-    } else {
-      console.error('No bundle ID found');
     }
   });
 
