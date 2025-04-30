@@ -28,4 +28,87 @@
       </button>
     </div>
   </div>
-</div> 
+</div>
+
+<script>
+function handleAddBundleToCart(bundleId, bundleTitle) {
+  console.log('Adding bundle to cart:', { bundleId, bundleTitle });
+  
+  fetch(`/add-to-cart/bundle/${bundleId}/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': getCookie('csrftoken'),
+      'Content-Type': 'application/json',
+    },
+  })
+  .then(response => {
+    console.log('Response status:', response.status);
+    return response.json().then(data => {
+      console.log('Response data:', data);
+      return { response, data };
+    });
+  })
+  .then(({ response, data }) => {
+    if (response.ok) {
+      showNotification(data.message, 'success');
+      updateCartCount();
+    } else {
+      console.error('Error response:', data);
+      showNotification(data.message || 'Error adding bundle to cart', 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error adding bundle to cart:', error);
+    showNotification('Error adding bundle to cart', 'error');
+  });
+}
+
+// Function to update cart count
+function updateCartCount() {
+  fetch('/cart/')
+    .then(response => response.json())
+    .then(data => {
+      const cartCount = data.items.length;
+      // Update all cart count elements (in case there are multiple instances)
+      const cartCountElements = document.querySelectorAll('[data-cart-count]');
+      cartCountElements.forEach(element => {
+        element.textContent = cartCount;
+        if (cartCount > 0) {
+          element.classList.remove('hidden');
+        } else {
+          element.classList.add('hidden');
+        }
+      });
+      
+      // Also update any elements with id 'cartCount' for backward compatibility
+      const cartCountElement = document.getElementById('cartCount');
+      if (cartCountElement) {
+        cartCountElement.textContent = cartCount;
+        if (cartCount > 0) {
+          cartCountElement.classList.remove('hidden');
+        } else {
+          cartCountElement.classList.add('hidden');
+        }
+      }
+    })
+    .catch(error => {
+      console.error('Error updating cart count:', error);
+    });
+}
+
+// Helper function to get CSRF token
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+</script> 

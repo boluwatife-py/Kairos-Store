@@ -279,21 +279,18 @@ function handleAddToCart(beatId, beatTitle) {
 
 // Add bundle to cart functionality
 function handleAddBundleToCart(bundleId, bundleTitle) {
-  fetch('/api/cart/add-bundle/', {
+  fetch(`/add-to-cart/bundle/${bundleId}/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'X-CSRFToken': getCookie('csrftoken')
-    },
-    body: JSON.stringify({
-      bundle_id: bundleId
-    })
+    }
   })
   .then(response => response.json())
   .then(data => {
     if (data.status === 'success') {
       showNotification('Success', `${bundleTitle} added to cart`, 'success');
-      updateCartCount(data.cart_count);
+      updateCartCount();
     } else {
       showNotification('Error', data.message || 'Failed to add bundle to cart', 'error');
     }

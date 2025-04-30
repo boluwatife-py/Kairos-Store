@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold text-white mb-8">Your Cart</h1>
+  
+  <div id="cartItems" class="space-y-4">
+    <!-- Cart items will be loaded here -->
+  </div>
+
+  <div class="mt-8 flex justify-between items-center">
+    <div class="text-white">
+      <span class="text-gray-400">Total:</span>
+      <span id="cartTotal" class="text-2xl font-bold ml-2">$0.00</span>
+    </div>
+    <button id="checkoutBtn" class="px-6 py-3 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors">
+      Proceed to Checkout
+    </button>
+  </div>
+</div>
+
+<template id="cartItemTemplate">
+  <div class="glass-card p-4 flex items-center justify-between">
+    <div class="flex items-center space-x-4">
+      <div class="w-16 h-16 rounded-md overflow-hidden">
+        <img src="" alt="" class="w-full h-full object-cover">
+      </div>
+      <div>
+        <h3 class="text-lg font-semibold text-white"></h3>
+        <div class="flex space-x-2 mt-1">
+          <span class="genre-tag bg-primary/80 text-white text-xs px-2 py-1 rounded"></span>
+          <span class="bpm-tag bg-gray-800/80 text-white text-xs px-2 py-1 rounded"></span>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center space-x-4">
+      <div class="text-white">
+        <span class="price text-lg font-bold"></span>
+        <span class="text-gray-400 text-sm">x</span>
+        <span class="quantity text-lg font-bold"></span>
+      </div>
+      <button class="remove-item text-gray-400 hover:text-white transition-colors">
+        <i class="ri-delete-bin-line text-xl"></i>
+      </button>
+    </div>
+  </div>
+</template>
+
+<script>
+// Notification function
+function showNotification(message, type = 'success') {
+  const notification = document.createElement('div');
+  notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white z-50 transform transition-all duration-300 translate-y-[-100%] ${
+    type === 'success' ? 'bg-green-500' : 'bg-red-500'
+  }`;
+  notification.textContent = message;
+  document.body.appendChild(notification);
+
+  // Animate in
+  setTimeout(() => {
+    notification.style.transform = 'translateY(0)';
+  }, 100);
+
+  // Remove after 3 seconds
+  setTimeout(() => {
+    notification.style.transform = 'translateY(-100%)';
+    setTimeout(() => {
+      notification.remove();
+    }, 300);
+  }, 3000);
+}
+
+// Helper function to get CSRF token
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const cartItems = document.getElementById('cartItems');
+  const cartTotal = document.getElementById('cartTotal');
+  const checkoutBtn = document.getElementById('checkoutBtn');
+  const template = document.getElementById('cartItemTemplate');
+
+  function loadCart() {
+    fetch('/cart/')
+      .then(response => response.json())
+      .then(data => {
+        cartItems.innerHTML = '';
+        if (data.items && data.items.length > 0) {
+          data.items.forEach(item => {
+            const clone = template.content.cloneNode(true);
+            const card = clone.querySelector('.glass-card');
+            
+            // Set item data
+            const img = card.querySelector('img');
+            const title = card.querySelector('h3');
+            const genreTag = card.querySelector('.genre-tag');
+            const bpmTag = card.querySelector('.bpm-tag');
+            const price = card.querySelector('.price');
+            const quantity = card.querySelector('.quantity');
+            const removeBtn = card.querySelector('.remove-item');
+            
+            img.src = item.image_url;
+            img.alt = item.title;
+            title.textContent = item.title;
+            
+            if (item.type === 'beat') {
+              genreTag.textContent = item.genre;
+              bpmTag.textContent = `${item.bpm} BPM`;
+              genreTag.classList.remove('hidden');
+              bpmTag.classList.remove('hidden');
+            } else {
+              genreTag.classList.add('hidden');
+              bpmTag.classList.add('hidden');
+            }
+            
+            price.textContent = `$${item.price}`;
+            quantity.textContent = item.quantity;
+            
+            removeBtn.addEventListener('click', () => {
+              fetch(`/remove-from-cart/${item.id}/`, {
+                method: 'POST',
+                headers: {
+                  'X-CSRFToken': getCookie('csrftoken'),
+                  'Content-Type': 'application/json',
+                },
+              })
+              .then(response => response.json())
+              .then(data => {
+                if (data.status === 'success') {
+                  showNotification(data.message, 'success');
+                  loadCart();
+                  updateCartCount();
+                } else {
+                  showNotification(data.message || 'Error removing item', 'error');
+                }
+              })
+              .catch(error => {
+                console.error('Error removing item:', error);
+                showNotification('Error removing item', 'error');
+              });
+            });
+            
+            cartItems.appendChild(clone);
+          });
+        } else {
+          cartItems.innerHTML = '<p class="text-gray-400 text-center py-8">Your cart is empty</p>';
+        }
+        
+        cartTotal.textContent = `$${data.total_price}`;
+        checkoutBtn.disabled = !data.items || data.items.length === 0;
+      })
+      .catch(error => {
+        console.error('Error loading cart:', error);
+        showNotification('Error loading cart', 'error');
+      });
+  }
+
+  checkoutBtn.addEventListener('click', () => {
+    fetch('/create-order/', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken'),
+        'Content-Type': 'application/json',
+      },
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        window.location.href = data.redirect;
+      } else {
+        showNotification(data.message || 'Error creating order', 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Error creating order:', error);
+      showNotification('Error creating order', 'error');
+    });
+  });
+
+  // Load cart on page load
+  loadCart();
+});
+</script> 

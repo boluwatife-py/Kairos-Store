@@ -61,4 +61,37 @@
       </div>
     </div>
   </div>
-</div> 
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Handle add to cart
+  document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      const beatId = this.dataset.beatId;
+      if (beatId) {
+        fetch(`/add-to-cart/${beatId}/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+          },
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            showNotification(data.message, 'success');
+            updateCartCount();
+          } else {
+            showNotification(data.message || 'Error adding beat to cart', 'error');
+          }
+        })
+        .catch(error => {
+          console.error('Error adding beat to cart:', error);
+          showNotification('Error adding beat to cart', 'error');
+        });
+      }
+    });
+  });
+});
+</script> 

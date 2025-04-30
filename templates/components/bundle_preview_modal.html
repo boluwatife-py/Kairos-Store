@@ -11,7 +11,7 @@
     <div class="inline-block w-full max-w-4xl p-6 my-8 text-left align-middle transition-all transform bg-gray-800 shadow-xl rounded-2xl">
       <div class="flex justify-between items-start mb-6">
         <div class="flex items-center space-x-4">
-          <div class="w-16 h-16 bg-gray-700 rounded-lg overflow-hidden">
+          <div class="w-16 h-16 bg-gray-700 rounded-md overflow-hidden">
             <img src="" alt="Bundle Cover" class="w-full h-full object-cover" id="bundlePreviewImage">
           </div>
           <div>
@@ -29,7 +29,7 @@
       </div>
 
       <div class="mt-6 flex justify-end space-x-4">
-        <button id="addBundleToCart" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+        <button id="addBundleToCart" class="px-6 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors">
           Add to Cart
         </button>
       </div>
@@ -41,12 +41,14 @@
 <template id="beatCardTemplate">
   <div class="glass-card rounded-lg overflow-hidden" data-beat-id="">
     <div class="relative">
-      <img src="" alt="Beat Cover" class="w-full h-48 object-cover">
+      <a href="/beat/" class="block w-full h-48">
+        <img src="" alt="Beat Cover" class="w-full h-full object-cover">
+      </a>
       <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
       <div class="absolute bottom-0 left-0 right-0 p-4">
         <div class="flex justify-between items-end">
           <div>
-            <h3 class="text-lg font-semibold text-white"></h3>
+            <a href="/beat/" class="text-lg font-semibold text-white hover:text-primary transition-colors"></a>
             <div class="flex space-x-2 mt-1">
               <span class="bg-primary/80 text-white text-xs px-2 py-1 rounded"></span>
               <span class="bg-gray-800/80 text-white text-xs px-2 py-1 rounded"></span>
@@ -66,10 +68,44 @@
         </div>
       </div>
     </div>
+    <div class="p-4">
+      <div class="flex justify-between items-center">
+        <a href="/beat/" class="text-white hover:text-primary text-sm font-medium transition-colors flex items-center gap-1">
+          <i class="ri-external-link-line"></i>
+          View Beat
+        </a>
+        <button class="add-to-cart-btn px-4 py-1.5 bg-primary text-white text-sm rounded-sm hover:bg-primary/90 transition-colors flex items-center gap-1" data-beat-id="">
+          Add to Cart
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
+// Notification function
+function showNotification(message, type = 'success') {
+  const notification = document.createElement('div');
+  notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white z-50 transform transition-all duration-300 translate-y-[-100%] ${
+    type === 'success' ? 'bg-green-500' : 'bg-red-500'
+  }`;
+  notification.textContent = message;
+  document.body.appendChild(notification);
+
+  // Animate in
+  setTimeout(() => {
+    notification.style.transform = 'translateY(0)';
+  }, 100);
+
+  // Remove after 3 seconds
+  setTimeout(() => {
+    notification.style.transform = 'translateY(-100%)';
+    setTimeout(() => {
+      notification.remove();
+    }, 300);
+  }, 3000);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   const modal = document.getElementById('bundlePreviewModal');
   const closeBtn = document.getElementById('closeBundlePreview');
@@ -100,6 +136,9 @@ document.addEventListener('DOMContentLoaded', function() {
           document.getElementById('bundlePreviewDescription').textContent = data.bundle.description;
           document.getElementById('bundlePreviewImage').src = data.bundle.image_url;
           
+          // Set bundle ID for add to cart button
+          addToCartBtn.dataset.bundleId = bundleId;
+          
           // Clear previous beats
           beatsContainer.innerHTML = '';
           
@@ -110,16 +149,35 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Set beat data
             card.dataset.beatId = beat.id;
-            card.querySelector('img').src = beat.image_url;
-            card.querySelector('h3').textContent = beat.title;
+            
+            // Update image and links
+            const image = card.querySelector('img');
+            const beatLinks = card.querySelectorAll('a[href="/beat/"]');
+            image.src = beat.image_url;
+            image.alt = beat.title;
+            beatLinks.forEach(link => {
+              link.href = `/beat/${beat.id}/`;
+            });
+            
+            // Update text content
+            card.querySelector('a.text-lg').textContent = beat.title;
             card.querySelector('.bg-primary\\/80').textContent = beat.genre;
             card.querySelector('.bg-gray-800\\/80').textContent = `${beat.bpm} BPM`;
             
-            // Set play button
+            // Set play button and add to cart button
             const playButton = card.querySelector('.play-button');
+            const addToCartButton = card.querySelector('.add-to-cart-btn');
             playButton.dataset.sampleUrl = beat.sample_url;
-            playButton.addEventListener('click', () => {
+            addToCartButton.dataset.beatId = beat.id;
+            
+            playButton.addEventListener('click', (e) => {
+              e.preventDefault();
               playSample(beat.id, beat.sample_url);
+            });
+
+            addToCartButton.addEventListener('click', (e) => {
+              e.preventDefault();
+              handleAddToCart(beat.id, beat.title);
             });
             
             // Add to container
@@ -128,19 +186,69 @@ document.addEventListener('DOMContentLoaded', function() {
           
           // Show modal
           modal.classList.remove('hidden');
+        } else {
+          showNotification(data.message || 'Error loading bundle', 'error');
         }
       })
       .catch(error => {
         console.error('Error loading bundle:', error);
+        showNotification('Error loading bundle', 'error');
       });
   };
 
   // Handle add to cart
   addToCartBtn.addEventListener('click', function() {
     const bundleId = this.dataset.bundleId;
+    console.log('Adding bundle to cart:', { bundleId });
+    
     if (bundleId) {
-      handleAddBundleToCart(bundleId);
+      fetch(`/add-to-cart/bundle/${bundleId}/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken'),
+          'Content-Type': 'application/json',
+        },
+      })
+      .then(response => {
+        console.log('Response status:', response.status);
+        return response.json().then(data => {
+          console.log('Response data:', data);
+          return { response, data };
+        });
+      })
+      .then(({ response, data }) => {
+        if (response.ok) {
+          showNotification(data.message, 'success');
+          modal.classList.add('hidden');
+          updateCartCount();
+        } else {
+          console.error('Error response:', data);
+          showNotification(data.message || 'Error adding bundle to cart', 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Error adding bundle to cart:', error);
+        showNotification('Error adding bundle to cart', 'error');
+      });
+    } else {
+      console.error('No bundle ID found');
     }
   });
+
+  // Helper function to get CSRF token
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
 });
 </script> 

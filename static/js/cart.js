@@ -212,28 +212,50 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Create cart item element
     function createCartItemElement(item) {
-        if (!item || !item.beat) return null;
+        if (!item) return null;
 
         const div = document.createElement('div');
         div.className = 'flex items-center mb-6 pb-6 border-b border-gray-800';
-        div.innerHTML = `
-            <div class="w-16 h-16 bg-gray-800 rounded flex-shrink-0 mr-4">
-                <img src="${item.beat.image_url}" alt="${item.beat.title}" class="w-full h-full object-cover rounded" />
-            </div>
-            <div class="flex-grow">
-                <h4 class="text-white font-medium">${item.beat.title}</h4>
-                <p class="text-gray-400 text-sm">${item.beat.genre} • ${item.beat.bpm} BPM</p>
-            </div>
-            <div class="flex items-center">
-                <span class="text-primary font-bold mr-4">$${item.beat.price.toFixed(2)}</span>
-                <button 
-                    onclick="removeFromCart(${item.id})"
-                    class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
-                >
-                    <i class="ri-delete-bin-line"></i>
-                </button>
-            </div>
-        `;
+        
+        if (item.type === 'beat') {
+            div.innerHTML = `
+                <div class="w-16 h-16 bg-gray-800 rounded flex-shrink-0 mr-4">
+                    <img src="${item.image_url}" alt="${item.title}" class="w-full h-full object-cover rounded" />
+                </div>
+                <div class="flex-grow">
+                    <h4 class="text-white font-medium">${item.title}</h4>
+                    <p class="text-gray-400 text-sm">${item.genre} • ${item.bpm} BPM</p>
+                </div>
+                <div class="flex items-center">
+                    <span class="text-primary font-bold mr-4">$${item.price.toFixed(2)}</span>
+                    <button 
+                        onclick="removeFromCart(${item.id})"
+                        class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                    >
+                        <i class="ri-delete-bin-line"></i>
+                    </button>
+                </div>
+            `;
+        } else if (item.type === 'bundle') {
+            div.innerHTML = `
+                <div class="w-16 h-16 bg-gray-800 rounded flex-shrink-0 mr-4">
+                    <img src="${item.image_url}" alt="${item.title}" class="w-full h-full object-cover rounded" />
+                </div>
+                <div class="flex-grow">
+                    <h4 class="text-white font-medium">${item.title}</h4>
+                    <p class="text-gray-400 text-sm">Bundle</p>
+                </div>
+                <div class="flex items-center">
+                    <span class="text-primary font-bold mr-4">$${item.price.toFixed(2)}</span>
+                    <button 
+                        onclick="removeFromCart(${item.id})"
+                        class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                    >
+                        <i class="ri-delete-bin-line"></i>
+                    </button>
+                </div>
+            `;
+        }
         return div;
     }
 

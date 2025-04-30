@@ -14,6 +14,7 @@ urlpatterns = [
     path('api/bundle/<int:bundle_id>/beats/', views.get_bundle_beats, name='bundle_beats'),
     path('create-order/', views.create_order, name='create_order'),
     path('add-to-cart/<int:beat_id>/', views.add_to_cart, name='add_to_cart'),
+    path('add-to-cart/bundle/<int:bundle_id>/', views.add_bundle_to_cart, name='add_bundle_to_cart'),
     path('remove-from-cart/<int:cart_item_id>/', views.remove_from_cart, name='remove_from_cart'),
     path('download/<int:beat_id>/', views.download_beat, name='download_beat'),
     path('toggle-favorite/<int:beat_id>/', views.toggle_favorite, name='toggle_favorite'),

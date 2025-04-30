@@ -223,20 +223,34 @@ def remove_from_cart(request, cart_item_id):
 @login_required
 def cart(request):
     cart, created = Cart.objects.get_or_create(user=request.user)
-    cart_items = cart.cartitem_set.all().select_related('beat')
+    cart_items = cart.cartitem_set.all().select_related('beat', 'bundle')
     
-    items_data = [{
-        'id': item.id,
-        'beat': {
-            'title': item.beat.title,
-            'genre': item.beat.genre,
-            'bpm': item.beat.bpm,
-            'price': float(item.beat.price),
-            'image_url': item.beat.get_image_url()
-        },
-        'quantity': item.quantity,
-        'total_price': float(item.total_price)
-    } for item in cart_items]
+    items_data = []
+    for item in cart_items:
+        if item.beat:
+            items_data.append({
+                'id': item.id,
+                'type': 'beat',
+                'title': item.beat.title,
+                'genre': item.beat.genre,
+                'bpm': item.beat.bpm,
+                'price': float(item.beat.price),
+                'image_url': item.beat.get_image_url(),
+                'quantity': item.quantity,
+                'total_price': float(item.total_price)
+            })
+        elif item.bundle:
+            items_data.append({
+                'id': item.id,
+                'type': 'bundle',
+                'title': item.bundle.title,
+                'genre': None,
+                'bpm': None,
+                'price': float(item.bundle.discounted_price),
+                'image_url': item.bundle.image.url,
+                'quantity': item.quantity,
+                'total_price': float(item.total_price)
+            })
     
     return JsonResponse({
         'items': items_data,
@@ -271,12 +285,22 @@ def create_order(request):
             total_price=cart.total_price
         )
         for item in cart.cartitem_set.all():
-            OrderItem.objects.create(
-                order=order,
-                beat=item.beat,
-                price=item.beat.price,
-                quantity=item.quantity
-            )
+            if item.beat:
+                OrderItem.objects.create(
+                    order=order,
+                    beat=item.beat,
+                    price=item.beat.price,
+                    quantity=item.quantity
+                )
+            elif item.bundle:
+                # Create order items for each beat in the bundle
+                for beat in item.bundle.beats.all():
+                    OrderItem.objects.create(
+                        order=order,
+                        beat=beat,
+                        price=beat.price,
+                        quantity=item.quantity
+                    )
         cart.delete()
         return JsonResponse({
             'status': 'success',
@@ -441,7 +465,53 @@ def get_bundle_beats(request, bundle_id):
             'original_price': float(bundle.original_price),
             'discounted_price': float(bundle.discounted_price),
             'discount': bundle.discount,
-            'beat_count': bundle.beat_count
+            'beat_count': bundle.beat_count,
+            'image_url': bundle.image.url if bundle.image else None,
         },
         'beats': beats_data
     })
+
+@login_required_json
+def add_bundle_to_cart(request, bundle_id):
+    print(f"Adding bundle {bundle_id} to cart for user {request.user}")
+    
+    if request.method != 'POST':
+        print(f"Invalid request method: {request.method}")
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Invalid request method'
+        }, status=405)
+
+    try:
+        bundle = get_object_or_404(Bundle, id=bundle_id, is_active=True)
+        print(f"Found bundle: {bundle.title}")
+        
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        print(f"Cart {'created' if created else 'retrieved'} for user")
+        
+        # Check if bundle is already in cart
+        if CartItem.objects.filter(cart=cart, bundle=bundle).exists():
+            print(f"Bundle {bundle.title} already in cart")
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Bundle is already in your cart'
+            }, status=400)
+        
+        # Add bundle to cart
+        cart_item = CartItem.objects.create(
+            cart=cart,
+            bundle=bundle,
+            quantity=1
+        )
+        print(f"Created cart item for bundle {bundle.title}")
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': f'{bundle.title} added to cart!'
+        })
+    except Exception as e:
+        print(f"Error adding bundle to cart: {str(e)}")
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Error adding bundle to cart: {str(e)}'
+        }, status=500)
