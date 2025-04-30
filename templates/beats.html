@@ -9,62 +9,101 @@
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
     <div class="glass rounded-lg p-6">
       <!-- Search Bar -->
-      <div class="relative mb-6">
-        <input type="text" placeholder="Search beats by name, genre or mood..." class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-3 pr-10 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-        <div class="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 flex items-center justify-center">
-          <i class="ri-search-line text-gray-400"></i>
+      <form action="{% url 'store:beats' %}" method="get" class="mb-6">
+        <div class="relative">
+          <input 
+            type="text" 
+            name="search" 
+            placeholder="Search beats by name, genre or mood..." 
+            class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-3 pr-10 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            value="{{ search_query }}"
+          >
+          <button type="submit" class="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 flex items-center justify-center">
+            <i class="ri-search-line text-gray-400"></i>
+          </button>
         </div>
-      </div>
+      </form>
+
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Genre Filter -->
         <div>
           <label class="block text-sm font-medium text-gray-400 mb-2">Genre</label>
           <div class="relative">
-            <button class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded text-left flex justify-between items-center focus:outline-none focus:ring-2 focus:ring-primary">
-              <span>All Genres</span>
-              <i class="ri-arrow-down-s-line"></i>
-            </button>
+            <select 
+              id="genreSelect"
+              class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded appearance-none focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="">All Genres</option>
+              {% for genre in genres %}
+                <option value="{{ genre }}" {% if selected_genre == genre %}selected{% endif %}>{{ genre }}</option>
+              {% endfor %}
+            </select>
+            <div class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+              <i class="ri-arrow-down-s-line text-gray-400"></i>
+            </div>
           </div>
         </div>
+
+        <!-- BPM Range Filter -->
         <div>
           <label class="block text-sm font-medium text-gray-400 mb-2">BPM Range</label>
           <div class="flex items-center gap-4">
-            <input type="range" min="60" max="200" value="140" class="bpm-range flex-grow">
-            <span class="text-white bg-gray-800 px-2 py-1 rounded text-sm">140 BPM</span>
+            <input 
+              type="range" 
+              id="bpmRange"
+              min="1" 
+              max="200" 
+              value="{{ bpm_min|default:'1' }}" 
+              class="bpm-range flex-grow"
+            >
+            <span id="bpmValue" class="text-white bg-gray-800 px-2 py-1 rounded text-sm">{{ bpm_min|default:'1' }} BPM</span>
           </div>
         </div>
+
+        <!-- Sort By Filter -->
         <div>
           <label class="block text-sm font-medium text-gray-400 mb-2">Sort By</label>
           <div class="relative">
-            <button class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded text-left flex justify-between items-center focus:outline-none focus:ring-2 focus:ring-primary">
-              <span>Newest First</span>
-              <i class="ri-arrow-down-s-line"></i>
-            </button>
+            <select 
+              id="sortSelect"
+              class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded appearance-none focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>Newest First</option>
+              <option value="price_asc" {% if sort_by == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+              <option value="price_desc" {% if sort_by == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+              <option value="bpm_asc" {% if sort_by == 'bpm_asc' %}selected{% endif %}>BPM: Low to High</option>
+              <option value="bpm_desc" {% if sort_by == 'bpm_desc' %}selected{% endif %}>BPM: High to Low</option>
+            </select>
+            <div class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+              <i class="ri-arrow-down-s-line text-gray-400"></i>
+            </div>
           </div>
         </div>
       </div>
-      <div class="flex flex-wrap gap-2 mt-6">
-        <div class="bg-primary/20 text-primary px-3 py-1 rounded-full text-sm flex items-center gap-1">
-          Hip Hop
-          <button class="w-4 h-4 flex items-center justify-center">
-            <i class="ri-close-line"></i>
-          </button>
-        </div>
-        <div class="bg-primary/20 text-primary px-3 py-1 rounded-full text-sm flex items-center gap-1">
-          90-120 BPM
-          <button class="w-4 h-4 flex items-center justify-center">
-            <i class="ri-close-line"></i>
-          </button>
-        </div>
+
+      <!-- Active Filters -->
+      <div id="activeFilters" class="flex flex-wrap gap-2 mt-6">
+        {% if search_query %}
+          <div class="bg-primary/20 text-primary px-3 py-1 rounded-full text-sm flex items-center gap-1">
+            Search: {{ search_query }}
+            <a href="?{% if selected_genre %}genre={{ selected_genre }}{% endif %}{% if bpm_min %}&bpm_min={{ bpm_min }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}" class="w-4 h-4 flex items-center justify-center">
+              <i class="ri-close-line"></i>
+            </a>
+          </div>
+        {% endif %}
       </div>
     </div>
   </section>
 
   <!-- Beats Grid -->
   <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div id="beatsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {% for beat in beats %}
         {% include 'components/beat_card.html' with beat=beat %}
       {% endfor %}
+    </div>
+    <div id="noResults" class="col-span-3 text-center py-12 hidden">
+      <p class="text-gray-400">No beats found matching your criteria.</p>
     </div>
   </section>
 </main>
@@ -73,12 +112,144 @@
 {% block extra_js %}
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    // BPM Range slider
-    const bpmRange = document.querySelector(".bpm-range");
-    const bpmValue = bpmRange.nextElementSibling;
+    // Get all beats data
+    const beats = Array.from(document.querySelectorAll('[data-beat-id]')).map(beat => {
+      const titleElement = beat.querySelector('h3');
+      const genreElement = beat.querySelector('.bg-primary\\/80');
+      const bpmElement = beat.querySelector('.bg-gray-800\\/80');
+      const priceElement = beat.querySelector('.text-primary');
+
+      return {
+        id: beat.dataset.beatId,
+        title: titleElement ? titleElement.textContent : '',
+        genre: genreElement ? genreElement.textContent : '',
+        bpm: bpmElement ? parseInt(bpmElement.textContent) || 0 : 0,
+        price: priceElement ? parseFloat(priceElement.textContent.replace('$', '')) || 0 : 0,
+        element: beat
+      };
+    });
+
+    // Get filter elements
+    const genreSelect = document.getElementById('genreSelect');
+    const bpmRange = document.getElementById('bpmRange');
+    const bpmValue = document.getElementById('bpmValue');
+    const sortSelect = document.getElementById('sortSelect');
+    const activeFilters = document.getElementById('activeFilters');
+    const beatsGrid = document.getElementById('beatsGrid');
+    const noResults = document.getElementById('noResults');
+
+    // Update BPM value display
     bpmRange.addEventListener("input", function () {
       bpmValue.textContent = this.value + " BPM";
+      filterBeats();
     });
+
+    // Add event listeners for filters
+    genreSelect.addEventListener('change', filterBeats);
+    sortSelect.addEventListener('change', filterBeats);
+
+    function filterBeats() {
+      const selectedGenre = genreSelect.value || '';
+      const minBpm = parseInt(bpmRange.value) || 0;
+      const sortBy = sortSelect.value || '-created_at';
+
+      // Filter beats
+      let filteredBeats = beats.filter(beat => {
+        const beatGenre = (beat.genre || '').toLowerCase();
+        const matchesGenre = !selectedGenre || beatGenre === selectedGenre.toLowerCase();
+        const matchesBpm = beat.bpm >= minBpm;
+        return matchesGenre && matchesBpm;
+      });
+
+      // Sort beats
+      filteredBeats.sort((a, b) => {
+        switch (sortBy) {
+          case 'price_asc':
+            return (a.price || 0) - (b.price || 0);
+          case 'price_desc':
+            return (b.price || 0) - (a.price || 0);
+          case 'bpm_asc':
+            return (a.bpm || 0) - (b.bpm || 0);
+          case 'bpm_desc':
+            return (b.bpm || 0) - (a.bpm || 0);
+          default: // -created_at
+            return 0; // Keep original order
+        }
+      });
+
+      // Update active filters
+      updateActiveFilters();
+
+      // Update beats display
+      beatsGrid.innerHTML = '';
+      if (filteredBeats.length === 0) {
+        noResults.classList.remove('hidden');
+      } else {
+        noResults.classList.add('hidden');
+        filteredBeats.forEach(beat => {
+          beatsGrid.appendChild(beat.element.cloneNode(true));
+        });
+      }
+    }
+
+    function updateActiveFilters() {
+      const filters = [];
+
+      if (genreSelect.value) {
+        filters.push({
+          label: `Genre: ${genreSelect.value}`,
+          remove: () => {
+            genreSelect.value = '';
+            filterBeats();
+          }
+        });
+      }
+
+      if (bpmRange.value !== '1') {
+        filters.push({
+          label: `BPM: ${bpmRange.value}`,
+          remove: () => {
+            bpmRange.value = '1';
+            bpmValue.textContent = '1 BPM';
+            filterBeats();
+          }
+        });
+      }
+
+      // Update active filters display
+      const activeFiltersContainer = document.getElementById('activeFilters');
+      activeFiltersContainer.innerHTML = '';
+      
+      // Add search filter if it exists
+      const searchQuery = new URLSearchParams(window.location.search).get('search');
+      if (searchQuery) {
+        const searchFilter = document.createElement('div');
+        searchFilter.className = 'bg-primary/20 text-primary px-3 py-1 rounded-full text-sm flex items-center gap-1';
+        searchFilter.innerHTML = `
+          Search: ${searchQuery}
+          <a href="?{% if selected_genre %}genre={{ selected_genre }}{% endif %}{% if bpm_min %}&bpm_min={{ bpm_min }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}" class="w-4 h-4 flex items-center justify-center">
+            <i class="ri-close-line"></i>
+          </a>
+        `;
+        activeFiltersContainer.appendChild(searchFilter);
+      }
+
+      // Add other active filters
+      filters.forEach(filter => {
+        const filterElement = document.createElement('div');
+        filterElement.className = 'bg-primary/20 text-primary px-3 py-1 rounded-full text-sm flex items-center gap-1';
+        filterElement.innerHTML = `
+          ${filter.label}
+          <button class="w-4 h-4 flex items-center justify-center" onclick="${filter.remove}">
+            <i class="ri-close-line"></i>
+          </button>
+        `;
+        activeFiltersContainer.appendChild(filterElement);
+      });
+    }
+
+    // Initialize filters
+    filterBeats();
   });
 </script>
 {% endblock %}

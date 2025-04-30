@@ -1,6 +1,6 @@
 <!-- Bundle Card -->
 {% load static %}
-<div class="glass-card rounded-lg overflow-hidden">
+<div class="glass-card rounded-lg overflow-hidden" data-bundle-id="{{ bundle.id }}">
   <div class="relative h-64 bg-gray-800">
     <img src="{{ bundle.image.url }}" alt="{{ bundle.title }}" class="w-full h-full object-cover" />
     <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
@@ -19,11 +19,11 @@
     </div>
     <p class="text-gray-400 mb-5">{{ bundle.description }}</p>
     <div class="flex items-center justify-between">
-      <button class="bg-transparent border border-white/30 hover:border-white/50 text-white px-4 py-2 rounded-button text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap">
+      <button onclick="showBundlePreview({{ bundle.id }})" class="bg-transparent border border-white/30 hover:border-white/50 text-white px-4 py-2 rounded-button text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap">
         <i class="ri-play-circle-line"></i>
         Preview Bundle
       </button>
-      <button class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-button text-sm font-medium transition-colors whitespace-nowrap">
+      <button onclick="handleAddBundleToCart({{ bundle.id }}, '{{ bundle.title }}')" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-button text-sm font-medium transition-colors whitespace-nowrap">
         Add to Cart
       </button>
     </div>

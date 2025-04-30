@@ -9,7 +9,7 @@ from functools import wraps
 from .models import Beat, Bundle, OrderItem, Testimonial, Cart, CartItem, Order, Favorite
 from .forms import CustomUserCreationForm, CustomAuthenticationForm
 from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.http import Http404
 
 def login_required_json(view_func):
@@ -110,6 +110,12 @@ def beats(request):
     # Get unique genres for filter
     genres = Beat.objects.filter(is_active=True).values_list('genre', flat=True).distinct()
 
+    # Get active bundles for carousel
+    bundles = Bundle.objects.filter(
+        is_active=True,
+        image__isnull=False
+    ).order_by('-created_at')
+
     context = {
         'beats': beats,
         'genres': genres,
@@ -118,8 +124,34 @@ def beats(request):
         'bpm_min': bpm_min,
         'bpm_max': bpm_max,
         'sort_by': sort_by,
+        'bundles': bundles,
     }
     return render(request, 'beats.html', context)
+
+def beat_detail(request, beat_id):
+    beat = get_object_or_404(Beat, id=beat_id, is_active=True)
+    
+    # Get similar beats (same genre)
+    similar_beats = Beat.objects.filter(
+        genre=beat.genre,
+        is_active=True
+    ).exclude(id=beat.id).order_by('-created_at')[:3]
+    
+    # Get bundles containing this beat
+    bundles = Bundle.objects.filter(
+        beats=beat,
+        is_active=True
+    ).order_by('-created_at')[:2]
+    
+    # Set user for purchased check
+    beat.set_user(request.user)
+    
+    context = {
+        'beat': beat,
+        'similar_beats': similar_beats,
+        'bundles': bundles,
+    }
+    return render(request, 'beat_detail.html', context)
 
 @login_required
 def dashboard(request):
@@ -214,7 +246,12 @@ def cart(request):
 @login_required
 def checkout(request, order_id):
     # Get the order and verify it belongs to the user and is not completed
-    order = get_object_or_404(Order, id=order_id, user=request.user, status='pending')
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    
+    # If order is already completed, redirect to dashboard
+    if order.status == 'completed':
+        messages.warning(request, 'This order has already been completed.')
+        return redirect('store:dashboard')
     
     # Get order items
     order_items = order.orderitem_set.all().select_related('beat')
@@ -243,12 +280,13 @@ def create_order(request):
         cart.delete()
         return JsonResponse({
             'status': 'success',
-            'message': 'Order placed successfully!',
-            'redirect': f'/checkout/{order.id}/'
+            'message': 'Order created successfully',
+            'redirect': reverse('store:checkout', args=[order.id])
         })
-    
-    # Raise 404 for GET requests
-    raise Http404("Page not found")
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Invalid request method'
+    }, status=400)
 
 def register(request):
     if request.method == 'POST':
@@ -376,4 +414,34 @@ def toggle_favorite(request, beat_id):
         'status': 'success',
         'message': message,
         'is_favorite': is_favorite
+    })
+
+def get_bundle_beats(request, bundle_id):
+    bundle = get_object_or_404(Bundle, id=bundle_id, is_active=True)
+    beats = bundle.beats.filter(is_active=True)
+    
+    beats_data = [{
+        'id': beat.id,
+        'title': beat.title,
+        'genre': beat.genre,
+        'bpm': beat.bpm,
+        'price': float(beat.price),
+        'image_url': beat.get_image_url(),
+        'sample_url': beat.get_sample_url(),
+        'is_purchased': beat.is_purchased if hasattr(beat, 'is_purchased') else False,
+        'is_favorite': beat.is_favorite if hasattr(beat, 'is_favorite') else False
+    } for beat in beats]
+    
+    return JsonResponse({
+        'status': 'success',
+        'bundle': {
+            'id': bundle.id,
+            'title': bundle.title,
+            'description': bundle.description,
+            'original_price': float(bundle.original_price),
+            'discounted_price': float(bundle.discounted_price),
+            'discount': bundle.discount,
+            'beat_count': bundle.beat_count
+        },
+        'beats': beats_data
     })

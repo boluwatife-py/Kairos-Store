@@ -1,0 +1,328 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ beat.title }} - Kairos{% endblock %}
+
+{% block content %}
+<div class="min-h-screen pt-24 pb-32">
+  <!-- Hero Section -->
+  <div class="relative h-[60vh] min-h-[500px] w-full">
+    <div class="absolute inset-0">
+      <img src="{{ beat.get_image_url }}" alt="{{ beat.title }}" class="w-full h-full object-cover" />
+      <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/80 to-transparent"></div>
+    </div>
+    
+    <!-- Content Overlay -->
+    <div class="relative h-full container mx-auto px-4 flex flex-col justify-end pb-12">
+      <div class="max-w-4xl">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="bg-primary/80 text-white text-sm px-3 py-1 rounded-full">{{ beat.genre }}</span>
+          <span class="bg-gray-800/80 text-white text-sm px-3 py-1 rounded-full">{{ beat.bpm }} BPM</span>
+          {% if beat.is_purchased %}
+            <span class="bg-green-500/20 text-green-400 text-sm px-3 py-1 rounded-full flex items-center gap-1">
+              <i class="ri-check-line"></i>
+              Purchased
+            </span>
+          {% endif %}
+        </div>
+        <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">{{ beat.title }}</h1>
+        <p class="text-gray-300 text-lg mb-6">{{ beat.description }}</p>
+        <div class="flex items-center gap-4">
+          <button class="play-button bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-full flex items-center gap-2 backdrop-blur-sm transition-colors" 
+                  data-sample-url="{{ beat.get_sample_url }}"
+                  onclick="playSample({{ beat.id }}, '{{ beat.get_sample_url }}')">
+            <i class="ri-play-fill text-xl"></i>
+            Play Sample
+          </button>
+          {% if beat.is_purchased %}
+            <button onclick="handleDownload({{ beat.id }}, '{{ beat.title }}')" 
+                    class="bg-green-500/10 hover:bg-green-500/20 text-green-400 px-6 py-3 rounded-full flex items-center gap-2 transition-colors">
+              <i class="ri-download-line"></i>
+              Download
+            </button>
+          {% else %}
+            <button onclick="handleAddToCart({{ beat.id }}, '{{ beat.title }}')" 
+                    class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-full flex items-center gap-2 transition-colors">
+              <i class="ri-shopping-cart-line"></i>
+              Add to Cart - ${{ beat.price }}
+            </button>
+          {% endif %}
+          <button class="favorite-button text-gray-400 hover:text-primary transition-colors bg-black/20 p-3 rounded-full backdrop-blur-sm" data-beat-id="{{ beat.id }}">
+            <i class="ri-heart-{% if beat.is_favorite %}fill text-primary{% else %}line{% endif %} text-xl"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container mx-auto px-4 -mt-20 relative z-10">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Left Column - Beat Details -->
+      <div class="lg:col-span-2">
+        <div class="glass-card rounded-lg p-6 mb-8">
+          <h2 class="text-2xl font-bold text-white mb-4">About This Beat</h2>
+          <div class="prose prose-invert max-w-none">
+            {{ beat.description|linebreaks }}
+          </div>
+        </div>
+
+        <!-- Similar Beats -->
+        <div class="glass-card rounded-lg p-6">
+          <h2 class="text-2xl font-bold text-white mb-6">Similar Beats</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% for similar_beat in similar_beats %}
+              {% include 'components/beat_card.html' with beat=similar_beat %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column - Licensing -->
+      <div class="lg:col-span-1">
+        <div class="glass-card rounded-lg p-6 sticky top-32">
+          <h2 class="text-2xl font-bold text-white mb-6">Licensing</h2>
+          <div class="space-y-6">
+            <div>
+              <h3 class="text-lg font-semibold text-white mb-2">Basic License</h3>
+              <p class="text-gray-400 text-sm mb-2">Perfect for personal projects and small releases.</p>
+              <ul class="text-gray-400 text-sm space-y-2 mb-4">
+                <li class="flex items-center gap-2">
+                  <i class="ri-check-line text-primary"></i>
+                  <span>Unlimited streams</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <i class="ri-check-line text-primary"></i>
+                  <span>Up to 10,000 downloads</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <i class="ri-check-line text-primary"></i>
+                  <span>Non-exclusive rights</span>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold text-white mb-2">Premium License</h3>
+              <p class="text-gray-400 text-sm mb-2">For commercial releases and larger projects.</p>
+              <ul class="text-gray-400 text-sm space-y-2">
+                <li class="flex items-center gap-2">
+                  <i class="ri-check-line text-primary"></i>
+                  <span>Unlimited streams and downloads</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <i class="ri-check-line text-primary"></i>
+                  <span>Commercial rights</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <i class="ri-check-line text-primary"></i>
+                  <span>Priority support</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Audio Player -->
+<div id="audioPlayerContainer" class="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-lg border-t border-gray-800 transform translate-y-full transition-transform duration-300 ease-in-out z-50">
+  <div class="container mx-auto px-4 py-4">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <img src="{{ beat.get_image_url }}" alt="{{ beat.title }}" class="w-12 h-12 rounded-lg object-cover" />
+        <div>
+          <h3 class="text-white font-medium">{{ beat.title }}</h3>
+          <p class="text-gray-400 text-sm">{{ beat.genre }} • {{ beat.bpm }} BPM</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <button class="text-gray-400 hover:text-white transition-colors" onclick="skipBackward()">
+          <i class="ri-rewind-fill text-2xl"></i>
+        </button>
+        <button class="text-white hover:text-primary transition-colors" onclick="togglePlay()">
+          <i class="ri-play-fill text-3xl"></i>
+        </button>
+        <button class="text-gray-400 hover:text-white transition-colors" onclick="skipForward()">
+          <i class="ri-speed-fill text-2xl"></i>
+        </button>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="w-64">
+          <div class="relative h-1 bg-gray-700 rounded-full">
+            <div class="absolute top-0 left-0 h-full bg-primary rounded-full" style="width: 0%"></div>
+          </div>
+        </div>
+        <span class="text-gray-400 text-sm">0:00 / 0:30</span>
+      </div>
+    </div>
+  </div>
+  <audio id="audioPlayer" class="hidden">
+    <source id="audioSource" src="" type="audio/mpeg">
+  </audio>
+</div>
+
+<script>
+// Audio player functionality
+const audioPlayer = document.getElementById('audioPlayer');
+const audioSource = document.getElementById('audioSource');
+const audioPlayerContainer = document.getElementById('audioPlayerContainer');
+let isPlaying = false;
+
+function playSample(beatId, sampleUrl) {
+  if (!audioPlayer || !audioSource || !audioPlayerContainer) return;
+  
+  audioSource.src = sampleUrl;
+  audioPlayer.load();
+  audioPlayer.play();
+  isPlaying = true;
+  audioPlayerContainer.classList.remove('translate-y-full');
+  updatePlayButton();
+}
+
+function togglePlay() {
+  if (!audioPlayer) return;
+  
+  if (isPlaying) {
+    audioPlayer.pause();
+  } else {
+    audioPlayer.play();
+  }
+  isPlaying = !isPlaying;
+  updatePlayButton();
+}
+
+function updatePlayButton() {
+  const playButton = document.querySelector('#audioPlayerContainer .ri-play-fill');
+  if (playButton) {
+    playButton.className = isPlaying ? 'ri-pause-fill text-3xl' : 'ri-play-fill text-3xl';
+  }
+}
+
+function skipBackward() {
+  if (!audioPlayer) return;
+  audioPlayer.currentTime = Math.max(0, audioPlayer.currentTime - 5);
+}
+
+function skipForward() {
+  if (!audioPlayer) return;
+  audioPlayer.currentTime = Math.min(audioPlayer.duration, audioPlayer.currentTime + 5);
+}
+
+// Update progress bar
+if (audioPlayer) {
+  audioPlayer.addEventListener('timeupdate', () => {
+    const progressBar = document.querySelector('#audioPlayerContainer .bg-primary');
+    const timeDisplay = document.querySelector('#audioPlayerContainer .text-gray-400.text-sm');
+    
+    if (progressBar && timeDisplay) {
+      const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+      progressBar.style.width = `${progress}%`;
+      
+      // Update time display
+      const currentTime = formatTime(audioPlayer.currentTime);
+      const duration = formatTime(audioPlayer.duration);
+      timeDisplay.textContent = `${currentTime} / ${duration}`;
+    }
+  });
+
+  // Handle audio end
+  audioPlayer.addEventListener('ended', () => {
+    isPlaying = false;
+    updatePlayButton();
+    if (audioPlayerContainer) {
+      audioPlayerContainer.classList.add('translate-y-full');
+    }
+  });
+
+  // Handle audio pause
+  audioPlayer.addEventListener('pause', () => {
+    isPlaying = false;
+    updatePlayButton();
+  });
+}
+
+function formatTime(seconds) {
+  if (isNaN(seconds)) return '0:00';
+  const minutes = Math.floor(seconds / 60);
+  seconds = Math.floor(seconds % 60);
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+// Add to cart functionality
+function handleAddToCart(beatId, beatTitle) {
+  fetch('/api/cart/add/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCookie('csrftoken')
+    },
+    body: JSON.stringify({
+      beat_id: beatId
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.status === 'success') {
+      showNotification('Success', `${beatTitle} added to cart`, 'success');
+      updateCartCount(data.cart_count);
+    } else {
+      showNotification('Error', data.message || 'Failed to add beat to cart', 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    showNotification('Error', 'Failed to add beat to cart', 'error');
+  });
+}
+
+// Add bundle to cart functionality
+function handleAddBundleToCart(bundleId, bundleTitle) {
+  fetch('/api/cart/add-bundle/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCookie('csrftoken')
+    },
+    body: JSON.stringify({
+      bundle_id: bundleId
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.status === 'success') {
+      showNotification('Success', `${bundleTitle} added to cart`, 'success');
+      updateCartCount(data.cart_count);
+    } else {
+      showNotification('Error', data.message || 'Failed to add bundle to cart', 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    showNotification('Error', 'Failed to add bundle to cart', 'error');
+  });
+}
+
+// Download functionality
+function handleDownload(beatId, beatTitle) {
+  window.location.href = `/api/beat/${beatId}/download/`;
+}
+
+// Helper function to get CSRF token
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+</script>
+{% endblock %} 

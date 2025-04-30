@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<main class="min-h-screen py-12">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Beat Header -->
+    <div class="glass rounded-lg overflow-hidden mb-8">
+      <div class="relative h-96 bg-gray-800">
+        <img src="{{ beat.get_image_url }}" alt="{{ beat.title }}" class="w-full h-full object-cover" />
+        <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
+        <div class="absolute bottom-0 left-0 right-0 p-8">
+          <div class="flex justify-between items-end">
+            <div>
+              <h1 class="text-4xl font-bold text-white mb-2">{{ beat.title }}</h1>
+              <div class="flex items-center gap-3">
+                <span class="bg-primary/80 text-white px-3 py-1 rounded-full text-sm">{{ beat.genre }}</span>
+                <span class="bg-gray-800/80 text-white px-3 py-1 rounded-full text-sm">{{ beat.bpm }} BPM</span>
+                <button class="favorite-button text-gray-400 hover:text-primary transition-colors" data-beat-id="{{ beat.id }}">
+                  <i class="ri-heart-{% if beat.is_favorite %}fill text-primary{% else %}line{% endif %} text-xl"></i>
+                </button>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="text-primary font-bold text-3xl">${{ beat.price }}</span>
+              {% if beat.is_purchased %}
+                <button 
+                  onclick="handleDownload({{ beat.id }}, '{{ beat.title }}')"
+                  class="mt-3 bg-green-500/10 hover:bg-green-500/20 text-green-400 px-6 py-3 rounded-button text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-2"
+                >
+                  <i class="ri-download-line"></i>
+                  Download
+                </button>
+              {% else %}
+                <button 
+                  onclick="handleAddToCart({{ beat.id }}, '{{ beat.title }}')"
+                  class="mt-3 bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-button text-sm font-medium transition-colors whitespace-nowrap"
+                >
+                  Add to Cart
+                </button>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Beat Content -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Main Content -->
+      <div class="lg:col-span-2 space-y-8">
+        <!-- Audio Player -->
+        <div class="glass rounded-lg p-6">
+          <h2 class="text-xl font-bold text-white mb-4">Preview</h2>
+          <div class="relative h-16 bg-gray-800 rounded-lg overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <button class="play-button w-12 h-12 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-white/20 transition-colors" 
+                      data-sample-url="{{ beat.get_sample_url }}"
+                      onclick="playSample({{ beat.id }}, '{{ beat.get_sample_url }}')">
+                <i class="ri-play-fill text-white ri-2xl"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="glass rounded-lg p-6">
+          <h2 class="text-xl font-bold text-white mb-4">Description</h2>
+          <p class="text-gray-400">{{ beat.description }}</p>
+        </div>
+
+        <!-- Similar Beats -->
+        {% if similar_beats %}
+        <div class="glass rounded-lg p-6">
+          <h2 class="text-xl font-bold text-white mb-4">Similar Beats</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% for similar_beat in similar_beats %}
+              {% include 'components/beat_card.html' with beat=similar_beat %}
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Sidebar -->
+      <div class="space-y-8">
+        <!-- Bundles -->
+        {% if bundles %}
+        <div class="glass rounded-lg p-6">
+          <h2 class="text-xl font-bold text-white mb-4">Available in Bundles</h2>
+          <div class="space-y-4">
+            {% for bundle in bundles %}
+              {% include 'components/bundle_card.html' with bundle=bundle %}
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- License Info -->
+        <div class="glass rounded-lg p-6">
+          <h2 class="text-xl font-bold text-white mb-4">License Information</h2>
+          <div class="space-y-4 text-gray-400">
+            <p>This beat comes with a standard license that includes:</p>
+            <ul class="list-disc list-inside space-y-2">
+              <li>Unlimited commercial use</li>
+              <li>Unlimited streaming</li>
+              <li>Unlimited downloads</li>
+              <li>Unlimited performances</li>
+              <li>Unlimited distribution</li>
+            </ul>
+            <p class="text-sm">For custom licensing options, please contact us.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %} 

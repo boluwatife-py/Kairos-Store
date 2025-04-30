@@ -146,6 +146,14 @@
                         </div>
                       {% endfor %}
                     </div>
+                    {% if order.status == 'pending' %}
+                    <div class="mt-4 flex justify-end">
+                      <a href="{% url 'store:checkout' order.id %}" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-button text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-2">
+                        <i class="ri-shopping-cart-line"></i>
+                        Complete Checkout
+                      </a>
+                    </div>
+                    {% endif %}
                   </div>
                 </div>
               {% empty %}

@@ -1,7 +1,7 @@
 let currentAudio = null;
 let currentBeatId = null;
 let isPlaying = false;
-let isRepeat = false;
+let isRepeat = true; // Repeat enabled by default
 let volume = 0.8; // Default volume
 let isSeeking = false;
 let currentPlaylist = []; // Array to store current playlist
@@ -48,7 +48,8 @@ function playSample(beatId, sampleUrl) {
         currentAudio.addEventListener('play', () => {
             updatePlayButton(beatId, true);
             updatePlayerPlayButton(true);
-            showAudioPlayer(beatId);
+            // Delay showAudioPlayer to ensure DOM is ready
+            setTimeout(() => showAudioPlayer(beatId), 100);
             startEqualizer(beatId);
             updateNavigationButtons();
         });
@@ -169,10 +170,23 @@ function updateDuration() {
 // Update play button state in the beat card
 function updatePlayButton(beatId, isPlaying) {
     // Update all instances of the beat card with the same ID
-    const buttons = document.querySelectorAll(`[data-beat-id="${beatId}"] .play-button i`);
-    buttons.forEach(button => {
-        if (button) {
-            button.className = isPlaying ? 'ri-pause-fill text-white ri-lg' : 'ri-play-fill text-white ri-lg';
+    const beatCards = document.querySelectorAll(`[data-beat-id="${beatId}"]`);
+    beatCards.forEach(card => {
+        const playButton = card.querySelector('.play-button');
+        if (playButton) {
+            const icon = playButton.querySelector('i');
+            if (icon) {
+                icon.className = isPlaying ? 'ri-pause-fill text-white ri-lg' : 'ri-play-fill text-white ri-lg';
+            }
+            // Update equalizer state
+            const equalizer = card.querySelector('.equalizer');
+            if (equalizer) {
+                if (isPlaying) {
+                    equalizer.classList.add('playing');
+                } else {
+                    equalizer.classList.remove('playing');
+                }
+            }
         }
     });
 }
@@ -184,35 +198,102 @@ function updatePlayerPlayButton(isPlaying) {
 
     const playPauseBtn = player.querySelector('.play-pause-btn');
     if (playPauseBtn) {
-        playPauseBtn.innerHTML = isPlaying ? 
-            '<i class="ri-pause-fill ri-lg"></i>' : 
-            '<i class="ri-play-fill ri-lg"></i>';
+        const icon = playPauseBtn.querySelector('i');
+        if (icon) {
+            icon.className = isPlaying ? 'ri-pause-fill ri-lg' : 'ri-play-fill ri-lg';
+        }
     }
 }
 
 // Show audio player
 function showAudioPlayer(beatId) {
     const player = document.getElementById('audioPlayer');
+    if (!player) {
+        console.error('Audio player element (#audioPlayer) not found');
+        return;
+    }
+
+
     // Get the first instance of the beat card
     const beat = document.querySelector(`[data-beat-id="${beatId}"]`);
-    if (player && beat) {
-        const title = beat.querySelector('h3').textContent;
-        const genre = beat.querySelector('.bg-primary\\/80').textContent;
-        const bpm = beat.querySelector('.bg-gray-800\\/80').textContent;
-        const image = beat.querySelector('img').src;
-        
-        player.querySelector('.beat-title').textContent = title;
-        player.querySelector('.beat-info').textContent = `${genre} • ${bpm}`;
-        player.querySelector('img').src = image;
-        player.classList.remove('hidden');
+    if (!beat) {
+        console.warn('Beat card not found for ID:', beatId);
     }
+
+    // Get beat information with fallbacks
+    let title = 'Unknown Beat';
+    let genre = '';
+    let bpm = '';
+    let image = '';
+
+    if (beat) {
+        // Try to get title from different possible selectors
+        const titleSelectors = ['h3', '.text-lg', '.beat-title'];
+        for (const selector of titleSelectors) {
+            const element = beat.querySelector(selector);
+            if (element && element.textContent) {
+                title = element.textContent.trim();
+                break;
+            }
+        }
+
+        // Try to get genre
+        const genreElement = beat.querySelector('.bg-primary\\/80, .genre');
+        if (genreElement && genreElement.textContent) {
+            genre = genreElement.textContent.trim();
+        }
+
+        // Try to get BPM
+        const bpmElement = beat.querySelector('.bg-gray-800\\/80, .bpm');
+        if (bpmElement && bpmElement.textContent) {
+            bpm = bpmElement.textContent.trim();
+        }
+
+        // Try to get image
+        const imageElement = beat.querySelector('img');
+        if (imageElement && imageElement.src) {
+            image = imageElement.src;
+        }
+    }
+
+    // Update player content with null checks
+    const playerTitleElement = player.querySelector('.beat-title');
+    const playerInfoElement = player.querySelector('.beat-info');
+    const playerImageElement = player.querySelector('img');
+
+    if (playerTitleElement) {
+        playerTitleElement.textContent = title;
+    } else {
+        console.warn('Player title element (.beat-title) not found');
+    }
+
+    if (playerInfoElement) {
+        const info = [genre, bpm].filter(Boolean).join(' • ');
+        playerInfoElement.textContent = info || 'No additional info';
+    } else {
+        console.warn('Player info element (.beat-info) not found');
+    }
+
+    if (playerImageElement && image) {
+        playerImageElement.src = image;
+    } else {
+        console.warn('Player image element (img) not found or no image source');
+    }
+
+    // Ensure player is visible
+    player.classList.remove('translate-y-full');
+    player.classList.add('translate-y-0');
+    player.style.display = 'block'; // Ensure display is not hidden
 }
 
 // Hide audio player
 function hideAudioPlayer() {
     const player = document.getElementById('audioPlayer');
     if (player) {
-        player.classList.add('hidden');
+        player.classList.add('translate-y-full');
+        player.classList.remove('translate-y-0');
+        // Debug: Log hide action
+        console.log('Hiding audio player');
     }
 }
 
@@ -314,6 +395,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const repeatBtn = player.querySelector('.ri-repeat-line').parentElement;
         const prevBtn = player.querySelector('.ri-skip-back-line').parentElement;
         const nextBtn = player.querySelector('.ri-skip-forward-line').parentElement;
+
+        // Set repeat button to active state
+        if (repeatBtn) {
+            repeatBtn.classList.add('text-primary');
+        }
 
         // Play/Pause button
         playPauseBtn.addEventListener('click', () => {
