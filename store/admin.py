@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import CustomUser, UserProfile, Beat, Bundle, Testimonial, Cart, CartItem, Order, OrderItem, Favorite
+import stripe
+from .views import create_stripe_product
 
 class UserProfileInline(admin.StackedInline):
     model = UserProfile
@@ -51,11 +53,79 @@ class BeatAdmin(admin.ModelAdmin):
         }),
     )
 
+    def save_model(self, request, obj, form, change):
+        """
+        Override save_model to create/update Stripe product when saving a beat
+        """
+        try:
+            # Save the beat first to ensure Cloudinary fields are processed
+            super().save_model(request, obj, form, change)
+            # Create or update Stripe product after saving
+            create_stripe_product(obj, 'beat')
+            self.message_user(request, f"Successfully created beat and Stripe product: {obj.title}")
+            
+        except stripe.error.AuthenticationError:
+            self.message_user(
+                request,
+                "Error: Could not create beat. Stripe API keys are not properly configured.",
+                level='error'
+            )
+            raise
+        except stripe.error.StripeError as e:
+            self.message_user(
+                request,
+                f"Error: Could not create beat. Stripe error: {str(e)}",
+                level='error'
+            )
+            raise
+        except Exception as e:
+            self.message_user(
+                request,
+                f"Error: Could not create beat. {str(e)}",
+                level='error'
+            )
+            raise
+
 @admin.register(Bundle)
 class BundleAdmin(admin.ModelAdmin):
     list_display = ('title', 'original_price', 'discounted_price', 'discount', 'beat_count')
     filter_horizontal = ('beats',)
 
+    def save_model(self, request, obj, form, change):
+        """
+        Override save_model to create/update Stripe product when saving a bundle
+        """
+        try:
+            # Save the bundle first to ensure Cloudinary fields are processed
+            super().save_model(request, obj, form, change)
+            # Create or update Stripe product after saving
+            create_stripe_product(obj, 'bundle')
+            self.message_user(request, f"Successfully created bundle and Stripe product: {obj.title}")
+            
+        except stripe.error.AuthenticationError:
+            self.message_user(
+                request,
+                "Error: Could not create bundle. Stripe API keys are not properly configured.",
+                level='error'
+            )
+            raise
+        except stripe.error.StripeError as e:
+            self.message_user(
+                request,
+                f"Error: Could not create bundle. Stripe error: {str(e)}",
+                level='error'
+            )
+            raise
+        except Exception as e:
+            self.message_user(
+                request,
+                f"Error: Could not create bundle. {str(e)}",
+                level='error'
+            )
+            raise
+        
+        
+        
 @admin.register(Testimonial)
 class TestimonialAdmin(admin.ModelAdmin):
     list_display = ('name', 'role', 'rating', 'created_at')

@@ -3,19 +3,170 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login, authenticate, logout
-from django.http import JsonResponse, FileResponse
+from django.http import JsonResponse, FileResponse, Http404
 from django.db.models import Q, Sum
 from functools import wraps
 from .models import Beat, Bundle, OrderItem, Testimonial, Cart, CartItem, Order, Favorite
 from .forms import CustomUserCreationForm, CustomAuthenticationForm
 from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
 from django.urls import reverse_lazy, reverse
-from django.http import Http404
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.hashers import check_password
 from .validators import validate_password_strength
 from django.core.exceptions import ValidationError
 import json
+import stripe
+from django.conf import settings
+
+# Initialize Stripe with your secret key
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
+def create_stripe_product(item, item_type):
+    """
+    Create a product in Stripe for a beat or bundle
+    Returns the Stripe product ID
+    """
+    try:
+        # Verify Stripe API key is set
+        if not settings.STRIPE_SECRET_KEY:
+            raise stripe.error.AuthenticationError("Stripe Secret Key is not configured")
+        
+        if not settings.STRIPE_PUBLIC_KEY:
+            raise stripe.error.AuthenticationError("Stripe Public Key is not configured")
+    
+        # Create the product in Stripe
+        product_data = {
+            'name': item.title,
+            'description': item.description if item.description else f"{item_type.title()} - {item.title}",
+            'metadata': {
+                'item_type': item_type,
+                'item_id': str(item.id)
+            }
+        }
+        
+        # Add image if available (Cloudinary provides absolute URLs)
+        if hasattr(item, 'image') and item.image:
+            product_data['images'] = [item.image.url]
+        
+        # Create the product
+        stripe_product = stripe.Product.create(**product_data)
+        
+        # Create the price
+        price_data = {
+            'product': stripe_product.id,
+            'unit_amount': int(item.price * 100) if item_type == 'beat' else int(item.discounted_price * 100),
+            'currency': 'usd',
+        }
+        
+        stripe_price = stripe.Price.create(**price_data)
+        
+        # Update the item with Stripe IDs
+        item.stripe_product_id = stripe_product.id
+        item.stripe_price_id = stripe_price.id
+        item.save()
+        
+        return stripe_product.id
+        
+    except stripe.error.AuthenticationError as e:
+        raise Exception(f"Stripe Authentication Error: {str(e)}. Please check your Stripe API keys in .env file")
+    except stripe.error.StripeError as e:
+        # If price creation fails, try to delete the product
+        if 'stripe_product' in locals():
+            try:
+                stripe.Product.delete(stripe_product.id)
+            except:
+                pass
+        raise Exception(f"Stripe Error: {str(e)}")
+    except Exception as e:
+        raise Exception(f"Error: {str(e)}")
+    
+
+@require_http_methods(["POST"])
+@login_required
+def create_beat(request):
+    """Create a new beat and its corresponding Stripe product"""
+    try:
+        data = json.loads(request.body)
+        
+        # Create the beat
+        beat = Beat.objects.create(
+            title=data['title'],
+            description=data.get('description', ''),
+            genre=data['genre'],
+            bpm=data['bpm'],
+            price=float(data['price']),
+            is_active=True,
+            is_featured=data.get('is_featured', False),
+            is_new_release=data.get('is_new_release', False),
+            # Add other fields as needed
+        )
+        
+        # Create Stripe product
+        try:
+            create_stripe_product(beat, 'beat')
+        except Exception as e:
+            # If Stripe creation fails, delete the beat and return error
+            beat.delete()
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Failed to create Stripe product: {str(e)}'
+            }, status=500)
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Beat created successfully',
+            'beat_id': beat.id
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Failed to create beat: {str(e)}'
+        }, status=400)
+
+@require_http_methods(["POST"])
+@login_required
+def create_bundle(request):
+    """Create a new bundle and its corresponding Stripe product"""
+    try:
+        data = json.loads(request.body)
+        
+        # Create the bundle
+        bundle = Bundle.objects.create(
+            title=data['title'],
+            description=data.get('description', ''),
+            original_price=float(data['original_price']),
+            discounted_price=float(data['discounted_price']),
+            is_active=True,
+            # Add other fields as needed
+        )
+        
+        # Add beats to bundle if provided
+        if 'beat_ids' in data:
+            bundle.beats.set(data['beat_ids'])
+        
+        # Create Stripe product
+        try:
+            create_stripe_product(bundle, 'bundle')
+        except Exception as e:
+            # If Stripe creation fails, delete the bundle and return error
+            bundle.delete()
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Failed to create Stripe product: {str(e)}'
+            }, status=500)
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Bundle created successfully',
+            'bundle_id': bundle.id
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Failed to create bundle: {str(e)}'
+        }, status=400)
 
 def require_auth(view_func):
     @wraps(view_func)

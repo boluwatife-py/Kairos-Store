@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.urls import reverse
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from cloudinary.models import CloudinaryField
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -63,9 +64,12 @@ class Beat(models.Model):
     genre = models.CharField(max_length=100)
     bpm = models.IntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    image = models.ImageField(upload_to='beats/images/', null=True, blank=True)
-    sample_audio = models.FileField(upload_to='beats/samples/', help_text='30-second sample preview')
-    full_audio = models.FileField(upload_to='beats/full/', help_text='Full track for purchase')
+    image = CloudinaryField('image', folder='beats/images', null=True, blank=True, 
+                          transformation={'quality': 'auto:good'})
+    sample_audio = CloudinaryField('audio', folder='beats/samples', null=True, blank=True, 
+                                 resource_type='video', help_text='30-second sample preview')
+    full_audio = CloudinaryField('audio', folder='beats/full', null=True, blank=True, 
+                               resource_type='video', help_text='Full track for purchase')
     is_featured = models.BooleanField(default=False)
     is_new_release = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -119,7 +123,7 @@ class Beat(models.Model):
 class Bundle(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
-    image = models.ImageField(upload_to='bundles/')
+    image = CloudinaryField('image', folder='bundles', null=True, blank=True)
     original_price = models.DecimalField(max_digits=10, decimal_places=2)
     discounted_price = models.DecimalField(max_digits=10, decimal_places=2)
     discount = models.IntegerField()

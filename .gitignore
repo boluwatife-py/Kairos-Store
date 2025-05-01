@@ -12,3 +12,5 @@ wheels/
 # Media files
 media/
 models/
+
+.env

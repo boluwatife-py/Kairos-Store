@@ -11,11 +11,12 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
+from dotenv import load_dotenv
 from pathlib import Path
+import logging
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -39,6 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'store',
+    'cloudinary_storage',
+    'cloudinary',
 ]
 
 MIDDLEWARE = [
@@ -69,6 +72,7 @@ TEMPLATES = [
     },
 ]
 
+
 WSGI_APPLICATION = 'kairos.wsgi.application'
 
 
@@ -81,6 +85,41 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# Cloudinary settings
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
+    'STATIC_TAG': 'static',
+    'MEDIA_TAG': 'media',
+    'INVALID_VIDEO_ERROR_MESSAGE': 'Please upload a valid video file.',
+    'STATIC_IMAGES_EXTENSIONS': ['jpg', 'jpe', 'jpeg', 'jpc', 'jp2', 'j2k', 'wdp', 'jxr', 'hdp', 'png', 'gif', 'webp', 'bmp', 'tif', 'tiff', 'ico'],
+    'MIME_TYPES': {
+        'jpg': 'image/jpeg',
+        'jpe': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'jpc': 'image/jp2',
+        'jp2': 'image/jp2',
+        'j2k': 'image/jp2',
+        'wdp': 'image/vnd.ms-photo',
+        'jxr': 'image/vnd.ms-photo',
+        'hdp': 'image/vnd.ms-photo',
+        'png': 'image/png',
+        'gif': 'image/gif',
+        'webp': 'image/webp',
+        'bmp': 'image/bmp',
+        'tif': 'image/tiff',
+        'tiff': 'image/tiff',
+        'ico': 'image/x-icon',
+        'mp3': 'audio/mpeg',
+        'wav': 'audio/wav',
+        'ogg': 'audio/ogg',
+    }
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+STATICFILES_STORAGE = 'cloudinary_storage.storage.StaticHashedCloudinaryStorage'
 
 
 # Password validation
@@ -154,3 +193,13 @@ EMAIL_USE_TLS = False
 EMAIL_HOST_USER = ''
 EMAIL_HOST_PASSWORD = ''
 DEFAULT_FROM_EMAIL = 'noreply@kairosbeats.com'
+
+# Load environment variables
+load_dotenv()
+
+# Debug Stripe keys
+stripe_public_key = os.getenv('STRIPE_PUBLIC_KEY')
+stripe_secret_key = os.getenv('STRIPE_SECRET_KEY')
+
+STRIPE_PUBLIC_KEY = stripe_public_key
+STRIPE_SECRET_KEY = stripe_secret_key
