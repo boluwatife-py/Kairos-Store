@@ -248,33 +248,18 @@ def dashboard(request):
     for beat in purchased_beats:
         beat.set_user(request.user)
 
-    # Get user's orders with status context
+    # Get user's orders with additional context for overruled orders
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    
+    # Check each order for purchased items and update status if needed
     for order in orders:
-        if order.status == 'invalidated':
-            order.status_context = {
-                'class': 'text-danger',
-                'icon': 'exclamation-triangle',
-                'message': 'Order invalidated - Items already purchased'
-            }
-        elif order.status == 'completed':
-            order.status_context = {
-                'class': 'text-success',
-                'icon': 'check-circle',
-                'message': 'Payment completed'
-            }
-        elif order.status == 'pending':
-            order.status_context = {
-                'class': 'text-warning',
-                'icon': 'clock',
-                'message': 'Awaiting payment'
-            }
-        elif order.status == 'cancelled':
-            order.status_context = {
-                'class': 'text-secondary',
-                'icon': 'times-circle',
-                'message': 'Order cancelled'
-            }
+        if order.status != 'completed':  # Only check non-completed orders
+            purchased_items = order.check_for_purchased_items()
+            if purchased_items:
+                if order.status != 'overruled':
+                    order.status = 'overruled'
+                    order.save()
+                order.purchased_items = purchased_items
 
     # Calculate total spent
     total_spent = Order.objects.filter(
@@ -390,8 +375,8 @@ def create_order(request):
     if request.method == 'POST':
         cart = get_object_or_404(Cart, user=request.user)
         
-        # First check if any items in cart are already purchased
-        purchased_beats = []
+        # Check for already purchased items in cart
+        purchased_items = []
         for item in cart.cartitem_set.all():
             if item.beat:
                 if OrderItem.objects.filter(
@@ -399,22 +384,54 @@ def create_order(request):
                     order__status='completed',
                     beat=item.beat
                 ).exists():
-                    purchased_beats.append(item.beat.title)
+                    purchased_items.append(item.beat.title)
             elif item.bundle:
+                bundle_purchased_beats = []
                 for beat in item.bundle.beats.all():
                     if OrderItem.objects.filter(
                         order__user=request.user,
                         order__status='completed',
                         beat=beat
                     ).exists():
-                        purchased_beats.append(beat.title)
-        
-        if purchased_beats:
+                        bundle_purchased_beats.append(beat.title)
+                if bundle_purchased_beats:
+                    purchased_items.append(f"Bundle '{item.bundle.title}' contains already purchased beats: {', '.join(bundle_purchased_beats)}")
+
+        if purchased_items:
+            # Create order but mark it as overruled
+            order = Order.objects.create(
+                user=request.user,
+                total_price=cart.total_price,
+                status='overruled'
+            )
+            
+            # Still create order items for tracking
+            for item in cart.cartitem_set.all():
+                if item.beat:
+                    OrderItem.objects.create(
+                        order=order,
+                        beat=item.beat,
+                        price=item.beat.price,
+                        quantity=item.quantity
+                    )
+                elif item.bundle:
+                    for beat in item.bundle.beats.all():
+                        OrderItem.objects.create(
+                            order=order,
+                            beat=beat,
+                            price=beat.price,
+                            quantity=item.quantity
+                        )
+            
+            cart.delete()
+            
             return JsonResponse({
                 'status': 'error',
-                'message': f'Cannot create order. The following beats have already been purchased: {", ".join(purchased_beats)}'
-            }, status=400)
-        
+                'message': 'Some items in your cart have already been purchased:\n• ' + '\n• '.join(purchased_items),
+                'redirect': reverse('store:dashboard')
+            })
+
+        # Create normal order if no purchased items
         order = Order.objects.create(
             user=request.user,
             total_price=cart.total_price
@@ -429,7 +446,6 @@ def create_order(request):
                     quantity=item.quantity
                 )
             elif item.bundle:
-                # Create order items for each beat in the bundle
                 for beat in item.bundle.beats.all():
                     OrderItem.objects.create(
                         order=order,
@@ -437,115 +453,18 @@ def create_order(request):
                         price=beat.price,
                         quantity=item.quantity
                     )
+        
         cart.delete()
         return JsonResponse({
             'status': 'success',
             'message': 'Order created successfully',
             'redirect': reverse('store:checkout', args=[order.id])
         })
+    
     return JsonResponse({
         'status': 'error',
         'message': 'Invalid request method'
     }, status=400)
-
-@require_auth
-def checkout(request, order_id):
-    # Get the order and verify it belongs to the user and is not completed
-    order = get_object_or_404(Order, id=order_id, user=request.user)
-    
-    # If order is already completed or cancelled, redirect to dashboard
-    if order.status in ['completed', 'cancelled', 'invalidated']:
-        messages.warning(request, f'This order has already been {order.status}.')
-        return redirect('store:dashboard')
-    
-    # Check if any items have been purchased since order creation
-    purchased_beats = order.check_for_purchased_items()
-    if purchased_beats:
-        # Update order status to invalidated
-        order.status = 'invalidated'
-        order.save()
-        messages.error(request, 
-            f'This order has been invalidated because the following beats have already been purchased: {", ".join(purchased_beats)}')
-        return redirect('store:dashboard')
-    
-    # Get order items
-    order_items = order.orderitem_set.all().select_related('beat')
-    context = {
-        'order': order,
-        'order_items': order_items,
-        'total_price': order.total_price,
-        'stripe_public_key': settings.STRIPE_PUBLIC_KEY,
-    }
-    return render(request, 'checkout.html', context)
-
-@require_http_methods(["POST"])
-@require_auth
-def create_payment_intent(request, order_id):
-    try:
-        order = get_object_or_404(Order, id=order_id, user=request.user)
-        
-        # Check order status
-        if order.status != 'pending':
-            return JsonResponse({
-                'error': f'Cannot process payment for {order.status} order'
-            }, status=400)
-        
-        # Check if any items have been purchased since order creation
-        purchased_beats = order.check_for_purchased_items()
-        if purchased_beats:
-            # Update order status to invalidated
-            order.status = 'invalidated'
-            order.save()
-            return JsonResponse({
-                'error': f'Cannot process payment. The following beats have already been purchased: {", ".join(purchased_beats)}'
-            }, status=400)
-        
-        # Create payment intent
-        intent = stripe.PaymentIntent.create(
-            amount=int(order.total_price * 100),  # Convert to cents
-            currency='usd',
-            metadata={
-                'order_id': str(order.id),
-                'user_id': str(request.user.id),
-            }
-        )
-        
-        return JsonResponse({
-            'clientSecret': intent.client_secret
-        })
-        
-    except Exception as e:
-        return JsonResponse({
-            'error': str(e)
-        }, status=400)
-
-@require_auth
-def payment_success(request, order_id):
-    try:
-        order = get_object_or_404(Order, id=order_id, user=request.user)
-        payment_intent_id = request.GET.get('payment_intent')
-        
-        if payment_intent_id:
-            payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
-            
-            if payment_intent.status == 'succeeded':
-                # Update order status
-                order.status = 'completed'
-                order.payment_id = payment_intent_id
-                order.save()
-                
-                # Clear the cart if it exists
-                Cart.objects.filter(user=request.user).delete()
-                
-                messages.success(request, 'Payment successful! You can now download your beats.')
-                return redirect('store:dashboard')
-            
-        messages.error(request, 'Payment verification failed. Please contact support if you believe this is an error.')
-        return redirect('store:checkout', order_id=order_id)
-        
-    except Exception as e:
-        messages.error(request, f'An error occurred: {str(e)}')
-        return redirect('store:checkout', order_id=order_id)
 
 def register(request):
     if request.method == 'POST':
@@ -867,3 +786,88 @@ def update_settings(request):
             'status': 'error',
             'message': str(e)
         }, status=400)
+
+@require_auth
+def checkout(request, order_id):
+    # Get the order and verify it belongs to the user
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    
+    # Check order status
+    if order.status == 'completed':
+        messages.warning(request, 'This order has already been completed.')
+        return redirect('store:dashboard')
+    elif order.status == 'overruled':
+        purchased_items = order.check_for_purchased_items()
+        messages.error(request, 'Order cannot be completed because these items have already been purchased:\n• ' + '\n• '.join(purchased_items))
+        return redirect('store:dashboard')
+    
+    # Recheck for purchased items before proceeding
+    purchased_items = order.check_for_purchased_items()
+    if purchased_items:
+        order.status = 'overruled'
+        order.save()
+        messages.error(request, 'Order cannot be completed because these items have already been purchased:\n• ' + '\n• '.join(purchased_items))
+        return redirect('store:dashboard')
+    
+    # Get order items
+    order_items = order.orderitem_set.all().select_related('beat')
+    context = {
+        'order': order,
+        'order_items': order_items,
+        'total_price': order.total_price,
+        'stripe_public_key': settings.STRIPE_PUBLIC_KEY,
+    }
+    return render(request, 'checkout.html', context)
+
+@require_http_methods(["POST"])
+@require_auth
+def create_payment_intent(request, order_id):
+    try:
+        order = get_object_or_404(Order, id=order_id, user=request.user)
+        
+        # Create payment intent
+        intent = stripe.PaymentIntent.create(
+            amount=int(order.total_price * 100),  # Convert to cents
+            currency='usd',
+            metadata={
+                'order_id': str(order.id),
+                'user_id': str(request.user.id),
+            }
+        )
+        
+        return JsonResponse({
+            'clientSecret': intent.client_secret
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'error': str(e)
+        }, status=400)
+
+@require_auth
+def payment_success(request, order_id):
+    try:
+        order = get_object_or_404(Order, id=order_id, user=request.user)
+        payment_intent_id = request.GET.get('payment_intent')
+        
+        if payment_intent_id:
+            payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
+            
+            if payment_intent.status == 'succeeded':
+                # Update order status
+                order.status = 'completed'
+                order.payment_id = payment_intent_id
+                order.save()
+                
+                # Clear the cart if it exists
+                Cart.objects.filter(user=request.user).delete()
+                
+                messages.success(request, 'Payment successful! You can now download your beats.')
+                return redirect('store:dashboard')
+            
+        messages.error(request, 'Payment verification failed. Please contact support if you believe this is an error.')
+        return redirect('store:checkout', order_id=order_id)
+        
+    except Exception as e:
+        messages.error(request, f'An error occurred: {str(e)}')
+        return redirect('store:checkout', order_id=order_id)

@@ -193,7 +193,7 @@ class Order(models.Model):
         ('processing', 'Processing'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
-        ('invalidated', 'Invalidated - Already Purchased'),
+        ('overruled', 'Overruled - Contains Purchased Items'),
     ]
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -208,17 +208,30 @@ class Order(models.Model):
         return f"Order #{self.id} by {self.user.email}"
 
     def check_for_purchased_items(self):
-        """Check if any items in the order have been purchased already"""
-        purchased_beats = []
+        """Check if any items in the order have already been purchased"""
+        purchased_items = []
         for item in self.orderitem_set.all():
-            if OrderItem.objects.filter(
-                order__user=self.user,
-                order__status='completed',
-                beat=item.beat,
-                order__id__lt=self.id  # Only check orders created before this one
-            ).exists():
-                purchased_beats.append(item.beat.title)
-        return purchased_beats
+            if item.beat:
+                # Check if individual beat is already purchased
+                if OrderItem.objects.filter(
+                    order__user=self.user,
+                    order__status='completed',
+                    beat=item.beat
+                ).exists():
+                    purchased_items.append(item.beat.title)
+            elif item.bundle:
+                # Check each beat in the bundle
+                bundle_purchased_beats = []
+                for beat in item.bundle.beats.all():
+                    if OrderItem.objects.filter(
+                        order__user=self.user,
+                        order__status='completed',
+                        beat=beat
+                    ).exists():
+                        bundle_purchased_beats.append(beat.title)
+                if bundle_purchased_beats:
+                    purchased_items.append(f"Bundle '{item.bundle.title}' contains already purchased beats: {', '.join(bundle_purchased_beats)}")
+        return purchased_items
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
