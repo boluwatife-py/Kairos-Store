@@ -9,7 +9,7 @@
       
       <!-- Mobile Menu Button -->
       <div class="sm:hidden flex items-center">
-        <button id="mobileMenuButton" class="w-10 h-10 flex items-center justify-center bg-gray-700 rounded-full cursor-pointer hover:bg-gray-600 transition-colors">
+        <button id="mobileMenuButton" class="w-10 h-10 flex items-center justify-center cursor-pointer transition-colors rounded-sm">
           <i class="ri-menu-line text-white ri-lg"></i>
         </button>
       </div>
@@ -48,13 +48,13 @@
                 <i class="ri-dashboard-line mr-2"></i>
                 Dashboard
               </a>
-              <a href="{% url 'store:dashboard' %}" class="flex items-center px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 transition-colors text-xs sm:text-sm">
+              <a href="{% url 'store:dashboard' %}?tab=orders" class="flex items-center px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 transition-colors text-xs sm:text-sm">
                 <i class="ri-shopping-bag-line mr-2"></i>
                 My Orders
               </a>
-              <a href="{% url 'store:dashboard' %}" class="flex items-center px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 transition-colors text-xs sm:text-sm">
-                <i class="ri-music-2-line mr-2"></i>
-                Purchased Beats
+              <a href="{% url 'store:dashboard' %}?tab=favourites" class="flex items-center px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 transition-colors text-xs sm:text-sm">
+                <i class="ri-heart-line mr-2"></i>
+                Favourite
               </a>
               <div class="h-px bg-gray-700 my-2"></div>
               <button onclick="handleLogout()" class="w-full flex items-center px-4 py-2 text-gray-300 hover:text-white hover:bg-white/5 transition-colors text-xs sm:text-sm">
@@ -73,7 +73,7 @@
   </div>
 
   <!-- Mobile Menu -->
-  <div id="mobileMenu" class="sm:hidden hidden glass border-t border-gray-700">
+  <div id="mobileMenu" class="sm:hidden hidden glass border-none">
     <div class="px-3 py-4">
       <!-- Mobile Search -->
       <form action="{% url 'store:beats' %}" method="get" class="mb-4">
@@ -113,13 +113,13 @@
             <i class="ri-dashboard-line mr-2"></i>
             Dashboard
           </a>
-          <a href="{% url 'store:dashboard' %}" class="flex items-center px-3 py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-md transition-colors text-xs sm:text-sm">
+          <a href="{% url 'store:dashboard' %}?tab=orders" class="flex items-center px-3 py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-md transition-colors text-xs sm:text-sm">
             <i class="ri-shopping-bag-line mr-2"></i>
             My Orders
           </a>
-          <a href="{% url 'store:dashboard' %}" class="flex items-center px-3 py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-md transition-colors text-xs sm:text-sm">
-            <i class="ri-music-2-line mr-2"></i>
-            Purchased Beats
+          <a href="{% url 'store:dashboard' %}?tab=favourites" class="flex items-center px-3 py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-md transition-colors text-xs sm:text-sm">
+            <i class="ri-heart-line mr-2"></i>
+            Favourite
           </a>
           <button onclick="handleLogout()" class="w-full flex items-center px-3 py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-md transition-colors text-xs sm:text-sm">
             <i class="ri-logout-box-line mr-2"></i>

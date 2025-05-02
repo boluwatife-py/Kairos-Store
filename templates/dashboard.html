@@ -98,7 +98,7 @@
           <div class="flex overflow-x-auto scrollbar-hide space-x-4 sm:space-x-6 lg:space-x-8 border-b border-gray-700 mb-4 sm:mb-6">
             <button class="tab-button active text-white pb-3 text-sm sm:text-base whitespace-nowrap" data-tab="purchased">Purchased Beats</button>
             <button class="tab-button text-gray-400 pb-3 text-sm sm:text-base whitespace-nowrap" data-tab="orders">Orders</button>
-            <button class="tab-button text-gray-400 pb-3 text-sm sm:text-base whitespace-nowrap" data-tab="favorites">Favorites</button>
+            <button class="tab-button text-gray-400 pb-3 text-sm sm:text-base whitespace-nowrap" data-tab="favourites">Favourites</button>
             <button class="tab-button text-gray-400 pb-3 text-sm sm:text-base whitespace-nowrap" data-tab="settings">Settings</button>
           </div>
 
@@ -180,14 +180,14 @@
             </div>
           </div>
 
-          <!-- Favorites Tab Content -->
-          <div class="tab-content hidden" id="favorites-tab">
+          <!-- Favourites Tab Content -->
+          <div class="tab-content hidden" id="favourites-tab">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
               {% for beat in favorite_beats %}
                 {% include 'components/beat_card.html' with beat=beat %}
               {% empty %}
                 <div class="col-span-3 text-center py-8 sm:py-12">
-                  <p class="text-gray-400 text-sm sm:text-base">No favorite beats yet.</p>
+                  <p class="text-gray-400 text-sm sm:text-base">No favourite beats yet.</p>
                 </div>
               {% endfor %}
             </div>
@@ -279,6 +279,19 @@
                   </div>
                 </form>
               </div>
+
+              <!-- Delete Account -->
+              <div class="glass-card rounded-lg p-4 sm:p-5 lg:p-6 border border-red-500/20">
+                <h3 class="text-lg sm:text-xl font-bold text-red-500 mb-4 sm:mb-6">Delete Account</h3>
+                <div class="space-y-4">
+                  <p class="text-gray-300 text-sm">Once you delete your account, there is no going back. Please be certain.</p>
+                  <div class="flex justify-end">
+                    <button id="deleteAccountBtn" class="bg-red-500 hover:bg-red-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-button font-medium transition-colors">
+                      Delete Account
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -340,6 +353,8 @@
 
         // Function to check if forms have changes
         function checkFormChanges() {
+          if (!profileForm || !saveSettingsBtn) return;
+          
           const profileData = new FormData(profileForm);
           const passwordData = new FormData(passwordForm);
           
@@ -371,16 +386,20 @@
           saveSettingsBtn.disabled = !(hasProfileChanges || hasNotificationChanges);
           
           // Enable password button if there are password changes
-          changePasswordBtn.disabled = !hasPasswordChanges;
+          if (changePasswordBtn) {
+            changePasswordBtn.disabled = !hasPasswordChanges;
+          }
         }
 
         // Add input event listeners to all form fields
-        const formInputs = profileForm.querySelectorAll('input, textarea');
-        formInputs.forEach(input => {
-          input.addEventListener('input', checkFormChanges);
-          // Store initial value after DOM is loaded
-          input.defaultValue = input.value;
-        });
+        if (profileForm) {
+          const formInputs = profileForm.querySelectorAll('input, textarea');
+          formInputs.forEach(input => {
+            input.addEventListener('input', checkFormChanges);
+            // Store initial value after DOM is loaded
+            input.defaultValue = input.value;
+          });
+        }
 
         // Initialize notification toggles
         toggles.forEach(toggle => {
@@ -405,18 +424,207 @@
         });
 
         // Track password form changes and add input event listeners
-        const passwordInputs = passwordForm.querySelectorAll('input');
-        passwordInputs.forEach(input => {
-          // Add change detection
-          input.addEventListener('input', checkFormChanges);
-          
-          // Add error clearing
-          input.addEventListener('input', function() {
-            const errorDiv = this.nextElementSibling;
-            this.classList.remove('border-red-500');
-            errorDiv.classList.add('hidden');
+        if (passwordForm) {
+          const passwordInputs = passwordForm.querySelectorAll('input');
+          passwordInputs.forEach(input => {
+            // Add change detection
+            input.addEventListener('input', checkFormChanges);
+            
+            // Add error clearing
+            input.addEventListener('input', function() {
+              const errorDiv = this.nextElementSibling;
+              if (errorDiv) {
+                this.classList.remove('border-red-500');
+                errorDiv.classList.add('hidden');
+              }
+            });
           });
-        });
+        }
+
+        // Security code validation
+        if (securityCodeInput && confirmDeleteAccountBtn) {
+          securityCodeInput.addEventListener('input', () => {
+            confirmDeleteAccountBtn.disabled = securityCodeInput.value !== 'DELETE';
+          });
+        }
+
+        // Function to set button loading state
+        function setButtonLoading(button, isLoading) {
+          if (!button) return;
+          
+          const buttonText = button.querySelector('.button-text');
+          const loadingSpinner = button.querySelector('.loading-spinner');
+          
+          if (!buttonText || !loadingSpinner) return;
+          
+          if (isLoading) {
+            button.disabled = true;
+            buttonText.classList.add('opacity-0');
+            loadingSpinner.classList.remove('hidden');
+          } else {
+            button.disabled = false;
+            buttonText.classList.remove('opacity-0');
+            loadingSpinner.classList.add('hidden');
+          }
+        }
+
+        // Save settings handler
+        if (saveSettingsBtn) {
+          saveSettingsBtn.addEventListener('click', async function() {
+            const button = this;
+            setButtonLoading(button, true);
+            
+            const profileData = new FormData(profileForm);
+            const notificationData = new FormData();
+            
+            // Get notification preferences
+            toggles.forEach(toggle => {
+              const value = toggle.classList.contains('bg-primary').toString();
+              notificationData.append(toggle.dataset.setting, value);
+            });
+
+            const requestData = {
+              profile: Object.fromEntries(profileData),
+              notifications: Object.fromEntries(notificationData)
+            };
+
+            try {
+              const response = await fetch('/api/settings/update/', {
+                method: 'POST',
+                headers: {
+                  'X-CSRFToken': getCookie('csrftoken'),
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+              });
+
+              const data = await response.json();
+              
+              if (response.ok) {
+                showNotification('Settings saved successfully', 'success');
+                // Reset form default values
+                Array.from(profileForm.elements).forEach(element => {
+                  if (element.type !== 'submit') {
+                    element.defaultValue = element.value;
+                  }
+                });
+                // Update toggle initial values
+                toggles.forEach(toggle => {
+                  toggle.dataset.initialValue = toggle.dataset.value;
+                });
+                checkFormChanges();
+              } else {
+                showNotification(data.error || 'Error saving settings', 'error');
+              }
+            } catch (error) {
+              showNotification('Error saving settings', 'error');
+            } finally {
+              setButtonLoading(button, false);
+            }
+          });
+        }
+
+        // Change password handler
+        if (changePasswordBtn) {
+          changePasswordBtn.addEventListener('click', async function() {
+            const button = this;
+            clearErrors();
+            
+            const passwordData = new FormData(passwordForm);
+            const currentPassword = passwordData.get('current_password');
+            const newPassword = passwordData.get('new_password');
+            const confirmPassword = passwordData.get('confirm_password');
+            
+            // Validate current password
+            if (!currentPassword) {
+              showFieldError('current_password', 'Please enter your current password');
+              return;
+            }
+            
+            // Validate new password
+            const validation = validatePassword(newPassword);
+            if (!validation.isValid) {
+              showFieldError('new_password', validation.errors.join('\n'));
+              return;
+            }
+            
+            // Check if passwords match
+            if (newPassword !== confirmPassword) {
+              showFieldError('confirm_password', 'New passwords do not match');
+              return;
+            }
+            
+            setButtonLoading(button, true);
+            
+            try {
+              const response = await fetch('/api/settings/update/', {
+                method: 'POST',
+                headers: {
+                  'X-CSRFToken': getCookie('csrftoken'),
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  password: {
+                    current_password: currentPassword,
+                    new_password: newPassword,
+                    confirm_password: confirmPassword
+                  }
+                })
+              });
+
+              const data = await response.json();
+              if (response.ok) {
+                showNotification('Password changed successfully', 'success');
+                passwordForm.reset();
+                checkFormChanges();
+              } else {
+                // Handle specific error cases
+                if (data.message.includes('Current password is incorrect')) {
+                  showFieldError('current_password', 'Current password is incorrect');
+                } else if (data.message.includes('New passwords do not match')) {
+                  showFieldError('confirm_password', 'New passwords do not match');
+                } else {
+                  // Handle password strength validation errors
+                  const errors = data.message.split('\n');
+                  showFieldError('new_password', errors.join('\n'));
+                }
+              }
+            } catch (error) {
+              showFieldError('new_password', 'An error occurred while changing password');
+            } finally {
+              setButtonLoading(button, false);
+            }
+          });
+        }
+
+        // Handle delete account confirmation
+        if (confirmDeleteAccountBtn) {
+          confirmDeleteAccountBtn.addEventListener('click', async function() {
+            const button = this;
+            setButtonLoading(button, true);
+            
+            try {
+              const response = await fetch('/api/settings/delete-account/', {
+                method: 'POST',
+                headers: {
+                  'X-CSRFToken': getCookie('csrftoken'),
+                  'Content-Type': 'application/json',
+                }
+              });
+
+              if (response.ok) {
+                window.location.href = '/';
+              } else {
+                const data = await response.json();
+                showNotification(data.error || 'Error deleting account', 'error');
+              }
+            } catch (error) {
+              showNotification('Error deleting account', 'error');
+            } finally {
+              setButtonLoading(button, false);
+            }
+          });
+        }
 
         // Tab functionality
         const tabButtons = document.querySelectorAll(".tab-button");
@@ -457,254 +665,40 @@
           button.addEventListener("click", () => {
             const tabId = button.getAttribute('data-tab');
             switchTab(tabId);
+            // Update URL without reloading the page
+            const url = new URL(window.location);
+            url.searchParams.set('tab', tabId);
+            window.history.pushState({}, '', url);
           });
         });
 
-        // Handle URL hash for direct tab access
-        if (window.location.hash) {
-          const tabId = window.location.hash.substring(1);
-          switchTab(tabId);
+        // Handle URL parameters for direct tab access
+        const urlParams = new URLSearchParams(window.location.search);
+        const tabParam = urlParams.get('tab');
+        if (tabParam) {
+          switchTab(tabParam);
         }
 
         // Delete Account Modal
-        deleteAccountBtn.addEventListener('click', () => {
-          document.getElementById('deleteAccountModal').classList.remove('hidden');
-        });
-
-        document.getElementById('closeDeleteAccountModal').addEventListener('click', () => {
-          document.getElementById('deleteAccountModal').classList.add('hidden');
-        });
-
-        document.getElementById('cancelDeleteAccount').addEventListener('click', () => {
-          document.getElementById('deleteAccountModal').classList.add('hidden');
-        });
-
-        // Security code validation
-        securityCodeInput.addEventListener('input', () => {
-          confirmDeleteAccountBtn.disabled = securityCodeInput.value !== 'DELETE';
-        });
-
-        // Function to set button loading state
-        function setButtonLoading(button, isLoading) {
-          const buttonText = button.querySelector('.button-text');
-          const loadingSpinner = button.querySelector('.loading-spinner');
-          
-          if (isLoading) {
-            button.disabled = true;
-            buttonText.classList.add('opacity-0');
-            loadingSpinner.classList.remove('hidden');
-          } else {
-            button.disabled = false;
-            buttonText.classList.remove('opacity-0');
-            loadingSpinner.classList.add('hidden');
-          }
-        }
-
-        // Save settings handler
-        document.getElementById('saveSettings').addEventListener('click', async function() {
-          const button = this;
-          setButtonLoading(button, true);
-          
-          const profileData = new FormData(document.getElementById('profileForm'));
-          const notificationData = new FormData();
-          
-          // Get notification preferences
-          toggles.forEach(toggle => {
-            const value = toggle.classList.contains('bg-primary').toString();
-            notificationData.append(toggle.dataset.setting, value);
-          });
-
-          const requestData = {
-            profile: Object.fromEntries(profileData),
-            notifications: Object.fromEntries(notificationData)
-          };
-
-          try {
-            const response = await fetch('/api/settings/update/', {
-              method: 'POST',
-              headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(requestData)
-            });
-
-            const data = await response.json();
-            
-            if (response.ok) {
-              showNotification('Settings saved successfully', 'success');
-              // Reset form default values
-              Array.from(profileForm.elements).forEach(element => {
-                if (element.type !== 'submit') {
-                  element.defaultValue = element.value;
-                }
-              });
-              // Update toggle initial values
-              toggles.forEach(toggle => {
-                toggle.dataset.initialValue = toggle.dataset.value;
-              });
-              checkFormChanges();
-            } else {
-              showNotification(data.error || 'Error saving settings', 'error');
-            }
-          } catch (error) {
-            showNotification('Error saving settings', 'error');
-          } finally {
-            setButtonLoading(button, false);
-          }
-        });
-
-        // Password validation function
-        function validatePassword(password) {
-          const minLength = 8;
-          const hasUpperCase = /[A-Z]/.test(password);
-          const hasLowerCase = /[a-z]/.test(password);
-          const hasNumbers = /\d/.test(password);
-          const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-          
-          const errors = [];
-          
-          if (password.length < minLength) {
-            errors.push(`Password must be at least ${minLength} characters long`);
-          }
-          if (!hasUpperCase) {
-            errors.push('Password must contain at least one uppercase letter');
-          }
-          if (!hasLowerCase) {
-            errors.push('Password must contain at least one lowercase letter');
-          }
-          if (!hasNumbers) {
-            errors.push('Password must contain at least one number');
-          }
-          if (!hasSpecialChar) {
-            errors.push('Password must contain at least one special character');
-          }
-          
-          return {
-            isValid: errors.length === 0,
-            errors: errors
-          };
-        }
-
-        // Function to show error message
-        function showFieldError(fieldName, message) {
-          const field = passwordForm.querySelector(`[name="${fieldName}"]`);
-          const errorDiv = field.nextElementSibling;
-          field.classList.add('border-red-500');
-          errorDiv.textContent = message;
-          errorDiv.classList.remove('hidden');
-        }
-
-        // Function to clear all errors
-        function clearErrors() {
-          const errorDivs = passwordForm.querySelectorAll('.error-message');
-          const inputs = passwordForm.querySelectorAll('input');
-          errorDivs.forEach(div => {
-            div.textContent = '';
-            div.classList.add('hidden');
-          });
-          inputs.forEach(input => {
-            input.classList.remove('border-red-500');
+        if (deleteAccountBtn) {
+          deleteAccountBtn.addEventListener('click', () => {
+            document.getElementById('deleteAccountModal').classList.remove('hidden');
           });
         }
 
-        // Change password handler
-        changePasswordBtn.addEventListener('click', async function() {
-          const button = this;
-          clearErrors();
-          
-          const passwordData = new FormData(passwordForm);
-          const currentPassword = passwordData.get('current_password');
-          const newPassword = passwordData.get('new_password');
-          const confirmPassword = passwordData.get('confirm_password');
-          
-          // Validate current password
-          if (!currentPassword) {
-            showFieldError('current_password', 'Please enter your current password');
-            return;
-          }
-          
-          // Validate new password
-          const validation = validatePassword(newPassword);
-          if (!validation.isValid) {
-            showFieldError('new_password', validation.errors.join('\n'));
-            return;
-          }
-          
-          // Check if passwords match
-          if (newPassword !== confirmPassword) {
-            showFieldError('confirm_password', 'New passwords do not match');
-            return;
-          }
-          
-          setButtonLoading(button, true);
-          
-          try {
-            const response = await fetch('/api/settings/update/', {
-              method: 'POST',
-              headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                password: {
-                  current_password: currentPassword,
-                  new_password: newPassword,
-                  confirm_password: confirmPassword
-                }
-              })
-            });
+        const closeDeleteAccountModal = document.getElementById('closeDeleteAccountModal');
+        if (closeDeleteAccountModal) {
+          closeDeleteAccountModal.addEventListener('click', () => {
+            document.getElementById('deleteAccountModal').classList.add('hidden');
+          });
+        }
 
-            const data = await response.json();
-            if (response.ok) {
-              showNotification('Password changed successfully', 'success');
-              passwordForm.reset();
-              checkFormChanges();
-            } else {
-              // Handle specific error cases
-              if (data.message.includes('Current password is incorrect')) {
-                showFieldError('current_password', 'Current password is incorrect');
-              } else if (data.message.includes('New passwords do not match')) {
-                showFieldError('confirm_password', 'New passwords do not match');
-              } else {
-                // Handle password strength validation errors
-                const errors = data.message.split('\n');
-                showFieldError('new_password', errors.join('\n'));
-              }
-            }
-          } catch (error) {
-            showFieldError('new_password', 'An error occurred while changing password');
-          } finally {
-            setButtonLoading(button, false);
-          }
-        });
-
-        // Handle delete account confirmation
-        confirmDeleteAccountBtn.addEventListener('click', async () => {
-          const button = this;
-          setButtonLoading(button, true);
-          
-          try {
-            const response = await fetch('/api/settings/delete-account/', {
-              method: 'POST',
-              headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-                'Content-Type': 'application/json',
-              }
-            });
-
-            if (response.ok) {
-              window.location.href = '/';
-            } else {
-              const data = await response.json();
-              showNotification(data.error || 'Error deleting account', 'error');
-            }
-          } catch (error) {
-            showNotification('Error deleting account', 'error');
-          } finally {
-            setButtonLoading(button, false);
-          }
-        });
+        const cancelDeleteAccount = document.getElementById('cancelDeleteAccount');
+        if (cancelDeleteAccount) {
+          cancelDeleteAccount.addEventListener('click', () => {
+            document.getElementById('deleteAccountModal').classList.add('hidden');
+          });
+        }
 
         // Cart functionality
         async function addToCart(beatId) {

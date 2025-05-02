@@ -48,7 +48,6 @@
 </template>
 
 <script>
-// Notification function
 function showNotification(message, type = 'success') {
   const notification = document.createElement('div');
   notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white z-50 transform transition-all duration-300 translate-y-[-100%] ${
@@ -71,7 +70,7 @@ function showNotification(message, type = 'success') {
   }, 3000);
 }
 
-// Helper function to get CSRF token
+
 function getCookie(name) {
   let cookieValue = null;
   if (document.cookie && document.cookie !== '') {
