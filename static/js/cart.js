@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
     const cartModal = document.getElementById('cartModal');
     const cartButton = document.getElementById('cartButton');
+    const mobileCartButton = document.querySelector('.mobile-cart-button');
+    const mobileCartCount = document.querySelector('.mobile-cart-count');
     const closeCartButton = document.getElementById('closeCartButton');
     const cartOverlay = document.getElementById('cartOverlay');
     const cartSidebar = document.getElementById('cartSidebar');
@@ -8,9 +10,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const cartCount = document.querySelector('#cartButton span');
     const cartTitle = document.querySelector('#cartModal h2');
     const subtotalElement = document.querySelector('#cartModal .text-white.font-medium');
-    const totalElement = document.querySelector('#cartModal .text-primary.font-bold.text-xl');
-    const checkoutButton = document.querySelector('#cartModal button.bg-primary');
-    const continueShoppingButton = document.querySelector('#cartModal button.bg-transparent');
+    const totalElement = document.querySelector('#cartModal .text-primary.font-bold');
+    const checkoutButton = document.getElementById('checkoutButton');
+    const continueShoppingButton = document.getElementById('continueShoppingButton');
+    const mobileMenu = document.getElementById('mobileMenu');
 
     // Cart state management
     let cartState = {
@@ -23,11 +26,34 @@ document.addEventListener('DOMContentLoaded', function() {
     loadCartCount();
 
     // Open cart
-    if (cartButton && cartModal && cartSidebar) {
-        cartButton.addEventListener('click', () => {
+    function openCart() {
+        if (cartModal && cartSidebar) {
+            // If mobile menu is open, close it first
+            if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.add('hidden');
+                const mobileMenuButton = document.getElementById('mobileMenuButton');
+                if (mobileMenuButton) {
+                    const icon = mobileMenuButton.querySelector('i');
+                    icon.classList.remove('ri-close-line');
+                    icon.classList.add('ri-menu-line');
+                }
+            }
+            
             cartModal.classList.remove('hidden');
-            cartSidebar.classList.remove('translate-x-full');
+            setTimeout(() => {
+                cartSidebar.classList.remove('translate-x-full');
+            }, 10);
             loadCart();
+        }
+    }
+
+    if (cartButton) {
+        cartButton.addEventListener('click', openCart);
+    }
+    if (mobileCartButton) {
+        mobileCartButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            openCart();
         });
     }
 
@@ -47,6 +73,16 @@ document.addEventListener('DOMContentLoaded', function() {
     if (cartOverlay) {
         cartOverlay.addEventListener('click', closeCart);
     }
+    if (continueShoppingButton) {
+        continueShoppingButton.addEventListener('click', closeCart);
+    }
+
+    // Handle escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && cartModal && !cartModal.classList.contains('hidden')) {
+            closeCart();
+        }
+    });
 
     // Show loading state
     function showLoading() {
@@ -106,13 +142,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Update cart count
     function updateCartCount(count) {
-        if (!cartCount) return;
+        // Update desktop cart count
+        if (cartCount) {
+            if (count > 0) {
+                cartCount.textContent = count;
+                cartCount.classList.remove('hidden');
+            } else {
+                cartCount.classList.add('hidden');
+            }
+        }
 
-        if (count > 0) {
-            cartCount.textContent = count;
-            cartCount.classList.remove('hidden');
-        } else {
-            cartCount.classList.add('hidden');
+        // Update mobile cart count
+        if (mobileCartCount) {
+            if (count > 0) {
+                mobileCartCount.textContent = count;
+                mobileCartCount.classList.remove('hidden');
+            } else {
+                mobileCartCount.classList.add('hidden');
+            }
         }
     }
 
@@ -342,13 +389,5 @@ document.addEventListener('DOMContentLoaded', function() {
                 hideLoading();
             }
         }, 300));
-    }
-
-    // Handle continue shopping
-    if (continueShoppingButton) {
-        continueShoppingButton.addEventListener('click', () => {
-            closeCart();
-            window.location.href = '/beats/';
-        });
     }
 });

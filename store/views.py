@@ -20,6 +20,8 @@ from django.conf import settings
 import requests
 from django.core.files.base import ContentFile
 from urllib.parse import unquote
+import zipfile
+import io
 
 # Initialize Stripe with your secret key
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -276,11 +278,20 @@ def dashboard(request):
     for beat in favorite_beats:
         beat.set_user(request.user)
 
+    # Get purchased beats count
+    purchased_count = purchased_beats.count()
+
+    # Get download count (this will be the same as purchased count for now)
+    # In the future, you might want to track actual downloads separately
+    download_count = purchased_count
+
     context = {
         'purchased_beats': purchased_beats,
         'orders': orders,
         'total_spent': total_spent,
         'favorite_beats': favorite_beats,
+        'purchased_count': purchased_count,
+        'download_count': download_count,
     }
     return render(request, 'dashboard.html', context)
 
@@ -871,3 +882,51 @@ def payment_success(request, order_id):
     except Exception as e:
         messages.error(request, f'An error occurred: {str(e)}')
         return redirect('store:checkout', order_id=order_id)
+
+@require_auth
+def download_all_purchases(request):
+    # Get all purchased beats
+    purchased_beats = Beat.objects.filter(
+        orderitem__order__user=request.user,
+        orderitem__order__status='completed'
+    ).distinct()
+
+    if not purchased_beats.exists():
+        messages.warning(request, 'You have no purchased beats to download.')
+        return redirect('store:dashboard')
+
+    # Create a zip file in memory
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        for beat in purchased_beats:
+            try:
+                # Get the audio file from Cloudinary
+                response = requests.get(beat.full_audio.url, stream=True)
+                response.raise_for_status()
+                
+                # Create a safe filename
+                filename = f"{beat.title}.mp3".replace(" ", "_")
+                
+                # Add the file to the zip
+                zip_file.writestr(filename, response.content)
+                
+            except Exception as e:
+                messages.error(request, f'Error downloading {beat.title}: {str(e)}')
+                continue
+
+    # Reset buffer position
+    zip_buffer.seek(0)
+    
+    # Create the response
+    response = FileResponse(
+        zip_buffer,
+        as_attachment=True,
+        filename='purchased_beats.zip'
+    )
+    
+    # Add CORS headers
+    response['Access-Control-Allow-Origin'] = '*'
+    response['Access-Control-Allow-Methods'] = 'GET, OPTIONS'
+    response['Access-Control-Allow-Headers'] = 'Content-Type'
+    
+    return response

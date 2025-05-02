@@ -4,23 +4,23 @@
 
 {% block content %}
 <!-- Hero Section -->
-<section class="relative pt-16 overflow-hidden">
+<section class="relative pt-12 sm:pt-16 overflow-hidden">
   <div class="absolute inset-0" style="background-image: url('{% static 'images/base1.jpg' %}'); background-size: cover; background-position: center;"></div>
   <div class="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-900/80 to-transparent"></div>
-  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
+  <div class="relative max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-16 sm:py-20 md:py-24">
     <div class="max-w-2xl">
-      <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
+      <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4 sm:mb-6">
         Premium Beats for Ambitious Artists
       </h1>
-      <p class="text-lg md:text-xl text-gray-300 mb-8">
+      <p class="text-sm sm:text-base md:text-lg text-gray-300 mb-6 sm:mb-8">
         Discover exclusive beats produced by Kairos. Elevate your sound with
         our professionally crafted instrumentals.
       </p>
-      <div class="flex flex-wrap gap-4">
-        <a href="{% url 'store:beats' %}" class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-button font-medium transition-colors whitespace-nowrap">
+      <div class="flex flex-wrap gap-3 sm:gap-4">
+        <a href="{% url 'store:beats' %}" class="bg-primary hover:bg-primary/90 text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-button text-xs sm:text-sm font-medium transition-colors whitespace-nowrap">
           Explore Beats
         </a>
-        <button onclick="scrollToBundles()" class="bg-transparent border border-white/30 hover:border-white/50 text-white px-6 py-3 rounded-button font-medium transition-colors flex items-center gap-2 whitespace-nowrap">
+        <button onclick="scrollToBundles()" class="bg-transparent border border-white/30 hover:border-white/50 text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-button text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap">
           <i class="ri-gift-line ri-lg"></i>
           View Bundles
         </button>
@@ -30,99 +30,98 @@
 </section>
 
 <!-- Why Choose Us -->
-<section class="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-  <div class="glass rounded-lg p-8">
-    <h2 class="text-3xl font-bold text-white mb-8 text-center">Why Choose Kairos Beats</h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<section class="py-6 sm:py-8 max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+  <div class="glass rounded-lg p-3 sm:p-4 lg:p-6">
+    <h2 class="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6 text-center">Why Choose Kairos Beats</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
       <div class="text-center">
-        <div class="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-          <i class="ri-music-2-line text-3xl text-primary"></i>
+        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
+          <i class="ri-music-2-line text-lg sm:text-xl text-primary"></i>
         </div>
-        <h3 class="text-xl font-semibold text-white mb-3">Premium Quality</h3>
-        <p class="text-gray-300">Professionally mixed and mastered beats crafted with industry-standard equipment and expertise.</p>
+        <h3 class="text-sm sm:text-base font-semibold text-white mb-1.5 sm:mb-2">Premium Quality</h3>
+        <p class="text-xs sm:text-sm text-gray-300">Professionally mixed and mastered beats crafted with industry-standard equipment and expertise.</p>
       </div>
       <div class="text-center">
-        <div class="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-          <i class="ri-shield-check-line text-3xl text-primary"></i>
+        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
+          <i class="ri-shield-check-line text-lg sm:text-xl text-primary"></i>
         </div>
-        <h3 class="text-xl font-semibold text-white mb-3">100% Royalty-Free</h3>
-        <p class="text-gray-300">Full ownership of your beats with no hidden fees or recurring payments.</p>
+        <h3 class="text-sm sm:text-base font-semibold text-white mb-1.5 sm:mb-2">100% Royalty-Free</h3>
+        <p class="text-xs sm:text-sm text-gray-300">Full ownership of your beats with no hidden fees or recurring payments.</p>
       </div>
       <div class="text-center">
-        <div class="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-          <i class="ri-customer-service-2-line text-3xl text-primary"></i>
+        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
+          <i class="ri-customer-service-2-line text-lg sm:text-xl text-primary"></i>
         </div>
-        <h3 class="text-xl font-semibold text-white mb-3">Dedicated Support</h3>
-        <p class="text-gray-300">24/7 customer support to help you with licensing, customization, and any questions.</p>
+        <h3 class="text-sm sm:text-base font-semibold text-white mb-1.5 sm:mb-2">Dedicated Support</h3>
+        <p class="text-xs sm:text-sm text-gray-300">24/7 customer support to help you with licensing, customization, and any questions.</p>
       </div>
     </div>
   </div>
 </section>
 
 <!-- Featured Beats -->
-<section class="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-  <h2 class="text-3xl font-bold text-white mb-8">Featured Beats</h2>
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<section class="py-8 sm:py-12 max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+  <h2 class="text-xl sm:text-2xl font-bold text-white mb-6 sm:mb-8">Featured Beats</h2>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
     {% for beat in featured_beats %}
       {% include 'components/beat_card.html' with beat=beat %}
     {% empty %}
-      <div class="col-span-3 text-center py-12">
-        <p class="text-gray-400">No featured beats available at the moment.</p>
+      <div class="col-span-3 text-center py-8 sm:py-12">
+        <p class="text-xs sm:text-sm text-gray-400">No featured beats available at the moment.</p>
       </div>
     {% endfor %}
   </div>
 </section>
 
 <!-- New Releases -->
-<section id="new-releases" class="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-  <h2 class="text-3xl font-bold text-white mb-8">New Releases</h2>
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<section id="new-releases" class="py-8 sm:py-12 max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+  <h2 class="text-xl sm:text-2xl font-bold text-white mb-6 sm:mb-8">New Releases</h2>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
     {% for beat in new_releases %}
       {% include 'components/beat_card.html' with beat=beat %}
     {% empty %}
-      <div class="col-span-3 text-center py-12">
-        <p class="text-gray-400">No new releases available at the moment.</p>
+      <div class="col-span-3 text-center py-8 sm:py-12">
+        <p class="text-xs sm:text-sm text-gray-400">No new releases available at the moment.</p>
       </div>
     {% endfor %}
   </div>
-  <div class="mt-10 text-center">
-    <a href="{% url 'store:beats' %}" class="bg-transparent border border-white/30 hover:border-white/50 text-white px-6 py-3 rounded-button font-medium transition-colors whitespace-nowrap">
+  <div class="mt-8 sm:mt-10 text-center">
+    <a href="{% url 'store:beats' %}" class="bg-transparent border border-white/30 hover:border-white/50 text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-button text-xs sm:text-sm font-medium transition-colors whitespace-nowrap">
       View All Beats
     </a>
   </div>
 </section>
 
 <!-- Beat Bundles -->
-<section id="beat-bundles" class="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-  <h2 class="text-3xl font-bold text-white mb-8">Beat Bundles</h2>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<section id="beat-bundles" class="py-8 sm:py-12 max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+  <h2 class="text-xl sm:text-2xl font-bold text-white mb-6 sm:mb-8">Beat Bundles</h2>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
     {% for bundle in bundles %}
       {% include 'components/bundle_card.html' with bundle=bundle %}
     {% empty %}
-      <div class="col-span-2 text-center py-12">
-        <p class="text-gray-400">No bundles available at the moment.</p>
+      <div class="col-span-2 text-center py-8 sm:py-12">
+        <p class="text-xs sm:text-sm text-gray-400">No bundles available at the moment.</p>
       </div>
     {% endfor %}
   </div>
 </section>
 
-
 <!-- Newsletter -->
-<section class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-  <div class="glass rounded-lg p-8 md:p-12">
+<section class="py-12 sm:py-16 max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+  <div class="glass rounded-lg p-6 sm:p-8 md:p-12">
     <div class="max-w-3xl mx-auto text-center">
-      <h2 class="text-3xl font-bold text-white mb-4">Get Exclusive Beats</h2>
-      <p class="text-gray-300 mb-8">
+      <h2 class="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4">Get Exclusive Beats</h2>
+      <p class="text-xs sm:text-sm text-gray-300 mb-6 sm:mb-8">
         Subscribe to receive free beats, exclusive discounts, and early
         access to new releases.
       </p>
-      <div class="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-        <input type="email" placeholder="Your email address" class="flex-grow bg-gray-800/50 border border-gray-700 text-white px-4 py-3 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
-        <button class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-button font-medium transition-colors whitespace-nowrap">
+      <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 max-w-md mx-auto">
+        <input type="email" placeholder="Your email address" class="flex-grow bg-gray-800/50 border border-gray-700 text-white px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
+        <button class="bg-primary hover:bg-primary/90 text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-button text-xs sm:text-sm font-medium transition-colors whitespace-nowrap">
           Subscribe
         </button>
       </div>
-      <p class="text-gray-400 text-sm mt-4">
+      <p class="text-xs sm:text-sm text-gray-400 mt-3 sm:mt-4">
         We respect your privacy. Unsubscribe at any time.
       </p>
     </div>
@@ -135,7 +134,7 @@
   function scrollToBundles() {
     const bundlesSection = document.getElementById('beat-bundles');
     if (bundlesSection) {
-      const headerHeight = 64; // Height of the fixed header (16 * 4 = 64px)
+      const headerHeight = 48; // Further reduced header height for mobile (12 * 4 = 48px)
       const elementPosition = bundlesSection.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - headerHeight;
 

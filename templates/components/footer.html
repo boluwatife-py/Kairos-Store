@@ -1,98 +1,107 @@
 {% load static %}
 <!-- Footer -->
-<footer class="bg-gray-900 py-12">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-      <div>
-        <a href="{% url 'store:home' %}" class="font-['Pacifico'] text-2xl text-white">Kairos</a>
-        <p class="text-gray-400 mt-4">
+<footer class="bg-gray-900 py-8 sm:py-12">
+  <div class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      <!-- Brand Section -->
+      <div class="text-left">
+        <a href="{% url 'store:home' %}" class="font-['Pacifico'] text-lg sm:text-xl text-white inline-block">Kairos</a>
+        <p class="text-gray-400 mt-3 sm:mt-4 text-xs sm:text-sm">
           Premium beats for ambitious artists. Elevate your sound with
           professionally crafted instrumentals.
         </p>
-        <div class="flex space-x-4 mt-6">
-          <a href="#" class="w-10 h-10 flex items-center justify-center bg-gray-800 rounded-full hover:bg-gray-700 transition-colors">
-            <i class="ri-instagram-line text-white"></i>
+        <div class="flex justify-start space-x-3 sm:space-x-4 mt-4 sm:mt-6">
+          <a href="#" class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-gray-800 rounded-full hover:bg-gray-700 transition-colors">
+            <i class="ri-instagram-line text-white text-xs sm:text-sm"></i>
           </a>
-          <a href="#" class="w-10 h-10 flex items-center justify-center bg-gray-800 rounded-full hover:bg-gray-700 transition-colors">
-            <i class="ri-twitter-x-line text-white"></i>
+          <a href="#" class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-gray-800 rounded-full hover:bg-gray-700 transition-colors">
+            <i class="ri-twitter-x-line text-white text-xs sm:text-sm"></i>
           </a>
-          <a href="#" class="w-10 h-10 flex items-center justify-center bg-gray-800 rounded-full hover:bg-gray-700 transition-colors">
-            <i class="ri-youtube-line text-white"></i>
+          <a href="#" class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-gray-800 rounded-full hover:bg-gray-700 transition-colors">
+            <i class="ri-youtube-line text-white text-xs sm:text-sm"></i>
           </a>
-          <a href="#" class="w-10 h-10 flex items-center justify-center bg-gray-800 rounded-full hover:bg-gray-700 transition-colors">
-            <i class="ri-soundcloud-line text-white"></i>
+          <a href="#" class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-gray-800 rounded-full hover:bg-gray-700 transition-colors">
+            <i class="ri-soundcloud-line text-white text-xs sm:text-sm"></i>
           </a>
         </div>
       </div>
-      <div>
-        <h3 class="text-white font-semibold mb-4">Quick Links</h3>
+
+      <!-- Quick Links -->
+      <div class="text-left">
+        <h3 class="text-white font-semibold text-sm sm:text-base mb-3 sm:mb-4">Quick Links</h3>
         <ul class="space-y-2">
           <li>
-            <a href="{% url 'store:home' %}" class="text-gray-400 hover:text-white transition-colors">Home</a>
+            <a href="{% url 'store:home' %}" class="text-gray-400 hover:text-white transition-colors text-xs sm:text-sm">Home</a>
           </li>
           <li>
-            <a href="{% url 'store:beats' %}" class="text-gray-400 hover:text-white transition-colors">Beats</a>
+            <a href="{% url 'store:beats' %}" class="text-gray-400 hover:text-white transition-colors text-xs sm:text-sm">Beats</a>
           </li>
           <li>
-            <a href="#" class="text-gray-400 hover:text-white transition-colors">Bundles</a>
+            <a href="#" class="text-gray-400 hover:text-white transition-colors text-xs sm:text-sm">Bundles</a>
           </li>
           <li>
-            <a href="#" class="text-gray-400 hover:text-white transition-colors">Services</a>
+            <a href="#" class="text-gray-400 hover:text-white transition-colors text-xs sm:text-sm">Services</a>
           </li>
           <li>
-            <a href="#" class="text-gray-400 hover:text-white transition-colors">Contact</a>
+            <a href="#" class="text-gray-400 hover:text-white transition-colors text-xs sm:text-sm">Contact</a>
           </li>
         </ul>
       </div>
-      <div>
-        <h3 class="text-white font-semibold mb-4">Support</h3>
+
+      <!-- Support -->
+      <div class="text-left">
+        <h3 class="text-white font-semibold text-sm sm:text-base mb-3 sm:mb-4">Support</h3>
         <ul class="space-y-2">
           <li>
-            <a href="#" class="text-gray-400 hover:text-white transition-colors">FAQ</a>
+            <a href="#" class="text-gray-400 hover:text-white transition-colors text-xs sm:text-sm">FAQ</a>
           </li>
           <li>
-            <a href="#" class="text-gray-400 hover:text-white transition-colors">Licensing</a>
+            <a href="#" class="text-gray-400 hover:text-white transition-colors text-xs sm:text-sm">Licensing</a>
           </li>
           <li>
-            <a href="#" class="text-gray-400 hover:text-white transition-colors">Terms of Service</a>
+            <a href="#" class="text-gray-400 hover:text-white transition-colors text-xs sm:text-sm">Terms of Service</a>
           </li>
           <li>
-            <a href="#" class="text-gray-400 hover:text-white transition-colors">Privacy Policy</a>
+            <a href="#" class="text-gray-400 hover:text-white transition-colors text-xs sm:text-sm">Privacy Policy</a>
           </li>
           <li>
-            <a href="#" class="text-gray-400 hover:text-white transition-colors">Refund Policy</a>
+            <a href="#" class="text-gray-400 hover:text-white transition-colors text-xs sm:text-sm">Refund Policy</a>
           </li>
         </ul>
       </div>
-      <div>
-        <h3 class="text-white font-semibold mb-4">Contact</h3>
+
+      <!-- Contact -->
+      <div class="text-left">
+        <h3 class="text-white font-semibold text-sm sm:text-base mb-3 sm:mb-4">Contact</h3>
         <ul class="space-y-2">
-          <li class="flex items-center text-gray-400">
+          <li class="flex items-center justify-start text-gray-400 text-xs sm:text-sm">
             <i class="ri-mail-line mr-2"></i>
             info@kairosbeats.com
           </li>
-          <li class="flex items-center text-gray-400">
+          <li class="flex items-center justify-start text-gray-400 text-xs sm:text-sm">
             <i class="ri-phone-line mr-2"></i>
             +1 (555) 123-4567
           </li>
-          <li class="flex items-center text-gray-400">
+          <li class="flex items-center justify-start text-gray-400 text-xs sm:text-sm">
             <i class="ri-map-pin-line mr-2"></i>
             Los Angeles, CA
           </li>
         </ul>
-        <div class="mt-6">
-          <h4 class="text-white font-semibold mb-2">Payment Methods</h4>
-          <div class="flex space-x-3">
-            <i class="ri-visa-fill text-gray-400 text-2xl"></i>
-            <i class="ri-mastercard-fill text-gray-400 text-2xl"></i>
-            <i class="ri-paypal-fill text-gray-400 text-2xl"></i>
-            <i class="ri-apple-fill text-gray-400 text-2xl"></i>
+        <div class="mt-4 sm:mt-6">
+          <h4 class="text-white font-semibold text-xs sm:text-sm mb-2 sm:mb-3">Payment Methods</h4>
+          <div class="flex justify-start space-x-3">
+            <i class="ri-visa-fill text-gray-400 text-lg sm:text-xl"></i>
+            <i class="ri-mastercard-fill text-gray-400 text-lg sm:text-xl"></i>
+            <i class="ri-paypal-fill text-gray-400 text-lg sm:text-xl"></i>
+            <i class="ri-apple-fill text-gray-400 text-lg sm:text-xl"></i>
           </div>
         </div>
       </div>
     </div>
-    <div class="border-t border-gray-800 mt-12 pt-8 text-center">
-      <p class="text-gray-400 text-sm">
+
+    <!-- Copyright -->
+    <div class="border-t border-gray-800 mt-8 sm:mt-12 pt-6 sm:pt-8 text-left">
+      <p class="text-gray-400 text-xs sm:text-sm">
         © {% now "Y" %} Kairos Beats. All rights reserved.
       </p>
     </div>

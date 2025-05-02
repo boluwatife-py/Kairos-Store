@@ -1,18 +1,18 @@
 {% load static %}
 
-<div id="cartModal" class="fixed inset-0 z-50 hidden">
+<div id="cartModal" class="fixed inset-0 z-[60] hidden">
   <div
     id="cartOverlay"
     class="absolute inset-0 bg-black/50 backdrop-blur-sm"
   ></div>
   <div
     id="cartSidebar"
-    class="absolute top-0 right-0 bottom-0 w-full max-w-md glass border-l border-gray-800 transform transition-transform duration-300 translate-x-full"
+    class="absolute top-0 right-0 bottom-0 w-full sm:max-w-md glass border-l border-gray-800 transform transition-transform duration-300 translate-x-full overflow-hidden flex flex-col"
   >
     <div
-      class="flex justify-between items-center p-6 border-b border-gray-800"
+      class="flex justify-between items-center p-4 sm:p-6 border-b border-gray-800"
     >
-      <h2 class="text-xl font-bold text-white">Your Cart</h2>
+      <h2 class="text-lg sm:text-xl font-bold text-white">Your Cart</h2>
       <button
         id="closeCartButton"
         class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
@@ -20,27 +20,28 @@
         <i class="ri-close-line ri-lg"></i>
       </button>
     </div>
-    <div class="p-6 overflow-y-auto max-h-[calc(100vh-200px)]">
+    <div class="flex-1 p-4 sm:p-6 overflow-y-auto">
       <!-- Cart items will be dynamically inserted here -->
     </div>
-    <div class="p-6 border-t border-gray-800">
+    <div class="p-4 sm:p-6 border-t border-gray-800">
       <div class="flex justify-between mb-4">
         <span class="text-gray-300">Subtotal</span>
         <span class="text-white font-medium">$0.00</span>
       </div>
       <div class="flex justify-between mb-6">
         <span class="text-gray-300">Total</span>
-        <span class="text-primary font-bold text-xl">$0.00</span>
+        <span class="text-primary font-bold text-lg sm:text-xl">$0.00</span>
       </div>
       <button
         id="checkoutButton"
         disabled
-        class="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-button font-medium transition-colors whitespace-nowrap flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary"
+        class="w-full bg-primary hover:bg-primary/90 text-white py-2.5 sm:py-3 rounded-button font-medium transition-colors whitespace-nowrap flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary text-sm sm:text-base"
       >
         Proceed to Checkout
       </button>
       <button
-        class="w-full bg-transparent border border-white/30 hover:border-white/50 text-white py-3 rounded-button font-medium transition-colors mt-3 whitespace-nowrap"
+        id="continueShoppingButton"
+        class="w-full bg-transparent border border-white/30 hover:border-white/50 text-white py-2.5 sm:py-3 rounded-button font-medium transition-colors mt-3 whitespace-nowrap text-sm sm:text-base"
       >
         Continue Shopping
       </button>

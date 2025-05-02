@@ -1,34 +1,97 @@
 <!-- Bundle Card -->
 {% load static %}
 <div class="glass-card rounded-lg overflow-hidden" data-bundle-id="{{ bundle.id }}">
-  <div class="relative h-64 bg-gray-800">
+  <div class="relative h-48 sm:h-56 bg-gray-800">
     <img src="{{ bundle.image.url }}" alt="{{ bundle.title }}" class="w-full h-full object-cover" />
     <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
-    <div class="absolute bottom-4 left-4">
-      <span class="bg-primary text-white text-sm px-3 py-1 rounded-full font-medium">{{ bundle.beat_count }} Beats</span>
-      <span class="bg-gray-800/80 text-white text-sm px-3 py-1 rounded-full font-medium ml-2">Save {{ bundle.discount }}%</span>
+    <div class="absolute top-2 right-2">
+      <span class="bg-primary/90 text-white text-[10px] sm:text-xs px-2 sm:px-3 py-1 rounded-full font-medium">Save {{ bundle.discount }}%</span>
+    </div>
+    <div class="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 flex justify-between items-center">
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <span class="bg-gray-800/80 text-white text-[10px] sm:text-xs px-2 sm:px-3 py-1 rounded-full font-medium">{{ bundle.beat_count }} Beats</span>
+        <div class="equalizer" data-bundle-id="{{ bundle.id }}">
+          <span class="w-[2px] bg-primary/60" style="height: 5px"></span>
+          <span class="w-[2px] bg-primary/60" style="height: 8px"></span>
+          <span class="w-[2px] bg-primary/60" style="height: 12px"></span>
+          <span class="w-[2px] bg-primary/60" style="height: 6px"></span>
+        </div>
+      </div>
+      <button onclick="showBundlePreview({{ bundle.id }})" 
+              class="play-button w-8 h-8 sm:w-10 sm:h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-white/20 transition-colors">
+        <i class="ri-play-fill text-white text-base sm:text-lg"></i>
+      </button>
     </div>
   </div>
-  <div class="p-5">
-    <div class="flex justify-between items-start mb-4">
-      <h3 class="text-xl font-semibold text-white">{{ bundle.title }}</h3>
-      <div class="text-right">
-        <span class="text-gray-400 line-through text-sm">${{ bundle.original_price }}</span>
-        <span class="text-primary font-bold text-xl ml-2">${{ bundle.discounted_price }}</span>
+  <div class="p-3 sm:p-4">
+    <div class="flex justify-between items-start mb-2 sm:mb-3">
+      <h3 class="text-base sm:text-lg font-semibold text-white line-clamp-1">{{ bundle.title }}</h3>
+      <div class="text-right flex flex-col items-end">
+        <span class="text-gray-400 line-through text-[10px] sm:text-xs">${{ bundle.original_price }}</span>
+        <span class="text-primary font-bold text-sm sm:text-base -mt-0.5">${{ bundle.discounted_price }}</span>
       </div>
     </div>
-    <p class="text-gray-400 mb-5">{{ bundle.description }}</p>
-    <div class="flex items-center justify-between">
-      <button onclick="showBundlePreview({{ bundle.id }})" class="bg-transparent border border-white/30 hover:border-white/50 text-white px-4 py-2 rounded-button text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap">
+    <p class="text-gray-400 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2">{{ bundle.description }}</p>
+    <div class="flex items-center justify-between gap-2">
+      <button onclick="showBundlePreview({{ bundle.id }})" 
+              class="bg-transparent border border-white/30 hover:border-white/50 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 sm:gap-1.5 whitespace-nowrap">
         <i class="ri-play-circle-line"></i>
-        Preview Bundle
+        Preview
       </button>
-      <button onclick="handleAddBundleToCart({{ bundle.id }}, '{{ bundle.title }}')" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-button text-sm font-medium transition-colors whitespace-nowrap">
+      <button onclick="handleAddBundleToCart({{ bundle.id }}, '{{ bundle.title }}')" 
+              class="bg-primary hover:bg-primary/90 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded text-xs sm:text-sm font-medium transition-colors whitespace-nowrap">
         Add to Cart
       </button>
     </div>
   </div>
 </div>
+
+<style>
+.equalizer {
+  display: flex;
+  align-items: flex-end;
+  height: 16px;
+  gap: 2px;
+}
+
+.equalizer span {
+  background-color: rgba(109, 40, 217, 0.6);
+  border-radius: 1px;
+  transition: height 0.2s ease;
+}
+
+.equalizer.playing span {
+  animation: equalize 1s infinite;
+}
+
+.equalizer.playing span:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.equalizer.playing span:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+.equalizer.playing span:nth-child(3) {
+  animation-delay: 0.5s;
+}
+
+.equalizer.playing span:nth-child(4) {
+  animation-delay: 0.2s;
+}
+
+@keyframes equalize {
+  0% {
+    height: 3px;
+  }
+  50% {
+    height: 12px;
+  }
+  100% {
+    height: 5px;
+  }
+}
+</style>
 
 <script>
 function handleAddBundleToCart(bundleId, bundleTitle) {
@@ -48,7 +111,6 @@ function handleAddBundleToCart(bundleId, bundleTitle) {
   .then(data => {
     if (data.status === 'success') {
       showNotification(data.message, 'success');
-      // Fetch actual cart count from server
       return fetch('/cart/').then(response => response.json());
     } else {
       showNotification(data.message || 'Error adding bundle to cart', 'error');
@@ -56,7 +118,6 @@ function handleAddBundleToCart(bundleId, bundleTitle) {
     }
   })
   .then(cartData => {
-    // Update cart badge with actual count
     const cartBadge = document.querySelector('#cartButton span');
     if (cartBadge) {
       cartBadge.textContent = cartData.items.length;
@@ -70,13 +131,32 @@ function handleAddBundleToCart(bundleId, bundleTitle) {
   });
 }
 
+// Handle equalizer animation for bundles
+window.addEventListener('bundlePlayerStateChange', function(e) {
+  const { bundleId, isPlaying } = e.detail;
+  const equalizer = document.querySelector(`.equalizer[data-bundle-id="${bundleId}"]`);
+  if (equalizer) {
+    if (isPlaying) {
+      equalizer.classList.add('playing');
+    } else {
+      equalizer.classList.remove('playing');
+    }
+  }
+  
+  // Remove playing class from other equalizers
+  document.querySelectorAll('.equalizer').forEach(eq => {
+    if (eq.dataset.bundleId !== bundleId) {
+      eq.classList.remove('playing');
+    }
+  });
+});
+
 // Function to update cart count
 function updateCartCount() {
   fetch('/cart/')
     .then(response => response.json())
     .then(data => {
       const cartCount = data.items.length;
-      // Update all cart count elements (in case there are multiple instances)
       const cartCountElements = document.querySelectorAll('[data-cart-count]');
       cartCountElements.forEach(element => {
         element.textContent = cartCount;
@@ -87,7 +167,6 @@ function updateCartCount() {
         }
       });
       
-      // Also update any elements with id 'cartCount' for backward compatibility
       const cartCountElement = document.getElementById('cartCount');
       if (cartCountElement) {
         cartCountElement.textContent = cartCount;
