@@ -133,6 +133,19 @@
 <script>
   function scrollToBundles() {
     const bundlesSection = document.getElementById('beat-bundles');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const mobileMenuButton = document.getElementById('mobileMenuButton');
+
+    // Close mobile menu if open
+    if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+      mobileMenu.classList.add('hidden');
+      if (mobileMenuButton) {
+        const icon = mobileMenuButton.querySelector('i');
+        icon.classList.remove('ri-close-line');
+        icon.classList.add('ri-menu-line');
+      }
+    }
+
     if (bundlesSection) {
       const headerHeight = 48; // Further reduced header height for mobile (12 * 4 = 48px)
       const elementPosition = bundlesSection.getBoundingClientRect().top;

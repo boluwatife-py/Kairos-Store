@@ -89,9 +89,9 @@ document.addEventListener('DOMContentLoaded', function() {
         cartState.isLoading = true;
         if (cartItemsContainer) {
             cartItemsContainer.innerHTML = `
-                <div class="flex flex-col items-center justify-center py-12">
-                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                    <p class="text-gray-400 mt-4">Loading your cart...</p>
+                <div class="flex flex-col items-center justify-center py-8 sm:py-12">
+                    <div class="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-primary"></div>
+                    <p class="text-gray-400 text-sm sm:text-base mt-3 sm:mt-4">Loading your cart...</p>
                 </div>
             `;
         }
@@ -191,10 +191,10 @@ document.addEventListener('DOMContentLoaded', function() {
     function showEmptyCart() {
         if (cartItemsContainer) {
             cartItemsContainer.innerHTML = `
-                <div class="flex flex-col items-center justify-center py-12 text-center">
-                    <i class="ri-shopping-cart-line text-4xl text-gray-400 mb-4"></i>
-                    <p class="text-gray-400">Your cart is empty</p>
-                    <p class="text-gray-500 text-sm mt-2">Add some beats to your cart to get started</p>
+                <div class="flex flex-col items-center justify-center py-8 sm:py-12 text-center">
+                    <i class="ri-shopping-cart-line text-3xl sm:text-4xl text-gray-400 mb-3 sm:mb-4"></i>
+                    <p class="text-gray-400 text-sm sm:text-base">Your cart is empty</p>
+                    <p class="text-gray-500 text-xs sm:text-sm mt-1 sm:mt-2">Add some beats to your cart to get started</p>
                 </div>
             `;
         }
@@ -262,43 +262,43 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!item) return null;
 
         const div = document.createElement('div');
-        div.className = 'flex items-center mb-6 pb-6 border-b border-gray-800';
+        div.className = 'flex items-center mb-3 sm:mb-6 pb-3 sm:pb-6 border-b border-gray-800 gap-3 sm:gap-4';
         
         if (item.type === 'beat') {
             div.innerHTML = `
-                <div class="w-16 h-16 bg-gray-800 rounded flex-shrink-0 mr-4">
+                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gray-800 rounded flex-shrink-0">
                     <img src="${item.image_url}" alt="${item.title}" class="w-full h-full object-cover rounded" />
                 </div>
-                <div class="flex-grow">
-                    <h4 class="text-white font-medium">${item.title}</h4>
-                    <p class="text-gray-400 text-sm">${item.genre} • ${item.bpm} BPM</p>
+                <div class="flex-grow min-w-0">
+                    <h4 class="text-white font-medium text-sm sm:text-base truncate">${item.title}</h4>
+                    <p class="text-gray-400 text-xs sm:text-sm">${item.genre} • ${item.bpm} BPM</p>
                 </div>
-                <div class="flex items-center">
-                    <span class="text-primary font-bold mr-4">$${item.price.toFixed(2)}</span>
+                <div class="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+                    <span class="text-primary font-bold text-sm sm:text-base">$${item.price.toFixed(2)}</span>
                     <button 
                         onclick="removeFromCart(${item.id})"
-                        class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                        class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
                     >
-                        <i class="ri-delete-bin-line"></i>
+                        <i class="ri-delete-bin-line text-lg sm:ri-lg"></i>
                     </button>
                 </div>
             `;
         } else if (item.type === 'bundle') {
             div.innerHTML = `
-                <div class="w-16 h-16 bg-gray-800 rounded flex-shrink-0 mr-4">
+                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gray-800 rounded flex-shrink-0">
                     <img src="${item.image_url}" alt="${item.title}" class="w-full h-full object-cover rounded" />
                 </div>
-                <div class="flex-grow">
-                    <h4 class="text-white font-medium">${item.title}</h4>
-                    <p class="text-gray-400 text-sm">Bundle</p>
+                <div class="flex-grow min-w-0">
+                    <h4 class="text-white font-medium text-sm sm:text-base truncate">${item.title}</h4>
+                    <p class="text-gray-400 text-xs sm:text-sm">Bundle</p>
                 </div>
-                <div class="flex items-center">
-                    <span class="text-primary font-bold mr-4">$${item.price.toFixed(2)}</span>
+                <div class="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+                    <span class="text-primary font-bold text-sm sm:text-base">$${item.price.toFixed(2)}</span>
                     <button 
                         onclick="removeFromCart(${item.id})"
-                        class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                        class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
                     >
-                        <i class="ri-delete-bin-line"></i>
+                        <i class="ri-delete-bin-line text-lg sm:ri-lg"></i>
                     </button>
                 </div>
             `;

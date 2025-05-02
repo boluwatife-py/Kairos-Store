@@ -97,7 +97,7 @@
           <i class="ri-music-2-line mr-2"></i>
           Browse Beats
         </a>
-        <a href="#" class="flex items-center px-3 py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-md transition-colors text-xs sm:text-sm">
+        <a href="#" onclick="scrollToBundles(); return false;" class="flex items-center px-3 py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-md transition-colors text-xs sm:text-sm">
           <i class="ri-gift-line mr-2"></i>
           Bundles
         </a>
@@ -145,8 +145,21 @@
     const mobileMenuButton = document.getElementById("mobileMenuButton");
     const mobileMenu = document.getElementById("mobileMenu");
 
+    // Function to close mobile menu
+    function closeMobileMenu() {
+      if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+        mobileMenu.classList.add('hidden');
+        const icon = mobileMenuButton.querySelector('i');
+        if (icon) {
+          icon.classList.remove('ri-close-line');
+          icon.classList.add('ri-menu-line');
+        }
+      }
+    }
+
     // Mobile menu functionality
-    mobileMenuButton.addEventListener("click", () => {
+    mobileMenuButton.addEventListener("click", (e) => {
+      e.stopPropagation(); // Prevent event from bubbling to document
       mobileMenu.classList.toggle("hidden");
       const icon = mobileMenuButton.querySelector("i");
       if (mobileMenu.classList.contains("hidden")) {
@@ -155,6 +168,20 @@
       } else {
         icon.classList.remove("ri-menu-line");
         icon.classList.add("ri-close-line");
+      }
+    });
+
+    // Prevent menu from closing when clicking inside it
+    mobileMenu.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', (e) => {
+      const nav = document.querySelector('nav');
+      // Check if click is outside the nav element
+      if (!nav.contains(e.target)) {
+        closeMobileMenu();
       }
     });
 
