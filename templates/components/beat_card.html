@@ -15,16 +15,25 @@
         <span class="bg-gray-800/80 text-white text-xs px-2 py-1 rounded ml-2">{{ beat.bpm }} BPM</span>
       </div>
       <button class="play-button w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-white/20 transition-colors" 
-              data-sample-url="{{ beat.get_sample_url }}"
-              onclick="playSample({{ beat.id }}, '{{ beat.get_sample_url }}', '{{ beat.title }}', '{{ beat.genre }}', {{ beat.bpm }}, '{{ beat.get_image_url }}')">
+              data-sample-url="{% if beat.is_purchased %}{{ beat.get_full_audio_url }}{% else %}{{ beat.get_sample_url }}{% endif %}"
+              onclick="playSample({{ beat.id }}, '{% if beat.is_purchased %}{{ beat.get_full_audio_url }}{% else %}{{ beat.get_sample_url }}{% endif %}', '{{ beat.title }}', '{{ beat.genre }}', {{ beat.bpm }}, '{{ beat.get_image_url }}')">
         <i class="ri-play-fill text-white ri-lg"></i>
       </button>
+      {% if not beat.is_purchased %}
+      <div class="absolute bottom-0 left-0 right-0 bg-gray-900/80 text-center py-1 text-xs text-gray-400">
+        30-second preview
+      </div>
+      {% endif %}
     </div>
   </div>
   <div class="p-4">
     <div class="flex justify-between items-start mb-3">
       <a href="{% url 'store:beat_detail' beat.id %}" class="text-lg font-semibold text-white hover:text-primary transition-colors">{{ beat.title }}</a>
-      <span class="text-primary font-bold">${{ beat.price }}</span>
+      {% if not beat.is_purchased %}
+        <span class="text-primary font-bold">${{ beat.price }}</span>
+      {% else %}
+        <span class="text-green-400 font-medium text-sm">Purchased</span>
+      {% endif %}
     </div>
     <p class="text-gray-400 text-sm mb-4">{{ beat.description }}</p>
     <div class="flex justify-between items-center">
@@ -35,7 +44,7 @@
           <span style="height: 12px"></span>
           <span style="height: 6px"></span>
         </div>
-        <span class="text-xs text-gray-400">0:30</span>
+        <span class="text-xs text-gray-400">{% if beat.is_purchased %}Full Version{% else %}0:30{% endif %}</span>
       </div>
       <div class="flex items-center gap-2">
         <a href="{% url 'store:beat_detail' beat.id %}" class="text-primary hover:text-primary/80 text-sm font-medium transition-colors flex items-center gap-1">

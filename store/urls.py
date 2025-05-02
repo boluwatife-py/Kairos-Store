@@ -30,4 +30,6 @@ urlpatterns = [
     path('logout/', views.custom_logout, name='logout'),
     path('register/', views.register, name='register'),
     path('api/settings/update/', views.update_settings, name='update_settings'),
+    path('api/create-payment-intent/<int:order_id>/', views.create_payment_intent, name='create_payment_intent'),
+    path('api/payment-success/<int:order_id>/', views.payment_success, name='payment_success'),
 ] 

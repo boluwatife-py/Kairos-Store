@@ -24,9 +24,11 @@ Checkout{% endblock %} {% block content %}
           <input
             type="email"
             id="email"
-            class="w-full bg-gray-800 border border-gray-700 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="your@email.com"
+            value="{{ request.user.email }}"
+            readonly
+            class="w-full bg-gray-800 border border-gray-700 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary cursor-not-allowed opacity-75"
           />
+          <p class="text-xs text-gray-400 mt-1">Email cannot be changed during checkout</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -39,8 +41,10 @@ Checkout{% endblock %} {% block content %}
             <input
               type="text"
               id="firstName"
-              class="w-full bg-gray-800 border border-gray-700 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="John"
+              name="firstName"
+              value="{{ request.user.first_name }}"
+              placeholder="Enter your first name"
+              class="w-full bg-gray-800 border border-gray-700 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary hover:border-gray-600 transition-colors"
             />
           </div>
           <div>
@@ -52,202 +56,64 @@ Checkout{% endblock %} {% block content %}
             <input
               type="text"
               id="lastName"
-              class="w-full bg-gray-800 border border-gray-700 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Doe"
+              name="lastName"
+              value="{{ request.user.last_name }}"
+              placeholder="Enter your last name"
+              class="w-full bg-gray-800 border border-gray-700 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary hover:border-gray-600 transition-colors"
             />
           </div>
         </div>
-
-        <div class="mb-4">
-          <label
-            for="country"
-            class="block text-sm font-medium text-gray-300 mb-1"
-            >Country / Region</label
-          >
-          <div class="relative">
-            <select
-              id="country"
-              class="w-full bg-gray-800 border border-gray-700 rounded text-white px-4 py-2 appearance-none focus:outline-none focus:ring-2 focus:ring-primary pr-8"
-            >
-              <option value="us">United States</option>
-              <option value="ca">Canada</option>
-              <option value="uk">United Kingdom</option>
-              <option value="au">Australia</option>
-              <option value="jp">Japan</option>
-              <option value="de">Germany</option>
-              <option value="fr">France</option>
-            </select>
-            <div
-              class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none"
-            >
-              <i class="ri-arrow-down-s-line text-gray-400"></i>
-            </div>
-          </div>
-        </div>
-
-        <div class="mb-4">
-          <label
-            for="address"
-            class="block text-sm font-medium text-gray-300 mb-1"
-            >Address</label
-          >
-          <input
-            type="text"
-            id="address"
-            class="w-full bg-gray-800 border border-gray-700 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="123 Music Street"
-          />
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label
-              for="city"
-              class="block text-sm font-medium text-gray-300 mb-1"
-              >City</label
-            >
-            <input
-              type="text"
-              id="city"
-              class="w-full bg-gray-800 border border-gray-700 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Los Angeles"
-            />
-          </div>
-          <div>
-            <label
-              for="state"
-              class="block text-sm font-medium text-gray-300 mb-1"
-              >State</label
-            >
-            <input
-              type="text"
-              id="state"
-              class="w-full bg-gray-800 border border-gray-700 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="California"
-            />
-          </div>
-          <div>
-            <label
-              for="zip"
-              class="block text-sm font-medium text-gray-300 mb-1"
-              >ZIP Code</label
-            >
-            <input
-              type="text"
-              id="zip"
-              class="w-full bg-gray-800 border border-gray-700 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="90001"
-            />
-          </div>
-        </div>
+        <p class="text-xs text-gray-400">These details will be used for this order only and won't update your account information</p>
       </div>
 
       <!-- Payment Method -->
       <div class="bg-gray-900 rounded p-6 mb-6">
         <h2 class="text-xl font-semibold mb-4">Payment Method</h2>
-
-        <div class="space-y-4">
-          <div
-            class="flex items-center p-4 border border-gray-700 rounded bg-gray-800"
-          >
-            <label class="custom-radio">
-              <input type="radio" name="payment" checked />
-              <span class="radio-mark"></span>
-            </label>
-            <div class="ml-2 flex-1">
-              <span class="font-medium">Credit / Debit Card</span>
-            </div>
-            <div class="flex space-x-2">
-              <div class="w-8 h-8 flex items-center justify-center text-white">
-                <i class="ri-visa-fill text-xl"></i>
-              </div>
-              <div class="w-8 h-8 flex items-center justify-center text-white">
-                <i class="ri-mastercard-fill text-xl"></i>
-              </div>
-              <div class="w-8 h-8 flex items-center justify-center text-white">
-                <i class="ri-american-express-fill text-xl"></i>
-              </div>
-            </div>
+        <form id="payment-form">
+          <div id="payment-element" class="mb-6 bg-gray-800 border border-gray-700 rounded p-4">
+            <!-- Stripe Elements will be inserted here -->
           </div>
 
-          <div
-            id="card-details"
-            class="p-4 border border-gray-700 rounded bg-gray-800 space-y-4"
-          >
-            <div>
-              <label
-                for="cardNumber"
-                class="block text-sm font-medium text-gray-300 mb-1"
-                >Card Number</label
+          <div class="mb-6">
+            <label class="flex items-center">
+              <div class="custom-checkbox">
+                <input type="checkbox" required />
+                <span class="checkmark"></span>
+              </div>
+              <span class="text-sm text-gray-300"
+                >I agree to the
+                <a href="{% url 'store:terms' %}" class="text-primary hover:underline"
+                  >Terms of Service</a
+                >
+                and
+                <a href="{% url 'store:privacy' %}" class="text-primary hover:underline"
+                  >Privacy Policy</a
+                ></span
               >
-              <input
-                type="text"
-                id="cardNumber"
-                class="w-full bg-gray-700 border border-gray-600 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="1234 5678 9012 3456"
-              />
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label
-                  for="expiry"
-                  class="block text-sm font-medium text-gray-300 mb-1"
-                  >Expiry Date</label
-                >
-                <input
-                  type="text"
-                  id="expiry"
-                  class="w-full bg-gray-700 border border-gray-600 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="MM/YY"
-                />
-              </div>
-              <div>
-                <label
-                  for="cvv"
-                  class="block text-sm font-medium text-gray-300 mb-1"
-                  >CVV</label
-                >
-                <input
-                  type="text"
-                  id="cvv"
-                  class="w-full bg-gray-700 border border-gray-600 rounded text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="123"
-                />
-              </div>
-            </div>
+            </label>
           </div>
+
+          <button
+            id="submit-button"
+            class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-button flex items-center justify-center"
+            type="submit"
+          >
+            <i class="ri-lock-line mr-2"></i>
+            <span id="button-text">Pay ${{ order.total_price }}</span>
+            <span id="spinner" class="hidden ml-2">
+              <i class="ri-loader-4-line animate-spin"></i>
+            </span>
+          </button>
+
+          <div id="payment-message" class="mt-4 text-center hidden"></div>
 
           <div
-            class="flex items-center p-4 border border-gray-700 rounded bg-gray-800"
+            class="mt-4 flex items-center justify-center text-sm text-gray-400"
           >
-            <label class="custom-radio">
-              <input type="radio" name="payment" />
-              <span class="radio-mark"></span>
-            </label>
-            <div class="ml-2 flex-1">
-              <span class="font-medium">PayPal</span>
-            </div>
-            <div class="w-8 h-8 flex items-center justify-center text-white">
-              <i class="ri-paypal-fill text-xl"></i>
-            </div>
+            <i class="ri-shield-check-line mr-2 text-green-500"></i>
+            Secure checkout powered by Stripe
           </div>
-
-          <div
-            class="flex items-center p-4 border border-gray-700 rounded bg-gray-800"
-          >
-            <label class="custom-radio">
-              <input type="radio" name="payment" />
-              <span class="radio-mark"></span>
-            </label>
-            <div class="ml-2 flex-1">
-              <span class="font-medium">Apple Pay</span>
-            </div>
-            <div class="w-8 h-8 flex items-center justify-center text-white">
-              <i class="ri-apple-fill text-xl"></i>
-            </div>
-          </div>
-        </div>
+        </form>
       </div>
     </div>
 
@@ -283,62 +149,136 @@ Checkout{% endblock %} {% block content %}
             <span id="checkoutTotal" class="text-primary font-bold text-xl">${{ order.total_price|floatformat:2 }}</span>
           </div>
         </div>
-
-        <div class="mb-6">
-          <label class="flex items-center">
-            <div class="custom-checkbox">
-              <input type="checkbox" />
-              <span class="checkmark"></span>
-            </div>
-            <span class="text-sm text-gray-300"
-              >I agree to the
-              <a href="#" class="text-primary hover:underline"
-                >Terms of Service</a
-              >
-              and
-              <a href="#" class="text-primary hover:underline"
-                >Privacy Policy</a
-              ></span
-            >
-          </label>
-        </div>
-
-        <button
-          class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-button flex items-center justify-center"
-        >
-          <i class="ri-lock-line mr-2"></i>
-          Complete Purchase
-        </button>
-
-        <div
-          class="mt-4 flex items-center justify-center text-sm text-gray-400"
-        >
-          <i class="ri-shield-check-line mr-2 text-green-500"></i>
-          Secure checkout powered by Stripe
-        </div>
       </div>
     </div>
   </div>
 </main>
-{% endblock %} {% block extra_js %}
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const paymentRadios = document.querySelectorAll('input[name="payment"]');
-    const cardDetails = document.getElementById("card-details");
+{% endblock %}
 
-    paymentRadios.forEach((radio) => {
-      radio.addEventListener("change", function () {
-        if (
-          this.checked &&
-          this.parentElement.nextElementSibling.textContent.trim() ===
-            "Credit / Debit Card"
-        ) {
-          cardDetails.classList.remove("hidden");
-        } else {
-          cardDetails.classList.add("hidden");
+{% block extra_js %}
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    // Initialize Stripe
+    const stripe = Stripe('{{ stripe_public_key }}');
+    let elements;
+
+    initialize();
+    checkStatus();
+
+    document
+        .querySelector("#payment-form")
+        .addEventListener("submit", handleSubmit);
+
+    async function initialize() {
+        const { clientSecret } = await fetch("{% url 'store:create_payment_intent' order.id %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken")
+            },
+            body: JSON.stringify({ order_id: "{{ order.id }}" }),
+        }).then((r) => r.json());
+
+        elements = stripe.elements({ 
+            clientSecret,
+            appearance: {
+                theme: 'night',
+                variables: {
+                    colorPrimary: '#4F46E5',
+                    colorBackground: '#1F2937',
+                    colorText: '#FFFFFF',
+                    colorDanger: '#EF4444',
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                    borderRadius: '8px',
+                },
+            }
+        });
+
+        const paymentElement = elements.create("payment");
+        paymentElement.mount("#payment-element");
+    }
+
+    async function handleSubmit(e) {
+        e.preventDefault();
+        setLoading(true);
+
+        const { error } = await stripe.confirmPayment({
+            elements,
+            confirmParams: {
+                return_url: window.location.origin + "{% url 'store:payment_success' order.id %}",
+            },
+        });
+
+        if (error) {
+            showMessage(error.message, "error");
+            setLoading(false);
         }
-      });
-    });
-  });
+    }
+
+    function checkStatus() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('payment_intent')) {
+            const clientSecret = urlParams.get('payment_intent_client_secret');
+            stripe.retrievePaymentIntent(clientSecret).then(({paymentIntent}) => {
+                switch (paymentIntent.status) {
+                    case "succeeded":
+                        showMessage("Payment succeeded!", "success");
+                        break;
+                    case "processing":
+                        showMessage("Your payment is processing.", "info");
+                        break;
+                    case "requires_payment_method":
+                        showMessage("Your payment was not successful, please try again.", "error");
+                        break;
+                    default:
+                        showMessage("Something went wrong.", "error");
+                        break;
+                }
+            });
+        }
+    }
+
+    function showMessage(messageText, type) {
+        const messageDiv = document.querySelector("#payment-message");
+        messageDiv.textContent = messageText;
+        messageDiv.classList.remove("hidden");
+        messageDiv.className = `mt-4 text-center p-4 rounded ${
+            type === "success" ? "bg-green-500/10 text-green-500" :
+            type === "error" ? "bg-red-500/10 text-red-500" : 
+            "bg-blue-500/10 text-blue-500"
+        }`;
+    }
+
+    function setLoading(isLoading) {
+        const submitButton = document.querySelector("#submit-button");
+        const spinner = document.querySelector("#spinner");
+        const buttonText = document.querySelector("#button-text");
+
+        if (isLoading) {
+            submitButton.disabled = true;
+            spinner.classList.remove("hidden");
+            buttonText.classList.add("opacity-50");
+        } else {
+            submitButton.disabled = false;
+            spinner.classList.add("hidden");
+            buttonText.classList.remove("opacity-50");
+        }
+    }
+
+    // CSRF token helper function
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
 </script>
 {% endblock %}

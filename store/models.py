@@ -193,17 +193,32 @@ class Order(models.Model):
         ('processing', 'Processing'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
+        ('invalidated', 'Invalidated - Already Purchased'),
     ]
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     beats = models.ManyToManyField(Beat, through='OrderItem')
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    payment_id = models.CharField(max_length=100, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"Order #{self.id} by {self.user.email}"
+
+    def check_for_purchased_items(self):
+        """Check if any items in the order have been purchased already"""
+        purchased_beats = []
+        for item in self.orderitem_set.all():
+            if OrderItem.objects.filter(
+                order__user=self.user,
+                order__status='completed',
+                beat=item.beat,
+                order__id__lt=self.id  # Only check orders created before this one
+            ).exists():
+                purchased_beats.append(item.beat.title)
+        return purchased_beats
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)

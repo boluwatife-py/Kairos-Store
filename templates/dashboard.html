@@ -132,9 +132,12 @@
                     </div>
                     <div class="text-right">
                       <span class="text-primary font-bold">${{ order.total_price|floatformat:2 }}</span>
-                      <span class="ml-2 px-2 py-0.5 rounded-full text-xs {% if order.status == 'completed' %}bg-green-500/20 text-green-400{% elif order.status == 'pending' %}bg-yellow-500/20 text-yellow-400{% else %}bg-gray-500/20 text-gray-400{% endif %}">
-                        {{ order.status|title }}
-                      </span>
+                      <div class="order-status">
+                        <span class="badge {{ order.status_context.class }}">
+                            <i class="fas fa-{{ order.status_context.icon }}"></i>
+                            {{ order.status_context.message }}
+                        </span>
+                      </div>
                     </div>
                   </div>
                   <div class="mt-2 pl-13">
