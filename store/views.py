@@ -19,9 +19,11 @@ import stripe
 from django.conf import settings
 import requests
 from django.core.files.base import ContentFile
-from urllib.parse import unquote
+from urllib.parse import unquote, quote
 import zipfile
 import io
+from django.contrib.auth.models import User
+from .models import UserProfile
 
 # Initialize Stripe with your secret key
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -93,19 +95,20 @@ def require_auth(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.content_type == 'application/json':
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'status': 'error',
                     'message': 'Please login to continue',
                     'requires_auth': True
                 }, status=401)
             else:
-                return JsonResponse({
-                    'status': 'error',
-                    'message': 'Please login to continue',
-                    'requires_auth': True,
-                    'redirect': '/'
-                }, status=401)
+                # Get the current path for the next parameter
+                next_url = request.get_full_path()
+                # Render home template with login modal
+                return render(request, 'home.html', {
+                    'show_modal': 'login',
+                    'next_url': next_url
+                })
         return view_func(request, *args, **kwargs)
     return _wrapped_view
 
@@ -143,11 +146,29 @@ def home(request):
     for beat in list(featured_beats) + list(new_releases):
         beat.set_user(request.user)
 
+    # Get modal parameter and next URL
+    modal = request.GET.get('modal')
+    next_url = request.GET.get('next', '')
+    
+    # Get cart data if modal is cart
+    cart_data = None
+    if modal == 'cart' and request.user.is_authenticated:
+        cart = Cart.objects.filter(user=request.user).first()
+        if cart:
+            cart_items = cart.cartitem_set.all()
+            cart_data = {
+                'items': cart_items,
+                'total_price': cart.get_total_price()
+            }
+
     context = {
         'featured_beats': featured_beats,
         'new_releases': new_releases,
         'bundles': bundles,
         'testimonials': testimonials,
+        'show_modal': modal,  # Will be 'login', 'signup', 'cart', or None
+        'cart_data': cart_data,
+        'next_url': next_url,  # Pass the next URL to the template
     }
     return render(request, 'home.html', context)
 
@@ -200,6 +221,10 @@ def beats(request):
         is_active=True,
         image__isnull=False
     ).order_by('-created_at')
+
+    # Set user on beats for purchased check
+    for beat in beats:
+        beat.set_user(request.user)
 
     context = {
         'beats': beats,
@@ -344,41 +369,75 @@ def remove_from_cart(request, cart_item_id):
         'message': 'Item removed from cart!'
     })
 
-@require_auth
+@login_required
 def cart(request):
-    cart, created = Cart.objects.get_or_create(user=request.user)
-    cart_items = cart.cartitem_set.all().select_related('beat', 'bundle')
+    """Handle regular cart view with HTML response"""
+    # Get user's cart
+    cart = Cart.objects.filter(user=request.user).first()
+    cart_items = []
+    total_price = 0
     
-    items_data = []
-    for item in cart_items:
-        if item.beat:
-            items_data.append({
+    if cart:
+        cart_items = cart.cartitem_set.all()
+        total_price = cart.get_total_price()
+
+    context = {
+        'cart_items': cart_items,
+        'total_price': total_price,
+    }
+    return render(request, 'cart.html', context)
+
+def api_cart(request):
+    """Handle JSON cart requests"""
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Please login to view your cart',
+            'requires_auth': True
+        }, status=401)
+    
+    # Get user's cart
+    cart = Cart.objects.filter(user=request.user).first()
+    cart_items = []
+    total_price = 0
+    
+    if cart:
+        cart_items = cart.cartitem_set.all()
+        total_price = cart.get_total_price()
+
+        # Prepare cart items data for JSON response
+        cart_items_data = []
+        for item in cart_items:
+            item_data = {
                 'id': item.id,
-                'type': 'beat',
-                'title': item.beat.title,
-                'genre': item.beat.genre,
-                'bpm': item.beat.bpm,
-                'price': float(item.beat.price),
-                'image_url': item.beat.get_image_url(),
-                'quantity': item.quantity,
-                'total_price': float(item.total_price)
-            })
-        elif item.bundle:
-            items_data.append({
-                'id': item.id,
-                'type': 'bundle',
-                'title': item.bundle.title,
-                'genre': None,
-                'bpm': None,
-                'price': float(item.bundle.discounted_price),
-                'image_url': item.bundle.image.url,
-                'quantity': item.quantity,
-                'total_price': float(item.total_price)
-            })
+                'type': 'beat' if item.beat else 'bundle',
+            }
+            if item.beat:
+                item_data.update({
+                    'title': item.beat.title,
+                    'price': float(item.beat.price),
+                    'image_url': item.beat.get_image_url(),
+                    'genre': item.beat.genre,
+                    'bpm': item.beat.bpm,
+                })
+            else:
+                item_data.update({
+                    'title': item.bundle.title,
+                    'price': float(item.bundle.discounted_price),
+                    'image_url': item.bundle.image.url if item.bundle.image else None,
+                })
+            cart_items_data.append(item_data)
+
+        return JsonResponse({
+            'cart_count': len(cart_items),
+            'cart_items': cart_items_data,
+            'total_price': float(total_price)
+        })
     
     return JsonResponse({
-        'items': items_data,
-        'total_price': float(cart.total_price)
+        'cart_count': 0,
+        'cart_items': [],
+        'total_price': 0.00
     })
 
 @login_required
@@ -477,28 +536,13 @@ def create_order(request):
         'message': 'Invalid request method'
     }, status=400)
 
-def register(request):
-    if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return JsonResponse({
-                'status': 'success',
-                'message': 'Account created successfully!'
-            })
-        else:
-            return JsonResponse({
-                'status': 'error',
-                'errors': form.errors
-            }, status=400)
-    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
-
-def custom_login(request):
-    if request.method == 'POST':
+@require_http_methods(["GET", "POST"])
+def custom_login(request, next_url=None):
+    if request.method == "POST":
         email = request.POST.get('email')
         password = request.POST.get('password')
         remember = request.POST.get('remember')
+        next_url = request.POST.get('next', '')
         
         if not email or not password:
             return JsonResponse({
@@ -506,22 +550,172 @@ def custom_login(request):
                 'message': 'Please provide both email and password'
             }, status=400)
         
-        user = authenticate(request, email=email, password=password)
+        user = authenticate(request, username=email, password=password)
         
         if user is not None:
             login(request, user)
             if not remember:
                 request.session.set_expiry(0)
+            
+            # If it's an AJAX request, return JSON response
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'status': 'success',
+                    'message': 'Login successful!',
+                    'redirect': next_url if next_url else reverse('store:home')
+                })
+            # For regular form submissions, redirect
+            else:
+                return HttpResponseRedirect(next_url if next_url else reverse('store:home'))
+        else:
+            # If it's an AJAX request, return JSON response
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Invalid email or password'
+                }, status=400)
+            # For regular form submissions, show error message
+            else:
+                messages.error(request, 'Invalid email or password')
+                return HttpResponseRedirect(reverse('store:login'))
+
+    # If GET request, render home template with login modal
+    featured_beats = Beat.objects.filter(
+        is_featured=True,
+        is_active=True,
+        image__isnull=False,
+        sample_audio__isnull=False,
+        full_audio__isnull=False
+    ).order_by('-created_at')[:3]
+
+    new_releases = Beat.objects.filter(
+        is_new_release=True,
+        is_active=True,
+        image__isnull=False,
+        sample_audio__isnull=False,
+        full_audio__isnull=False
+    ).order_by('-created_at')[:3]
+
+    bundles = Bundle.objects.filter(
+        is_active=True,
+        image__isnull=False
+    ).order_by('-created_at')[:2]
+
+    testimonials = Testimonial.objects.filter(
+        is_active=True
+    ).order_by('-created_at')[:3]
+
+    # Set user on beats for purchased check
+    for beat in list(featured_beats) + list(new_releases):
+        beat.set_user(request.user)
+
+    context = {
+        'featured_beats': featured_beats,
+        'new_releases': new_releases,
+        'bundles': bundles,
+        'testimonials': testimonials,
+        'show_modal': 'login',
+        'next_url': next_url,
+    }
+    return render(request, 'home.html', context)
+
+
+@require_http_methods(["GET", "POST"])
+def register(request, next_url=None):
+    if request.method == "POST":
+        try:
+            # Get form data
+            email = request.POST.get('email')
+            password1 = request.POST.get('password1')
+            password2 = request.POST.get('password2')
+            next_url = request.POST.get('next', '')
+
+            # Validate passwords match
+            if password1 != password2:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Passwords do not match'
+                }, status=400)
+
+            # Validate password length
+            if len(password1) < 8:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Password must be at least 8 characters long'
+                }, status=400)
+
+            # Check if user already exists
+            if User.objects.filter(email=email).exists():
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'A user with this email already exists'
+                }, status=400)
+
+            # Create user
+            user = User.objects.create_user(
+                username=email,  # Using email as username
+                email=email,
+                password=password1
+            )
+
+            # Create user profile
+            UserProfile.objects.create(user=user)
+
+            # Log the user in
+            login(request, user)
+
             return JsonResponse({
                 'status': 'success',
-                'message': 'Login successful!'
+                'message': 'Registration successful! Welcome to Kairos.',
+                'redirect': next_url if next_url else reverse('store:home')
             })
-        else:
+
+        except Exception as e:
             return JsonResponse({
                 'status': 'error',
-                'message': 'Invalid email or password'
+                'message': str(e)
             }, status=400)
-    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
+
+    # If GET request, render home template with signup modal
+    featured_beats = Beat.objects.filter(
+        is_featured=True,
+        is_active=True,
+        image__isnull=False,
+        sample_audio__isnull=False,
+        full_audio__isnull=False
+    ).order_by('-created_at')[:3]
+
+    new_releases = Beat.objects.filter(
+        is_new_release=True,
+        is_active=True,
+        image__isnull=False,
+        sample_audio__isnull=False,
+        full_audio__isnull=False
+    ).order_by('-created_at')[:3]
+
+    bundles = Bundle.objects.filter(
+        is_active=True,
+        image__isnull=False
+    ).order_by('-created_at')[:2]
+
+    testimonials = Testimonial.objects.filter(
+        is_active=True
+    ).order_by('-created_at')[:3]
+
+    # Set user on beats for purchased check
+    for beat in list(featured_beats) + list(new_releases):
+        beat.set_user(request.user)
+
+    context = {
+        'featured_beats': featured_beats,
+        'new_releases': new_releases,
+        'bundles': bundles,
+        'testimonials': testimonials,
+        'show_modal': 'signup',
+        'next_url': next_url,
+    }
+    return render(request, 'home.html', context)
+
 
 def terms(request):
     return render(request, 'store/terms.html')
@@ -627,6 +821,10 @@ def get_bundle_beats(request, bundle_id):
     bundle = get_object_or_404(Bundle, id=bundle_id, is_active=True)
     beats = bundle.beats.filter(is_active=True)
     
+    # Set user on each beat before checking is_purchased
+    for beat in beats:
+        beat._user = request.user
+    
     beats_data = [{
         'id': beat.id,
         'title': beat.title,
@@ -635,7 +833,7 @@ def get_bundle_beats(request, bundle_id):
         'price': float(beat.price),
         'image_url': beat.get_image_url(),
         'sample_url': beat.get_sample_url(),
-        'is_purchased': beat.is_purchased if hasattr(beat, 'is_purchased') else False,
+        'is_purchased': beat.is_purchased,  # Now this will work correctly
         'is_favorite': beat.is_favorite if hasattr(beat, 'is_favorite') else False
     } for beat in beats]
     

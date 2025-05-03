@@ -97,7 +97,7 @@
           <i class="ri-music-2-line mr-2"></i>
           Browse Beats
         </a>
-        <a href="#" onclick="scrollToBundles(); return false;" class="flex items-center px-3 py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-md transition-colors text-xs sm:text-sm">
+        <a href="{% url 'store:home' %}#beat-bundles" class="flex items-center px-3 py-2 text-gray-300 hover:text-white hover:bg-white/5 rounded-md transition-colors text-xs sm:text-sm">
           <i class="ri-gift-line mr-2"></i>
           Bundles
         </a>
@@ -211,6 +211,40 @@
       document.addEventListener("click", (e) => {
         if (!userMenuButton.contains(e.target) && !userDropdownMenu.contains(e.target)) {
           userDropdownMenu.classList.add("hidden");
+        }
+      });
+    }
+
+    // Mobile cart button handler
+    const mobileCartButton = document.querySelector('.mobile-cart-button');
+    if (mobileCartButton) {
+      mobileCartButton.addEventListener('click', async (e) => {
+        e.preventDefault();
+        try {
+          const response = await fetch('/api/cart/', {
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          });
+          const data = await response.json();
+          
+          if (response.status === 401 && data.requires_auth) {
+            // Update URL and show login modal with /cart/ as next parameter
+            const url = new URL(window.location);
+            url.searchParams.delete('show_modal');
+            url.pathname = '/login/';
+            url.searchParams.set('next', '/cart/');
+            window.history.pushState({}, '', url);
+            showLoginModal();
+            return;
+          }
+          
+          // If authorized, open cart
+          openCart();
+        } catch (error) {
+          if (!error.message?.includes('Unauthorized')) {
+            showToast('An error occurred while opening the cart', 'error');
+          }
         }
       });
     }

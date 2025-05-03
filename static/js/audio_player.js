@@ -7,6 +7,20 @@ let isSeeking = false;
 let currentPlaylist = []; // Array to store current playlist
 let currentIndex = -1; // Current index in playlist
 
+// Function to dispatch audio player state change event
+function dispatchAudioPlayerStateChange(beatId, isPlaying) {
+    const event = new CustomEvent('audioPlayerStateChange', {
+        detail: { beatId, isPlaying }
+    });
+    document.dispatchEvent(event);
+}
+
+// Function to dispatch audio ended event
+function dispatchAudioEnded() {
+    const event = new CustomEvent('audioEnded');
+    document.dispatchEvent(event);
+}
+
 // Function to play a beat sample
 function playSample(beatId, sampleUrl) {
     try {
@@ -17,6 +31,7 @@ function playSample(beatId, sampleUrl) {
                 isPlaying = false;
                 updatePlayButton(beatId, false);
                 updatePlayerPlayButton(false);
+                dispatchAudioPlayerStateChange(beatId, false);
             } else {
                 currentAudio.play().catch(error => {
                     console.error('Error playing audio:', error);
@@ -25,6 +40,7 @@ function playSample(beatId, sampleUrl) {
                 isPlaying = true;
                 updatePlayButton(beatId, true);
                 updatePlayerPlayButton(true);
+                dispatchAudioPlayerStateChange(beatId, true);
             }
             return;
         }
@@ -33,6 +49,7 @@ function playSample(beatId, sampleUrl) {
         if (currentAudio) {
             currentAudio.pause();
             updatePlayButton(currentBeatId, false);
+            dispatchAudioPlayerStateChange(currentBeatId, false);
         }
 
         // Create and play new audio
@@ -48,6 +65,7 @@ function playSample(beatId, sampleUrl) {
         currentAudio.addEventListener('play', () => {
             updatePlayButton(beatId, true);
             updatePlayerPlayButton(true);
+            dispatchAudioPlayerStateChange(beatId, true);
             // Delay showAudioPlayer to ensure DOM is ready
             setTimeout(() => showAudioPlayer(beatId), 100);
             startEqualizer(beatId);
@@ -57,6 +75,7 @@ function playSample(beatId, sampleUrl) {
         currentAudio.addEventListener('pause', () => {
             updatePlayButton(beatId, false);
             updatePlayerPlayButton(false);
+            dispatchAudioPlayerStateChange(beatId, false);
             stopEqualizer(beatId);
         });
 
@@ -71,6 +90,8 @@ function playSample(beatId, sampleUrl) {
                 isPlaying = false;
                 updatePlayButton(beatId, false);
                 updatePlayerPlayButton(false);
+                dispatchAudioPlayerStateChange(beatId, false);
+                dispatchAudioEnded();
                 hideAudioPlayer();
                 stopEqualizer(beatId);
             }
@@ -213,11 +234,11 @@ function showAudioPlayer(beatId) {
         return;
     }
 
-
     // Get the first instance of the beat card
     const beat = document.querySelector(`[data-beat-id="${beatId}"]`);
     if (!beat) {
         console.warn('Beat card not found for ID:', beatId);
+        return;
     }
 
     // Get beat information with fallbacks
@@ -226,34 +247,40 @@ function showAudioPlayer(beatId) {
     let bpm = '';
     let image = '';
 
-    if (beat) {
-        // Try to get title from different possible selectors
-        const titleSelectors = ['h3', '.text-lg', '.beat-title'];
-        for (const selector of titleSelectors) {
-            const element = beat.querySelector(selector);
-            if (element && element.textContent) {
-                title = element.textContent.trim();
-                break;
-            }
-        }
+    // Find the container (either .glass or parent container)
+    const container = beat.closest('.glass') || beat.closest('[data-beat-id]') || beat;
 
-        // Try to get genre
-        const genreElement = beat.querySelector('.bg-primary\\/80, .genre');
-        if (genreElement && genreElement.textContent) {
-            genre = genreElement.textContent.trim();
+    // Try to get title from h1 first (for beat detail page), then other selectors
+    const titleSelectors = ['h1', 'h3', '.text-lg', '.beat-title'];
+    for (const selector of titleSelectors) {
+        const element = container.querySelector(selector) || document.querySelector(`[data-beat-id="${beatId}"] ${selector}`);
+        if (element && element.textContent) {
+            title = element.textContent.trim();
+            break;
         }
+    }
 
-        // Try to get BPM
-        const bpmElement = beat.querySelector('.bg-gray-800\\/80, .bpm');
-        if (bpmElement && bpmElement.textContent) {
-            bpm = bpmElement.textContent.trim();
-        }
+    // Try to get genre
+    const genreElement = container.querySelector('.bg-primary\\/80') || 
+                        container.querySelector('.genre') || 
+                        document.querySelector(`[data-beat-id="${beatId}"] .bg-primary\\/80`);
+    if (genreElement && genreElement.textContent) {
+        genre = genreElement.textContent.trim();
+    }
 
-        // Try to get image
-        const imageElement = beat.querySelector('img');
-        if (imageElement && imageElement.src) {
-            image = imageElement.src;
-        }
+    // Try to get BPM
+    const bpmElement = container.querySelector('.bg-gray-800\\/80') || 
+                      container.querySelector('.bpm') || 
+                      document.querySelector(`[data-beat-id="${beatId}"] .bg-gray-800\\/80`);
+    if (bpmElement && bpmElement.textContent) {
+        bpm = bpmElement.textContent.trim();
+    }
+
+    // Try to get image
+    const imageElement = container.querySelector('img') || 
+                        document.querySelector(`[data-beat-id="${beatId}"] img`);
+    if (imageElement && imageElement.src) {
+        image = imageElement.src;
     }
 
     // Update player content with null checks

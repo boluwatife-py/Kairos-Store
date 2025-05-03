@@ -157,5 +157,18 @@
       });
     }
   }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    // Handle hash in URL for bundles
+    if (window.location.hash === '#beat-bundles') {
+      setTimeout(scrollToBundles, 100);
+    }
+  });
+
+  // Handle button click for bundles
+  document.querySelector('button[onclick="scrollToBundles()"]')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    scrollToBundles();
+  });
 </script>
 {% endblock %}

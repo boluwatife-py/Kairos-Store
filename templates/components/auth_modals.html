@@ -6,13 +6,14 @@
     <div class="glass rounded-lg border border-gray-800 shadow-xl">
       <div class="flex justify-between items-center p-6 border-b border-gray-800">
         <h2 class="text-xl font-bold text-white">Login to Your Account</h2>
-        <button id="closeLoginModal" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+        <button onclick="window.closeLoginModal()" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
           <i class="ri-close-line ri-lg"></i>
         </button>
       </div>
       <div class="p-6">
-        <form id="loginForm" method="post" action="{% url 'store:login' %}">
+        <form id="loginForm" method="post" action="/login/">
           {% csrf_token %}
+          <input type="hidden" name="next" value="{{ next_url }}" />
           <div class="mb-4">
             <label for="login_email" class="block text-sm font-medium text-gray-300 mb-2">Email</label>
             <input type="email" name="email" id="login_email" class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" required />
@@ -26,7 +27,7 @@
               <input type="checkbox" name="remember" class="mr-2" />
               <span class="text-sm text-gray-300">Remember me</span>
             </label>
-            <a href="{% url 'store:password_reset' %}" class="text-sm text-primary hover:text-primary/80 transition-colors">Forgot password?</a>
+            <a href="#" onclick="showForgotPasswordModal(event)" class="text-sm text-primary hover:text-primary/80 transition-colors">Forgot password?</a>
           </div>
           <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white py-2.5 rounded-button font-medium transition-colors mb-4 whitespace-nowrap">
             Login
@@ -63,13 +64,14 @@
     <div class="glass rounded-lg border border-gray-800 shadow-xl">
       <div class="flex justify-between items-center p-6 border-b border-gray-800">
         <h2 class="text-xl font-bold text-white">Create Your Account</h2>
-        <button id="closeRegistrationModal" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+        <button onclick="window.closeRegistrationModal()" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
           <i class="ri-close-line ri-lg"></i>
         </button>
       </div>
       <div class="p-6">
         <form id="registrationForm" method="post" action="{% url 'store:register' %}">
           {% csrf_token %}
+          <input type="hidden" name="next" value="{{ next_url }}" />
           <div class="mb-4">
             <label for="register_email" class="block text-sm font-medium text-gray-300 mb-2">Email</label>
             <input type="email" name="email" id="register_email" class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" required />
@@ -114,76 +116,29 @@
 <!-- Password Reset Modal -->
 <div id="passwordResetModal" class="fixed inset-0 z-50 hidden">
   <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
-  <div
-    class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md"
-  >
+  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md">
     <div class="glass rounded-lg border border-gray-800 shadow-xl">
-      <div
-        class="flex justify-between items-center p-6 border-b border-gray-800"
-      >
+      <div class="flex justify-between items-center p-6 border-b border-gray-800">
         <h2 class="text-xl font-bold text-white">Reset Your Password</h2>
-        <button
-          id="closePasswordResetModal"
-          class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
-        >
+        <button onclick="window.closePasswordResetModal()" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
           <i class="ri-close-line ri-lg"></i>
         </button>
       </div>
       <div class="p-6">
-        <form id="passwordResetForm">
+        <form id="passwordResetForm" method="post" action="{% url 'store:password_reset' %}">
+          {% csrf_token %}
           <div class="mb-6">
-            <p class="text-gray-300 mb-4">
-              Enter your email address and we'll send you instructions to
-              reset your password.
-            </p>
-            <label
-              for="resetEmail"
-              class="block text-sm font-medium text-gray-300 mb-2"
-              >Email</label
-            >
-            <input
-              type="email"
-              id="resetEmail"
-              class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder="Enter your email"
-            />
+            <p class="text-gray-300 mb-4">Enter your email address and we'll send you instructions to reset your password.</p>
+            <label for="resetEmail" class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+            <input type="email" name="email" id="resetEmail" class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" required />
           </div>
-          <button
-            type="submit"
-            class="w-full bg-primary hover:bg-primary/90 text-white py-2.5 rounded-button font-medium transition-colors mb-4 whitespace-nowrap"
-          >
+          <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white py-2.5 rounded-button font-medium transition-colors mb-4 whitespace-nowrap">
             Reset Password
           </button>
           <p class="text-center">
-            <a
-              href="#"
-              id="backToLoginLink"
-              class="text-sm text-primary hover:text-primary/80 transition-colors"
-              >Back to Login</a
-            >
+            <a href="#" onclick="showLoginModal()" class="text-sm text-primary hover:text-primary/80 transition-colors">Back to Login</a>
           </p>
         </form>
-        <div id="resetConfirmation" class="hidden">
-          <div class="text-center">
-            <div
-              class="w-16 h-16 mx-auto mb-4 flex items-center justify-center bg-primary/20 rounded-full"
-            >
-              <i class="ri-mail-send-line text-primary text-3xl"></i>
-            </div>
-            <h3 class="text-xl font-semibold text-white mb-2">
-              Check Your Email
-            </h3>
-            <p class="text-gray-300 mb-6">
-              We've sent password reset instructions to your email address.
-            </p>
-            <button
-              id="resetDoneButton"
-              class="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-button font-medium transition-colors whitespace-nowrap"
-            >
-              Done
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -280,74 +235,164 @@
   function showLoginModal() {
     document.getElementById('loginModal').classList.remove('hidden');
     document.getElementById('registrationModal').classList.add('hidden');
+    document.getElementById('passwordResetModal').classList.add('hidden');
+    // Update URL without reloading, preserving next parameter
+    const url = new URL(window.location);
+    const nextUrl = url.searchParams.get('next');
+    url.searchParams.delete('show_modal');
+    url.pathname = '/login/';
+    // Add back next parameter if it exists
+    if (nextUrl) {
+      url.searchParams.set('next', nextUrl);
+    }
+    window.history.pushState({}, '', url);
   }
 
   function showRegisterModal() {
     document.getElementById('registrationModal').classList.remove('hidden');
     document.getElementById('loginModal').classList.add('hidden');
+    document.getElementById('passwordResetModal').classList.add('hidden');
+    // Update URL without reloading, preserving next parameter
+    const url = new URL(window.location);
+    const nextUrl = url.searchParams.get('next');
+    url.searchParams.delete('show_modal');
+    url.pathname = '/register/';
+    // Add back next parameter if it exists
+    if (nextUrl) {
+      url.searchParams.set('next', nextUrl);
+    }
+    window.history.pushState({}, '', url);
+  }
+
+  function showForgotPasswordModal(e) {
+    e.preventDefault();
+    document.getElementById('passwordResetModal').classList.remove('hidden');
+    document.getElementById('loginModal').classList.add('hidden');
+    document.getElementById('registrationModal').classList.add('hidden');
+    // Update URL without reloading
+    const url = new URL(window.location);
+    url.searchParams.delete('show_modal');
+    url.pathname = '/password_reset/';
+    window.history.pushState({}, '', url);
   }
 
   function closeLoginModal() {
     document.getElementById('loginModal').classList.add('hidden');
+    // Update URL without reloading, removing all auth-related parameters
+    const url = new URL(window.location);
+    url.searchParams.delete('show_modal');
+    url.searchParams.delete('next');
+    url.pathname = '/';
+    window.history.pushState({}, '', url);
   }
 
   function closeRegistrationModal() {
     document.getElementById('registrationModal').classList.add('hidden');
+    // Update URL without reloading, removing all auth-related parameters
+    const url = new URL(window.location);
+    url.searchParams.delete('show_modal');
+    url.searchParams.delete('next');
+    url.pathname = '/';
+    window.history.pushState({}, '', url);
   }
 
-  // Handle authenticated actions
-  function handleAuthenticatedAction(action) {
-    return async (e) => {
-      e.preventDefault();
-      const form = e.target;
-      const formData = new FormData(form);
-      
-      try {
-        const response = await fetch(form.action, {
-          method: 'POST',
-          body: formData,
-          headers: {
-            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
-          }
-        });
-        
-        const data = await response.json();
-        
-        if (response.status === 401 && data.requires_auth) {
-          showLoginModal();
-          showToast('Please login to continue', 'error');
-          return;
+  function closePasswordResetModal() {
+    document.getElementById('passwordResetModal').classList.add('hidden');
+    // Update URL without reloading
+    const url = new URL(window.location);
+    url.searchParams.delete('show_modal');
+    url.pathname = '/';
+    window.history.pushState({}, '', url);
         }
         
-        if (response.ok) {
-          showToast(data.message);
-          if (data.redirect) {
-            window.location.href = data.redirect;
-          } else {
-            window.location.reload();
-          }
-        } else {
-          showToast(data, 'error');
-        }
-      } catch (error) {
-        showToast({ message: 'An error occurred. Please try again.' }, 'error');
-      }
-    };
-  }
+  // Make functions globally available
+  window.showLoginModal = showLoginModal;
+  window.showRegisterModal = showRegisterModal;
+  window.showForgotPasswordModal = showForgotPasswordModal;
+  window.closeLoginModal = closeLoginModal;
+  window.closeRegistrationModal = closeRegistrationModal;
+  window.closePasswordResetModal = closePasswordResetModal;
 
   // Event listeners for modal switching
   document.getElementById('showRegisterModal').addEventListener('click', (e) => {
     e.preventDefault();
+    // Transfer next URL when switching modals
+    const loginNextInput = document.querySelector('#loginForm input[name="next"]');
+    const registerNextInput = document.querySelector('#registrationForm input[name="next"]');
+    if (loginNextInput && registerNextInput) {
+      registerNextInput.value = loginNextInput.value;
+    }
     showRegisterModal();
   });
 
   document.getElementById('showLoginModal').addEventListener('click', (e) => {
     e.preventDefault();
+    // Transfer next URL when switching modals
+    const loginNextInput = document.querySelector('#loginForm input[name="next"]');
+    const registerNextInput = document.querySelector('#registrationForm input[name="next"]');
+    if (loginNextInput && registerNextInput) {
+      loginNextInput.value = registerNextInput.value;
+    }
     showLoginModal();
   });
 
-  document.getElementById('closeLoginModal').addEventListener('click', closeLoginModal);
-  document.getElementById('closeRegistrationModal').addEventListener('click', closeRegistrationModal);
+  // Handle browser back/forward buttons
+  window.addEventListener('popstate', function(event) {
+    const url = new URL(window.location);
+    const pathname = url.pathname;
+    
+    // Hide all modals first
+    document.getElementById('loginModal').classList.add('hidden');
+    document.getElementById('registrationModal').classList.add('hidden');
+    document.getElementById('passwordResetModal').classList.add('hidden');
+    
+    // Show appropriate modal based on URL
+    if (pathname === '/login/') {
+      showLoginModal();
+    } else if (pathname === '/register/') {
+      showRegisterModal();
+    } else if (pathname === '/password_reset/') {
+      showForgotPasswordModal(new Event('click'));
+    }
+  });
+
+  // Show modal on page load if needed
+  document.addEventListener('DOMContentLoaded', () => {
+    // Check URL parameters first
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlShowModal = urlParams.get('show_modal');
+    const nextUrl = urlParams.get('next');
+    
+    // Check Django context
+    const contextShowModal = '{{ show_modal }}';
+    const contextNextUrl = '{{ next_url }}';
+    
+    // Determine which modal to show (URL params take precedence)
+    const showModal = urlShowModal || contextShowModal;
+    const finalNextUrl = nextUrl || contextNextUrl;
+    
+    if (showModal === 'login') {
+      showLoginModal();
+    } else if (showModal === 'signup' || showModal === 'register') {
+      showRegisterModal();
+    } else if (showModal === 'password_reset') {
+      showForgotPasswordModal(new Event('click'));
+    }
+    
+    // Set next URL in login and register forms if present
+    if (finalNextUrl) {
+      const forms = ['loginForm', 'registrationForm'];
+      forms.forEach(formId => {
+        const form = document.getElementById(formId);
+        if (form) {
+          const nextInput = form.querySelector('input[name="next"]');
+          if (nextInput) {
+            nextInput.value = finalNextUrl;
+          }
+        }
+      });
+    }
+  });
 
   // Form submission handlers
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -362,23 +407,40 @@
         method: 'POST',
         body: formData,
         headers: {
-          'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+          'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+          'X-Requested-With': 'XMLHttpRequest'
         }
       });
       
       const data = await response.json();
       
       if (response.ok) {
-        showToast(data.message);
-        form.reset();
+        showToast(data.message || 'Login successful');
+        // If there's a next URL, redirect to it
+        if (data.redirect) {
+          window.location.href = data.redirect;
+        } else {
         window.location.reload();
+        }
       } else {
-        showToast(data, 'error');
-        form.reset();
+        // Handle specific error cases
+        if (data.errors) {
+          // Show specific field errors
+          Object.entries(data.errors).forEach(([field, errors]) => {
+            const errorMessage = Array.isArray(errors) ? errors[0] : errors;
+            showToast(errorMessage, 'error');
+          });
+        } else if (data.message) {
+          // Show general error message
+          showToast(data.message, 'error');
+        } else {
+          // Show default error message
+          showToast('Invalid email or password', 'error');
+        }
       }
     } catch (error) {
-      showToast({ message: 'An error occurred. Please try again.' }, 'error');
-      form.reset();
+      console.error('Login error:', error);
+      showToast('An error occurred during login. Please try again.', 'error');
     } finally {
       setLoading(form, false);
     }
@@ -388,6 +450,20 @@
     e.preventDefault();
     const form = e.target;
     const formData = new FormData(form);
+    
+    // Validate password match
+    const password1 = formData.get('password1');
+    const password2 = formData.get('password2');
+    
+    if (password1 !== password2) {
+      showToast({ message: 'Passwords do not match' }, 'error');
+      return;
+    }
+    
+    if (password1.length < 8) {
+      showToast({ message: 'Password must be at least 8 characters long' }, 'error');
+      return;
+    }
     
     setLoading(form, true);
     
@@ -404,22 +480,32 @@
       
       if (response.ok) {
         showToast(data.message);
-        form.reset();
+        // If there's a next URL, redirect to it
+        if (data.redirect) {
+          window.location.href = data.redirect;
+        } else {
         window.location.reload();
+        }
       } else {
         showToast(data, 'error');
-        form.reset();
       }
     } catch (error) {
       showToast({ message: 'An error occurred. Please try again.' }, 'error');
-      form.reset();
     } finally {
       setLoading(form, false);
     }
   });
 
-  // Add event listeners for authenticated actions
-  document.querySelectorAll('[data-requires-auth]').forEach(element => {
-    element.addEventListener('click', handleAuthenticatedAction());
+  // Close modals when clicking outside
+  window.addEventListener('click', (e) => {
+    const loginModal = document.getElementById('loginModal');
+    const registrationModal = document.getElementById('registrationModal');
+    
+    if (e.target === loginModal) {
+      window.closeLoginModal();
+    }
+    if (e.target === registrationModal) {
+      window.closeRegistrationModal();
+    }
   });
 </script> 

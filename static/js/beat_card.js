@@ -19,33 +19,50 @@ async function handleAddToCart(beatId, beatTitle) {
     const response = await fetch(`/add-to-cart/${beatId}/`, {
       method: 'POST',
       headers: {
-        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-        'Content-Type': 'application/json'
+        'X-CSRFToken': getCookie('csrftoken'),
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
       }
     });
     
     const data = await response.json();
     
-    if (response.status === 401 && data.requires_auth) {
-      // Show login modal with option to switch to register
-      showLoginModal();
-      showToast('Please login or register to continue', 'error');
-      return;
+    if (!response.ok) {
+      if (response.status === 401 && data.requires_auth) {
+        showLoginModal();
+        throw new Error('Unauthorized');
+      }
+      throw new Error(data.message || 'Error adding to cart');
     }
     
-    if (response.ok && data.status === 'success') {
+    if (data.status === 'success') {
       showToast(data.message);
       // Fetch actual cart count from server
-      const cartResponse = await fetch('/cart/');
+      const cartResponse = await fetch('/api/cart/', {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
       const cartData = await cartResponse.json();
       const cartCount = document.querySelector('#cartButton span');
-      cartCount.textContent = cartData.items.length;
-      cartCount.classList.remove('hidden');
+      if (cartCount) {
+        cartCount.textContent = cartData.cart_count;
+        cartCount.classList.remove('hidden');
+      }
+      // Update mobile cart count
+      const mobileCartCount = document.querySelector('.mobile-cart-count');
+      if (mobileCartCount) {
+        mobileCartCount.textContent = cartData.cart_count;
+        mobileCartCount.classList.remove('hidden');
+      }
     } else {
-      showToast(data.message || 'Error adding to cart', 'error');
+      throw new Error(data.message || 'Error adding to cart');
     }
   } catch (error) {
-    showToast('An error occurred. Please try again.', 'error');
+    if (!error.message?.includes('Unauthorized')) {
+      console.error('Error adding to cart:', error);
+      showToast(error.message || 'An error occurred. Please try again.', 'error');
+    }
   }
 }
 

@@ -100,33 +100,56 @@ function handleAddBundleToCart(bundleId, bundleTitle) {
     headers: {
       'X-CSRFToken': getCookie('csrftoken'),
       'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
     },
   })
-  .then(response => {
+  .then(async response => {
+    const data = await response.json();
+    
     if (!response.ok) {
-      throw new Error('Network response was not ok');
+      if (response.status === 401 && data.requires_auth) {
+        // Store current path for next parameter
+        const currentPath = window.location.pathname + window.location.search;
+        // Update URL and show login modal
+        const url = new URL(window.location);
+        url.searchParams.delete('show_modal');
+        url.pathname = '/login/';
+        url.searchParams.set('next', currentPath);
+        window.history.pushState({}, '', url);
+        showLoginModal();
+        throw new Error('Unauthorized');
+      }
+      throw new Error(data.message || 'Error adding bundle to cart');
     }
-    return response.json();
-  })
-  .then(data => {
+    
     if (data.status === 'success') {
-      showNotification(data.message, 'success');
-      return fetch('/cart/').then(response => response.json());
+      showToast(data.message, 'success');
+      return fetch('/api/cart/', {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      }).then(response => response.json());
     } else {
-      showNotification(data.message || 'Error adding bundle to cart', 'error');
-      throw new Error('Failed to add bundle');
+      throw new Error(data.message || 'Error adding bundle to cart');
     }
   })
   .then(cartData => {
+    // Update desktop cart count
     const cartBadge = document.querySelector('#cartButton span');
     if (cartBadge) {
-      cartBadge.textContent = cartData.items.length;
+      cartBadge.textContent = cartData.cart_count;
       cartBadge.classList.remove('hidden');
+    }
+    // Update mobile cart count
+    const mobileCartCount = document.querySelector('.mobile-cart-count');
+    if (mobileCartCount) {
+      mobileCartCount.textContent = cartData.cart_count;
+      mobileCartCount.classList.remove('hidden');
     }
   })
   .catch(error => {
-    if (error.message !== 'Failed to add bundle') {
-      showNotification('Error adding bundle to cart', 'error');
+    if (error.message !== 'Unauthorized') {
+      showToast(error.message || 'An error occurred. Please try again.', 'error');
     }
   });
 }
@@ -153,10 +176,10 @@ window.addEventListener('bundlePlayerStateChange', function(e) {
 
 // Function to update cart count
 function updateCartCount() {
-  fetch('/cart/')
+  fetch('/api/cart/')
     .then(response => response.json())
     .then(data => {
-      const cartCount = data.items.length;
+      const cartCount = data.cart_count;
       const cartCountElements = document.querySelectorAll('[data-cart-count]');
       cartCountElements.forEach(element => {
         element.textContent = cartCount;

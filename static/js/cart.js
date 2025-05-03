@@ -26,24 +26,48 @@ document.addEventListener('DOMContentLoaded', function() {
     loadCartCount();
 
     // Open cart
-    function openCart() {
-        if (cartModal && cartSidebar) {
-            // If mobile menu is open, close it first
-            if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
-                mobileMenu.classList.add('hidden');
-                const mobileMenuButton = document.getElementById('mobileMenuButton');
-                if (mobileMenuButton) {
-                    const icon = mobileMenuButton.querySelector('i');
-                    icon.classList.remove('ri-close-line');
-                    icon.classList.add('ri-menu-line');
+    async function openCart() {
+        try {
+            const response = await fetch('/api/cart/', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
+            });
+            const data = await response.json();
+            
+            if (response.status === 401 && data.requires_auth) {
+                // Update URL and show login modal with /cart/ as next parameter
+                const url = new URL(window.location);
+                url.searchParams.delete('show_modal');
+                url.pathname = '/login/';
+                url.searchParams.set('next', '/cart/');
+                window.history.pushState({}, '', url);
+                showLoginModal();
+                return;
             }
             
-            cartModal.classList.remove('hidden');
-            setTimeout(() => {
-                cartSidebar.classList.remove('translate-x-full');
-            }, 10);
-            loadCart();
+            if (cartModal && cartSidebar) {
+                // If mobile menu is open, close it first
+                if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                    mobileMenu.classList.add('hidden');
+                    const mobileMenuButton = document.getElementById('mobileMenuButton');
+                    if (mobileMenuButton) {
+                        const icon = mobileMenuButton.querySelector('i');
+                        icon.classList.remove('ri-close-line');
+                        icon.classList.add('ri-menu-line');
+                    }
+                }
+                
+                cartModal.classList.remove('hidden');
+                setTimeout(() => {
+                    cartSidebar.classList.remove('translate-x-full');
+                }, 10);
+                loadCart();
+            }
+        } catch (error) {
+            if (!error.message?.includes('Unauthorized')) {
+                showToast('An error occurred while opening the cart', 'error');
+            }
         }
     }
 
@@ -128,15 +152,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateCartCount(parseInt(cachedCount));
             }
 
-            const response = await fetch('/cart/');
+            const response = await fetch('/api/cart/', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
             const data = await response.json();
             
+            if (response.status === 401 && data.requires_auth) {
+                return;
+            }
+            
             if (response.ok) {
-                updateCartCount(data.items.length);
-                localStorage.setItem('cartCount', data.items.length);
+                updateCartCount(data.cart_count);
+                localStorage.setItem('cartCount', data.cart_count);
             }
         } catch (error) {
-            console.error('Error loading cart count:', error);
+            // Silently fail for cart count errors
+            return;
         }
     }
 
@@ -144,11 +177,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateCartCount(count) {
         // Update desktop cart count
         if (cartCount) {
-            if (count > 0) {
-                cartCount.textContent = count;
-                cartCount.classList.remove('hidden');
-            } else {
-                cartCount.classList.add('hidden');
+        if (count > 0) {
+            cartCount.textContent = count;
+            cartCount.classList.remove('hidden');
+        } else {
+            cartCount.classList.add('hidden');
             }
         }
 
@@ -167,21 +200,48 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadCart() {
         try {
             showLoading();
-            const response = await fetch('/cart/');
+            const response = await fetch('/api/cart/', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
             const data = await response.json();
             
+            if (response.status === 401 && data.requires_auth) {
+                // Store current path for next parameter
+                const currentPath = window.location.pathname + window.location.search;
+                // Show login modal
+                const loginModal = document.getElementById('loginModal');
+                if (loginModal) {
+                    // Set the next URL in the form
+                    const nextInput = loginModal.querySelector('input[name="next"]');
+                    if (nextInput) {
+                        nextInput.value = currentPath;
+                    }
+                    loginModal.classList.remove('hidden');
+                    // Close cart modal
+                    closeCart();
+                }
+                return;
+            }
+            
             if (response.ok) {
-                cartState = data;
-                updateCartUI(data);
-                localStorage.setItem('cartCount', data.items.length);
+                cartState.items = data.cart_items;
+                cartState.total_price = data.total_price;
+                updateCartUI({
+                    items: data.cart_items,
+                    total_price: data.total_price
+                });
+                localStorage.setItem('cartCount', data.cart_count);
             } else {
                 showToast(data.message || 'Error loading cart', 'error');
                 showEmptyCart();
             }
         } catch (error) {
-            console.error('Error loading cart:', error);
-            showToast('An error occurred while loading the cart', 'error');
-            showEmptyCart();
+            if (!error.message?.includes('Unauthorized')) {
+                showToast('An error occurred while loading the cart', 'error');
+                showEmptyCart();
+            }
         } finally {
             hideLoading();
         }
@@ -327,11 +387,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': getCSRFToken(),
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
             });
             
             const data = await response.json();
+            
+            if (response.status === 401 && data.requires_auth) {
+                // Store current path for next parameter
+                const currentPath = window.location.pathname + window.location.search;
+                // Update URL and show login modal
+                const url = new URL(window.location);
+                url.searchParams.delete('show_modal');
+                url.pathname = '/login/';
+                url.searchParams.set('next', currentPath);
+                window.history.pushState({}, '', url);
+                showLoginModal();
+                return;
+            }
             
             if (response.ok) {
                 showToast(data.message);
@@ -340,7 +414,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 showToast(data.message || 'Error removing item', 'error');
             }
         } catch (error) {
-            showToast('An error occurred while removing the item', 'error');
+            if (!error.message?.includes('Unauthorized')) {
+                showToast('An error occurred while removing the item', 'error');
+            }
         } finally {
             hideLoading();
         }

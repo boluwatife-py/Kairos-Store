@@ -256,24 +256,44 @@ function handleAddToCart(beatId, beatTitle) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-CSRFToken': getCookie('csrftoken')
+      'X-CSRFToken': getCookie('csrftoken'),
+      'X-Requested-With': 'XMLHttpRequest'
     },
     body: JSON.stringify({
       beat_id: beatId
     })
   })
-  .then(response => response.json())
-  .then(data => {
+  .then(async response => {
+    const data = await response.json();
+    
+    if (!response.ok) {
+      if (response.status === 401 && data.requires_auth) {
+        // Store current path for next parameter
+        const currentPath = window.location.pathname + window.location.search;
+        // Update URL and show login modal
+        const url = new URL(window.location);
+        url.searchParams.delete('show_modal');
+        url.pathname = '/login/';
+        url.searchParams.set('next', currentPath);
+        window.history.pushState({}, '', url);
+        showLoginModal();
+        throw new Error('Unauthorized');
+      }
+      throw new Error(data.message || 'Failed to add beat to cart');
+    }
+    
     if (data.status === 'success') {
       showNotification('Success', `${beatTitle} added to cart`, 'success');
       updateCartCount(data.cart_count);
     } else {
-      showNotification('Error', data.message || 'Failed to add beat to cart', 'error');
+      throw new Error(data.message || 'Failed to add beat to cart');
     }
   })
   .catch(error => {
-    console.error('Error:', error);
-    showNotification('Error', 'Failed to add beat to cart', 'error');
+    if (error.message !== 'Unauthorized') {
+      console.error('Error:', error);
+      showNotification('Error', error.message || 'Failed to add beat to cart', 'error');
+    }
   });
 }
 

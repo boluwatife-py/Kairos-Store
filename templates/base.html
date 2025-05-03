@@ -339,52 +339,50 @@
         if (loginLink) {
           loginLink.addEventListener("click", function (e) {
             e.preventDefault();
-            if (loginModal) loginModal.classList.remove("hidden");
+            showLoginModal();
           });
         }
 
         if (registerLink) {
           registerLink.addEventListener("click", function (e) {
             e.preventDefault();
-            if (registrationModal) registrationModal.classList.remove("hidden");
+            showRegisterModal();
           });
         }
 
         if (closeLoginModal) {
           closeLoginModal.addEventListener("click", function () {
-            if (loginModal) loginModal.classList.add("hidden");
+            closeLoginModal();
           });
         }
 
         if (closeRegistrationModal) {
           closeRegistrationModal.addEventListener("click", function () {
-            if (registrationModal) registrationModal.classList.add("hidden");
+            closeRegistrationModal();
           });
         }
 
         if (signupLink) {
           signupLink.addEventListener("click", function (e) {
             e.preventDefault();
-            if (loginModal) loginModal.classList.add("hidden");
-            if (registrationModal) registrationModal.classList.remove("hidden");
+            showRegisterModal();
           });
         }
 
         if (loginLinkFromRegistration) {
           loginLinkFromRegistration.addEventListener("click", function (e) {
             e.preventDefault();
-            if (registrationModal) registrationModal.classList.add("hidden");
-            if (loginModal) loginModal.classList.remove("hidden");
+            showLoginModal();
           });
         }
 
         // Close modals when clicking outside
         window.addEventListener("click", function (e) {
           if (loginModal && e.target === loginModal) {
-            loginModal.classList.add("hidden");
+            closeLoginModal();
           }
           if (registrationModal && e.target === registrationModal) {
-            registrationModal.classList.add("hidden");
+            closeRegistrationModal();
           }
         });
 

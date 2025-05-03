@@ -2,40 +2,40 @@
 {% load static %}
 
 {% block content %}
-<main class="min-h-screen py-12">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<main class="min-h-screen pt-16 sm:pt-20 lg:pt-24 pb-6 sm:pb-8 lg:pb-12">
+  <div class="max-w-7xl mx-auto px-2 sm:px-3 lg:px-6">
     <!-- Beat Header -->
-    <div class="glass rounded-lg overflow-hidden mb-8">
-      <div class="relative h-96 bg-gray-800">
+    <div class="glass rounded-lg overflow-hidden mb-3 sm:mb-4 lg:mb-8">
+      <div class="relative h-48 sm:h-64 lg:h-96 bg-gray-800">
         <img src="{{ beat.get_image_url }}" alt="{{ beat.title }}" class="w-full h-full object-cover" />
         <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
-        <div class="absolute bottom-0 left-0 right-0 p-8">
+        <div class="absolute bottom-0 left-0 right-0 p-3 sm:p-4 lg:p-8">
           <div class="flex justify-between items-end">
             <div>
-              <h1 class="text-4xl font-bold text-white mb-2">{{ beat.title }}</h1>
-              <div class="flex items-center gap-3">
-                <span class="bg-primary/80 text-white px-3 py-1 rounded-full text-sm">{{ beat.genre }}</span>
-                <span class="bg-gray-800/80 text-white px-3 py-1 rounded-full text-sm">{{ beat.bpm }} BPM</span>
+              <h1 class="text-xl sm:text-2xl lg:text-4xl font-bold text-white mb-1.5 sm:mb-2">{{ beat.title }}</h1>
+              <div class="flex items-center gap-1.5 sm:gap-2 lg:gap-3">
+                <span class="bg-primary/80 text-white px-1.5 sm:px-2 lg:px-3 py-0.5 rounded-full text-xs sm:text-sm">{{ beat.genre }}</span>
+                <span class="bg-gray-800/80 text-white px-1.5 sm:px-2 lg:px-3 py-0.5 rounded-full text-xs sm:text-sm">{{ beat.bpm }} BPM</span>
                 <button class="favorite-button text-gray-400 hover:text-primary transition-colors" data-beat-id="{{ beat.id }}">
-                  <i class="ri-heart-{% if beat.is_favorite %}fill text-primary{% else %}line{% endif %} text-xl"></i>
+                  <i class="ri-heart-{% if beat.is_favorite %}fill text-primary{% else %}line{% endif %} text-base sm:text-lg lg:text-xl"></i>
                 </button>
               </div>
             </div>
             <div class="text-right">
               {% if beat.is_purchased %}
-                <span class="text-green-400 font-medium text-lg">Purchased</span>
+                <span class="text-green-400 font-medium text-xs sm:text-sm lg:text-lg">Purchased</span>
                 <button 
                   onclick="handleDownload({{ beat.id }}, '{{ beat.title }}')"
-                  class="mt-3 bg-green-500/10 hover:bg-green-500/20 text-green-400 px-6 py-3 rounded-button text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-2"
+                  class="mt-1.5 sm:mt-2 lg:mt-3 bg-green-500/10 hover:bg-green-500/20 text-green-400 px-3 sm:px-4 lg:px-6 py-1.5 sm:py-2 lg:py-3 rounded-button text-xs sm:text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-1.5"
                 >
                   <i class="ri-download-line"></i>
                   Download
                 </button>
               {% else %}
-                <span class="text-primary font-bold text-3xl">${{ beat.price }}</span>
+                <span class="text-primary font-bold text-lg sm:text-xl lg:text-3xl">${{ beat.price }}</span>
                 <button 
                   onclick="handleAddToCart({{ beat.id }}, '{{ beat.title }}')"
-                  class="mt-3 bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-button text-sm font-medium transition-colors whitespace-nowrap"
+                  class="mt-1.5 sm:mt-2 lg:mt-3 bg-primary hover:bg-primary/90 text-white px-3 sm:px-4 lg:px-6 py-1.5 sm:py-2 lg:py-3 rounded-button text-xs sm:text-sm font-medium transition-colors whitespace-nowrap"
                 >
                   Add to Cart
                 </button>
@@ -47,24 +47,33 @@
     </div>
 
     <!-- Beat Content -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-8">
       <!-- Main Content -->
-      <div class="lg:col-span-2 space-y-8">
+      <div class="lg:col-span-2 space-y-3 sm:space-y-4 lg:space-y-8">
         <!-- Audio Player -->
-        <div class="glass rounded-lg p-6">
-          <h2 class="text-xl font-bold text-white mb-4">
+        <div class="glass rounded-lg p-3 sm:p-4 lg:p-6">
+          <h2 class="text-base sm:text-lg lg:text-xl font-bold text-white mb-2 sm:mb-3 lg:mb-4">
             {% if beat.is_purchased %}Full Version{% else %}Preview{% endif %}
           </h2>
-          <div class="relative h-16 bg-gray-800 rounded-lg overflow-hidden">
+          <div class="relative h-10 sm:h-12 lg:h-16 bg-gray-800 rounded-lg overflow-hidden">
             <div class="absolute inset-0 flex items-center justify-center">
-              <button class="play-button w-12 h-12 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-white/20 transition-colors" 
-                      data-sample-url="{% if beat.is_purchased %}{{ beat.get_full_audio_url }}{% else %}{{ beat.get_sample_url }}{% endif %}"
-                      onclick="playSample({{ beat.id }}, '{% if beat.is_purchased %}{{ beat.get_full_audio_url }}{% else %}{{ beat.get_sample_url }}{% endif %}')">
-                <i class="ri-play-fill text-white ri-2xl"></i>
+              <button 
+                class="play-button w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-white/20 transition-colors relative" 
+                data-beat-id="{{ beat.id }}"
+                data-sample-url="{% if beat.is_purchased %}{{ beat.get_full_audio_url }}{% else %}{{ beat.get_sample_url }}{% endif %}"
+                onclick="playSample({{ beat.id }}, '{% if beat.is_purchased %}{{ beat.get_full_audio_url }}{% else %}{{ beat.get_sample_url }}{% endif %}')">
+                <i class="ri-play-fill text-white text-base sm:text-lg lg:text-xl"></i>
+                <!-- Equalizer -->
+                <div class="equalizer absolute -bottom-3 sm:-bottom-4 left-1/2 -translate-x-1/2 hidden">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
               </button>
             </div>
             {% if not beat.is_purchased %}
-            <div class="absolute bottom-0 left-0 right-0 bg-gray-900/80 text-center py-1 text-xs text-gray-400">
+            <div class="absolute bottom-0 left-0 right-0 bg-gray-900/80 text-center py-0.5 text-[10px] sm:text-xs text-gray-400">
               30-second preview
             </div>
             {% endif %}
@@ -72,16 +81,16 @@
         </div>
 
         <!-- Description -->
-        <div class="glass rounded-lg p-6">
-          <h2 class="text-xl font-bold text-white mb-4">Description</h2>
-          <p class="text-gray-400">{{ beat.description }}</p>
+        <div class="glass rounded-lg p-3 sm:p-4 lg:p-6">
+          <h2 class="text-base sm:text-lg lg:text-xl font-bold text-white mb-2 sm:mb-3 lg:mb-4">Description</h2>
+          <p class="text-gray-400 text-xs sm:text-sm lg:text-base">{{ beat.description }}</p>
         </div>
 
         <!-- Similar Beats -->
         {% if similar_beats %}
-        <div class="glass rounded-lg p-6">
-          <h2 class="text-xl font-bold text-white mb-4">Similar Beats</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="glass rounded-lg p-3 sm:p-4 lg:p-6">
+          <h2 class="text-base sm:text-lg lg:text-xl font-bold text-white mb-2 sm:mb-3 lg:mb-4">Similar Beats</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3 lg:gap-4">
             {% for similar_beat in similar_beats %}
               {% include 'components/beat_card.html' with beat=similar_beat %}
             {% endfor %}
@@ -91,12 +100,12 @@
       </div>
 
       <!-- Sidebar -->
-      <div class="space-y-8">
+      <div class="space-y-3 sm:space-y-4 lg:space-y-8">
         <!-- Bundles -->
         {% if bundles %}
-        <div class="glass rounded-lg p-6">
-          <h2 class="text-xl font-bold text-white mb-4">Available in Bundles</h2>
-          <div class="space-y-4">
+        <div class="glass rounded-lg p-3 sm:p-4 lg:p-6">
+          <h2 class="text-base sm:text-lg lg:text-xl font-bold text-white mb-2 sm:mb-3 lg:mb-4">Available in Bundles</h2>
+          <div class="space-y-2 sm:space-y-3 lg:space-y-4">
             {% for bundle in bundles %}
               {% include 'components/bundle_card.html' with bundle=bundle %}
             {% endfor %}
@@ -105,22 +114,113 @@
         {% endif %}
 
         <!-- License Info -->
-        <div class="glass rounded-lg p-6">
-          <h2 class="text-xl font-bold text-white mb-4">License Information</h2>
-          <div class="space-y-4 text-gray-400">
-            <p>This beat comes with a standard license that includes:</p>
-            <ul class="list-disc list-inside space-y-2">
+        <div class="glass rounded-lg p-3 sm:p-4 lg:p-6">
+          <h2 class="text-base sm:text-lg lg:text-xl font-bold text-white mb-2 sm:mb-3 lg:mb-4">License Information</h2>
+          <div class="space-y-2 sm:space-y-3 lg:space-y-4 text-gray-400">
+            <p class="text-xs sm:text-sm lg:text-base">This beat comes with a standard license that includes:</p>
+            <ul class="list-disc list-inside space-y-1 sm:space-y-1.5 lg:space-y-2 text-xs sm:text-sm lg:text-base">
               <li>Unlimited commercial use</li>
               <li>Unlimited streaming</li>
               <li>Unlimited downloads</li>
               <li>Unlimited performances</li>
               <li>Unlimited distribution</li>
             </ul>
-            <p class="text-sm">For custom licensing options, please contact us.</p>
+            <p class="text-[10px] sm:text-xs lg:text-sm">For custom licensing options, please contact us.</p>
           </div>
         </div>
       </div>
     </div>
   </div>
 </main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Listen for audio player state changes
+    document.addEventListener('audioPlayerStateChange', function(e) {
+        const { beatId, isPlaying } = e.detail;
+        const playButton = document.querySelector(`.play-button[data-beat-id="${beatId}"]`);
+        if (playButton) {
+            const icon = playButton.querySelector('i');
+            const equalizer = playButton.querySelector('.equalizer');
+            
+            if (isPlaying) {
+                icon.classList.remove('ri-play-fill');
+                icon.classList.add('ri-pause-fill');
+                equalizer.classList.remove('hidden');
+                equalizer.classList.add('playing');
+            } else {
+                icon.classList.remove('ri-pause-fill');
+                icon.classList.add('ri-play-fill');
+                equalizer.classList.add('hidden');
+                equalizer.classList.remove('playing');
+            }
+        }
+    });
+
+    // Listen for audio ended event
+    document.addEventListener('audioEnded', function() {
+        const playButtons = document.querySelectorAll('.play-button');
+        playButtons.forEach(button => {
+            const icon = button.querySelector('i');
+            const equalizer = button.querySelector('.equalizer');
+            
+            icon.classList.remove('ri-pause-fill');
+            icon.classList.add('ri-play-fill');
+            equalizer.classList.add('hidden');
+            equalizer.classList.remove('playing');
+        });
+    });
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.equalizer {
+  display: flex;
+  align-items: flex-end;
+  height: 10px;
+  gap: 1px;
+}
+
+@media (min-width: 640px) {
+  .equalizer {
+    height: 12px;
+    gap: 1px;
+  }
+}
+
+.equalizer span {
+  width: 2px;
+  background-color: rgba(109, 40, 217, 0.6);
+  border-radius: 1px;
+  height: 3px;
+  transition: height 0.2s ease;
+}
+
+.equalizer.playing span {
+  animation: equalize 1s infinite;
+}
+
+.equalizer.playing span:nth-child(1) { animation-delay: 0.1s; }
+.equalizer.playing span:nth-child(2) { animation-delay: 0.3s; }
+.equalizer.playing span:nth-child(3) { animation-delay: 0.5s; }
+.equalizer.playing span:nth-child(4) { animation-delay: 0.2s; }
+
+@keyframes equalize {
+  0% { height: 3px; }
+  50% { height: 6px; }
+  100% { height: 3px; }
+}
+
+@media (min-width: 640px) {
+  @keyframes equalize {
+    0% { height: 3px; }
+    50% { height: 8px; }
+    100% { height: 3px; }
+  }
+}
+</style>
 {% endblock %} 
