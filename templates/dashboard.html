@@ -886,94 +886,120 @@ Dashboard{% endblock %} {% block content %}
       });
     }
 
-    // Tab functionality
-    const tabButtons = document.querySelectorAll(".tab-button");
-    const tabContents = document.querySelectorAll(".tab-content");
+    // Tab management
+    const validTabs = ["purchased", "orders", "favourites", "settings"];
+    const defaultTab = "purchased";
+    let lastDashboardState = null;  // Store last dashboard state
 
     function switchTab(tabId) {
-      // Hide all tab contents
-      tabContents.forEach((content) => {
-        content.classList.add("hidden");
-        content.classList.remove("active");
-      });
-
-      // Remove active class from all buttons
-      tabButtons.forEach((button) => {
-        button.classList.remove("active");
-        button.classList.remove("text-white");
-        button.classList.add("text-gray-400");
-      });
-
-      // Show selected tab content
-      const selectedContent = document.getElementById(`${tabId}-tab`);
-      if (selectedContent) {
-        selectedContent.classList.remove("hidden");
-        selectedContent.classList.add("active");
-      }
-
-      // Update button styles
-      const selectedButton = document.querySelector(`[data-tab="${tabId}"]`);
-      if (selectedButton) {
-        selectedButton.classList.add("active");
-        selectedButton.classList.add("text-white");
-        selectedButton.classList.remove("text-gray-400");
-      }
-    }
-
-    // Add click event listeners to tab buttons
-    tabButtons.forEach((button) => {
-      button.addEventListener("click", () => {
-        const tabId = button.getAttribute("data-tab");
-        switchTab(tabId);
-        // Update URL without reloading the page
-        const url = new URL(window.location);
-        url.pathname = '/dashboard/';
-        url.searchParams.set("tab", tabId);
-        // Use pushState with state object to track dashboard state
-        window.history.pushState({ isDashboard: true, tab: tabId }, "", url);
-      });
-    });
-
-    // Handle URL parameters for direct tab access
-    const urlParams = new URLSearchParams(window.location.search);
-    const tabParam = urlParams.get("tab");
-    if (tabParam) {
-      switchTab(tabParam);
-      // Ensure correct URL on initial load
-      const url = new URL(window.location);
-      if (url.pathname === '/') {
-        url.pathname = '/dashboard/';
-        window.history.replaceState({ isDashboard: true, tab: tabParam }, "", url);
-      }
-    }
-
-    // Handle browser back/forward buttons
-    window.addEventListener('popstate', function(event) {
-      // Check if we're handling a dashboard state
-      const isDashboard = event.state?.isDashboard || window.location.pathname === '/dashboard/';
+      const tab = validTabs.includes(tabId) ? tabId : defaultTab;
       
-      if (isDashboard) {
-        const url = new URL(window.location);
-        const tabParam = url.searchParams.get("tab");
-        
-        // If we're at root with a tab parameter, restore dashboard path
-        if (url.pathname === '/' && tabParam) {
-          url.pathname = '/dashboard/';
-          window.history.replaceState({ isDashboard: true, tab: tabParam }, "", url);
-        }
-        
-        // Switch to the appropriate tab
-        if (tabParam) {
-          switchTab(tabParam);
-        } else {
-          // If no tab parameter, default to first tab
-          const defaultTab = tabButtons[0]?.getAttribute("data-tab") || "purchased";
-          switchTab(defaultTab);
-          url.searchParams.set("tab", defaultTab);
-          window.history.replaceState({ isDashboard: true, tab: defaultTab }, "", url);
+      document.querySelectorAll(".tab-content").forEach(content => {
+        content.classList.toggle("hidden", content.id !== `${tab}-tab`);
+        content.classList.toggle("active", content.id === `${tab}-tab`);
+      });
+
+      document.querySelectorAll(".tab-button").forEach(button => {
+        const isActive = button.dataset.tab === tab;
+        button.classList.toggle("active", isActive);
+        button.classList.toggle("text-white", isActive);
+        button.classList.toggle("text-gray-400", !isActive);
+      });
+
+      return tab;
+    }
+
+    function updateURL(tab, replace = false) {
+      const url = new URL(window.location);
+      url.pathname = '/dashboard/';
+      url.searchParams.set("tab", tab);
+      const state = { isDashboard: true, tab };
+      
+      if (replace) {
+        window.history.replaceState(state, "", url);
+      } else {
+        window.history.pushState(state, "", url);
+      }
+      
+      // Store dashboard state
+      lastDashboardState = state;
+    }
+
+    // Initialize dashboard
+    const initialTab = new URLSearchParams(window.location.search).get("tab") || defaultTab;
+    switchTab(initialTab);
+    updateURL(initialTab, true);
+
+    // Handle tab clicks
+    document.querySelectorAll(".tab-button").forEach(button => {
+      button.addEventListener("click", () => {
+        const tab = switchTab(button.dataset.tab);
+        updateURL(tab);
+      });
+    });
+
+    // Handle browser navigation
+    window.addEventListener('popstate', event => {
+      const currentPath = window.location.pathname;
+      
+      // Only handle dashboard-related state changes
+      if (currentPath === '/dashboard/' || event.state?.isDashboard) {
+        const tab = (event.state?.isDashboard && event.state.tab) || 
+                   new URLSearchParams(window.location.search).get("tab") || 
+                   defaultTab;
+        switchTab(tab);
+        if (currentPath === '/dashboard/') {
+          updateURL(tab, true);
         }
       }
     });
+
+    // Listen for custom dashboard state change events (from cart)
+    window.addEventListener('dashboardStateChange', event => {
+      if (event.detail?.state?.isDashboard) {
+        const tab = event.detail.state.tab || defaultTab;
+        switchTab(tab);
+        updateURL(tab, true);
+      }
+    });
+
+    // Handle cart interactions
+    const cartButton = document.getElementById('cartButton');
+    const closeCartButton = document.getElementById('closeCartButton');
+    const cartOverlay = document.getElementById('cartOverlay');
+    const continueShoppingButton = document.getElementById('continueShoppingButton');
+
+    if (cartButton) {
+      cartButton.addEventListener('click', () => {
+        // Store current dashboard state before cart opens
+        if (window.location.pathname === '/dashboard/') {
+          lastDashboardState = {
+            isDashboard: true,
+            tab: new URLSearchParams(window.location.search).get("tab") || defaultTab
+          };
+        }
+      });
+    }
+
+    // Handle cart closing
+    function handleCartClose() {
+      if (lastDashboardState) {
+        // Restore dashboard state when cart closes
+        const tab = lastDashboardState.tab;
+        switchTab(tab);
+        updateURL(tab, true);
+      }
+    }
+
+    if (closeCartButton) {
+      closeCartButton.addEventListener('click', handleCartClose);
+    }
+    if (cartOverlay) {
+      cartOverlay.addEventListener('click', handleCartClose);
+    }
+    if (continueShoppingButton) {
+      continueShoppingButton.addEventListener('click', handleCartClose);
+    }
 
     // Delete Account Modal
     if (deleteAccountBtn) {
@@ -998,145 +1024,6 @@ Dashboard{% endblock %} {% block content %}
       cancelDeleteAccount.addEventListener("click", () => {
         document.getElementById("deleteAccountModal").classList.add("hidden");
       });
-    }
-
-    // Cart functionality
-    async function addToCart(beatId) {
-      try {
-        const response = await fetch(`/api/cart/add/${beatId}/`, {
-          method: "POST",
-          headers: {
-            "X-CSRFToken": getCookie("csrftoken"),
-            "Content-Type": "application/json",
-          },
-        });
-
-        const data = await response.json();
-
-        if (response.status === 401) {
-          // User is not authenticated
-          showNotification("Please login to add items to cart", "error");
-          // Optionally redirect to login page
-          window.location.href = "/login/";
-          return;
-        }
-
-        if (response.ok) {
-          showNotification(data.message, "success");
-          updateCartCount();
-        } else {
-          showNotification(data.message || "Error adding to cart", "error");
-        }
-      } catch (error) {
-        showNotification("Error adding to cart", "error");
-      }
-    }
-
-    async function removeFromCart(cartItemId) {
-      try {
-        const response = await fetch(`/api/cart/remove/${cartItemId}/`, {
-          method: "POST",
-          headers: {
-            "X-CSRFToken": getCookie("csrftoken"),
-            "Content-Type": "application/json",
-          },
-        });
-
-        const data = await response.json();
-
-        if (response.status === 401) {
-          // User is not authenticated
-          showNotification("Please login to manage your cart", "error");
-          window.location.href = "/login/";
-          return;
-        }
-
-        if (response.ok) {
-          showNotification(data.message, "success");
-          updateCartCount();
-          // Optionally refresh cart items display
-          loadCartItems();
-        } else {
-          showNotification(data.message || "Error removing from cart", "error");
-        }
-      } catch (error) {
-        showNotification("Error removing from cart", "error");
-      }
-    }
-
-    async function loadCartItems() {
-      try {
-        const response = await fetch("/api/cart/", {
-          headers: {
-            "X-CSRFToken": getCookie("csrftoken"),
-            "Content-Type": "application/json",
-          },
-        });
-
-        const data = await response.json();
-
-        if (response.status === 401) {
-          // User is not authenticated
-          showNotification("Please login to view your cart", "error");
-          window.location.href = "/login/";
-          return;
-        }
-
-        if (response.ok) {
-          // Update cart display with data.items
-          updateCartDisplay(data.items);
-          updateCartTotal(data.total_price);
-        } else {
-          showNotification(data.message || "Error loading cart", "error");
-        }
-      } catch (error) {
-        showNotification("Error loading cart", "error");
-      }
-    }
-
-    async function updateCartCount() {
-      try {
-        const response = await fetch("/api/cart/count/", {
-          headers: {
-            "X-CSRFToken": getCookie("csrftoken"),
-            "Content-Type": "application/json",
-          },
-        });
-
-        const data = await response.json();
-
-        if (response.status === 401) {
-          // User is not authenticated, set count to 0
-          document.querySelector(".cart-count").textContent = "0";
-          return;
-        }
-
-        if (response.ok) {
-          document.querySelector(".cart-count").textContent = data.count;
-        }
-      } catch (error) {
-        console.error("Error updating cart count:", error);
-      }
-    }
-
-    // Add click handlers for cart buttons
-    document.querySelectorAll(".add-to-cart-btn").forEach((button) => {
-      button.addEventListener("click", function () {
-        const beatId = this.dataset.beatId;
-        addToCart(beatId);
-      });
-    });
-
-    document.querySelectorAll(".remove-from-cart-btn").forEach((button) => {
-      button.addEventListener("click", function () {
-        const cartItemId = this.dataset.cartItemId;
-        removeFromCart(cartItemId);
-      });
-    });
-
-    // Load cart items on page load if on cart page
-    if (document.querySelector(".cart-items-container")) {
-      loadCartItems();
     }
   });
 </script>

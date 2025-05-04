@@ -25,6 +25,9 @@ document.addEventListener('DOMContentLoaded', function() {
         isLoading: false
     };
 
+    // Store previous URL state before opening cart
+    let previousUrlState = null;
+
     // Load cart count on page load if authenticated
     if (isAuthenticated) {
     loadCartCount();
@@ -66,31 +69,38 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             const data = await response.json();
             
-        if (cartModal && cartSidebar) {
-            // If mobile menu is open, close it first
-            if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
-                mobileMenu.classList.add('hidden');
-                const mobileMenuButton = document.getElementById('mobileMenuButton');
-                if (mobileMenuButton) {
-                    const icon = mobileMenuButton.querySelector('i');
-                    icon.classList.remove('ri-close-line');
-                    icon.classList.add('ri-menu-line');
+            if (cartModal && cartSidebar) {
+                // If mobile menu is open, close it first
+                if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                    mobileMenu.classList.add('hidden');
+                    const mobileMenuButton = document.getElementById('mobileMenuButton');
+                    if (mobileMenuButton) {
+                        const icon = mobileMenuButton.querySelector('i');
+                        icon.classList.remove('ri-close-line');
+                        icon.classList.add('ri-menu-line');
+                    }
                 }
-            }
+                
+                // Store current URL state before changing to cart
+                previousUrlState = {
+                    pathname: window.location.pathname,
+                    search: window.location.search,
+                    state: history.state
+                };
                 
                 // Update URL without reloading
                 const url = new URL(window.location);
                 url.pathname = '/cart/';
-                window.history.pushState({}, '', url);
+                window.history.pushState({ isCart: true }, '', url);
             
-            cartModal.classList.remove('hidden');
-            setTimeout(() => {
-            cartSidebar.classList.remove('translate-x-full');
-            }, 10);
-            loadCart();
+                cartModal.classList.remove('hidden');
+                setTimeout(() => {
+                    cartSidebar.classList.remove('translate-x-full');
+                }, 10);
+                loadCart();
             }
         } catch (error) {
-                showToast('An error occurred while opening the cart', 'error');
+            showToast('An error occurred while opening the cart', 'error');
         }
     }
 
@@ -110,10 +120,14 @@ document.addEventListener('DOMContentLoaded', function() {
             cartSidebar.classList.add('translate-x-full');
             setTimeout(() => {
                 cartModal.classList.add('hidden');
-                // Update URL without reloading
-                const url = new URL(window.location);
-                url.pathname = '/';
-                window.history.pushState({}, '', url);
+                // Restore previous URL state if it exists
+                if (previousUrlState) {
+                    const url = new URL(window.location.origin);
+                    url.pathname = previousUrlState.pathname;
+                    url.search = previousUrlState.search;
+                    window.history.pushState(previousUrlState.state, '', url);
+                    previousUrlState = null;
+                }
             }, 300);
         }
     }
@@ -143,6 +157,13 @@ document.addEventListener('DOMContentLoaded', function() {
             openCart();
         } else {
             closeCart();
+            // If we're back at dashboard, let the dashboard handler take over
+            if (pathname === '/dashboard/') {
+                const dashboardEvent = new CustomEvent('dashboardStateChange', {
+                    detail: { state: event.state }
+                });
+                window.dispatchEvent(dashboardEvent);
+            }
         }
     });
 
