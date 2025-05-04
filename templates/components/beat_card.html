@@ -3,7 +3,7 @@
 <div class="glass-card rounded-lg overflow-hidden" data-beat-id="{{ beat.id }}">
   <div class="relative h-40 sm:h-48 bg-gray-800">
     <a href="{% url 'store:beat_detail' beat.id %}" class="block w-full h-full">
-      <img src="{{ beat.get_image_url }}" alt="{{ beat.title }}" class="w-full h-full object-cover" />
+      <img src="{{ beat.get_image_url|default:'/static/images/default-beat.jpg' }}" alt="{{ beat.title|default:'Untitled Beat' }}" class="w-full h-full object-cover" />
     </a>
     <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
     <button class="favorite-button absolute top-2 right-2 text-gray-400 hover:text-primary transition-colors bg-black/20 p-1.5 sm:p-2 rounded-full backdrop-blur-sm" data-beat-id="{{ beat.id }}">
@@ -11,26 +11,26 @@
     </button>
     <div class="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 flex justify-between items-center">
       <div>
-        <span class="bg-primary/80 text-white text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">{{ beat.genre }}</span>
-        <span class="bg-gray-800/80 text-white text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded ml-1.5 sm:ml-2">{{ beat.bpm }} BPM</span>
+        <span class="bg-primary/80 text-white text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">{{ beat.genre|default:'Unknown Genre' }}</span>
+        <span class="bg-gray-800/80 text-white text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded ml-1.5 sm:ml-2">{{ beat.bpm|default:0 }} BPM</span>
       </div>
       <button class="play-button w-8 h-8 sm:w-10 sm:h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm hover:bg-white/20 transition-colors" 
               data-sample-url="{% if beat.is_purchased %}{{ beat.get_full_audio_url }}{% else %}{{ beat.get_sample_url }}{% endif %}"
-              onclick="playSample({{ beat.id }}, '{% if beat.is_purchased %}{{ beat.get_full_audio_url }}{% else %}{{ beat.get_sample_url }}{% endif %}', '{{ beat.title }}', '{{ beat.genre }}', {{ beat.bpm }}, '{{ beat.get_image_url }}')">
+              onclick="playSample({{ beat.id }}, '{% if beat.is_purchased %}{{ beat.get_full_audio_url }}{% else %}{{ beat.get_sample_url }}{% endif %}', '{{ beat.title|default:'Untitled Beat' }}', '{{ beat.genre|default:'Unknown Genre' }}', {{ beat.bpm|default:0 }}, '{{ beat.get_image_url|default:'/static/images/default-beat.jpg' }}')">
         <i class="ri-play-fill text-white text-base sm:text-lg"></i>
       </button>
     </div>
   </div>
   <div class="p-3 sm:p-4">
     <div class="flex justify-between items-start mb-2 sm:mb-3">
-      <a href="{% url 'store:beat_detail' beat.id %}" class="text-base sm:text-lg font-semibold text-white hover:text-primary transition-colors line-clamp-1">{{ beat.title }}</a>
+      <a href="{% url 'store:beat_detail' beat.id %}" class="text-base sm:text-lg font-semibold text-white hover:text-primary transition-colors line-clamp-1">{{ beat.title|default:'Untitled Beat' }}</a>
       {% if not beat.is_purchased %}
-        <span class="text-primary font-bold text-sm sm:text-base">${{ beat.price }}</span>
+        <span class="text-primary font-bold text-sm sm:text-base">${{ beat.price|default:'0.00' }}</span>
       {% else %}
         <span class="text-green-400 font-medium text-xs sm:text-sm">Purchased</span>
       {% endif %}
     </div>
-    <p class="text-gray-400 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2">{{ beat.description }}</p>
+    <p class="text-gray-400 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2">{{ beat.description|default:'No description available.' }}</p>
     <div class="flex justify-between items-center">
       <div class="flex items-center gap-1.5 sm:gap-2">
         <div class="equalizer" data-beat-id="{{ beat.id }}">
@@ -48,7 +48,7 @@
         </a>
         {% if beat.is_purchased %}
           <button 
-            onclick="handleDownload({{ beat.id }}, '{{ beat.title }}')"
+            onclick="handleDownload({{ beat.id }}, '{{ beat.title|default:'Untitled Beat' }}')"
             class="bg-green-500/10 hover:bg-green-500/20 text-green-400 px-3 sm:px-4 py-1.5 sm:py-2 rounded-button text-xs sm:text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-1.5"
           >
             <i class="ri-download-line"></i>
@@ -56,7 +56,7 @@
           </button>
         {% else %}
           <button 
-            onclick="handleAddToCart({{ beat.id }}, '{{ beat.title }}')"
+            onclick="handleAddToCart({{ beat.id }}, '{{ beat.title|default:'Untitled Beat' }}')"
             class="bg-primary hover:bg-primary/90 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-button text-xs sm:text-sm font-medium transition-colors whitespace-nowrap"
           >
             Add to Cart

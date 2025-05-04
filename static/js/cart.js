@@ -166,9 +166,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Hide loading state
     function hideLoading() {
         cartState.isLoading = false;
-        if (checkoutButton && cartState.items.length > 0) {
+        if (checkoutButton && cartState.items && cartState.items.length > 0) {
             checkoutButton.disabled = false;
             checkoutButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        } else if (checkoutButton) {
+            checkoutButton.disabled = true;
+            checkoutButton.classList.add('opacity-50', 'cursor-not-allowed');
         }
     }
 
@@ -232,17 +235,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load cart data
     async function loadCart() {
-        if (!isAuthenticated) {
-            // Show login modal with current URL as next parameter
-            const url = new URL(window.location);
-            url.searchParams.delete('show_modal');
-            url.pathname = '/login/';
-            url.searchParams.set('next', window.location.pathname + window.location.search);
-            window.history.pushState({}, '', url);
-            showLoginModal();
-            return;
-        }
-
         try {
             showLoading();
             const response = await fetch('/api/cart/', {
@@ -250,15 +242,32 @@ document.addEventListener('DOMContentLoaded', function() {
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
             const data = await response.json();
             
-            if (response.ok) {
-                cartState.items = data.items;
-                cartState.total_price = data.total_price;
-                updateCartUI(data);
-            }
+            // Validate and initialize cart state with data
+            cartState.items = Array.isArray(data.cart_items) ? data.cart_items : [];
+            cartState.total_price = typeof data.total_price === 'number' ? data.total_price : 0;
+
+            // Update UI
+            updateCartUI({
+                items: cartState.items,
+                total_price: cartState.total_price
+            });
+
+            // Update cart count
+            updateCartCount(cartState.items.length);
         } catch (error) {
-            showToast('An error occurred while loading the cart', 'error');
+            console.error('Error loading cart:', error);
+            showToast('Failed to load cart. Please try again.', 'error');
+            // Initialize empty cart state on error
+            cartState.items = [];
+            cartState.total_price = 0;
+            showEmptyCart();
         } finally {
             hideLoading();
         }
@@ -289,6 +298,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Update cart UI
     function updateCartUI(cartData) {
+        // Validate cart data
+        if (!cartData || !cartData.items) {
+            console.error('Invalid cart data received');
+            showEmptyCart();
+            return;
+        }
+
         // Update cart count
         updateCartCount(cartData.items.length);
         if (cartTitle) {
@@ -325,12 +341,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // Update totals
+        // Update totals with validation
+        const totalPrice = cartData.total_price || 0;
         if (subtotalElement) {
-            subtotalElement.textContent = `$${cartData.total_price.toFixed(2)}`;
+            subtotalElement.textContent = `$${totalPrice.toFixed(2)}`;
         }
         if (totalElement) {
-            totalElement.textContent = `$${cartData.total_price.toFixed(2)}`;
+            totalElement.textContent = `$${totalPrice.toFixed(2)}`;
         }
     }
 

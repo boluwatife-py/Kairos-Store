@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.contrib.auth import login, authenticate, logout, get_user_model
+from django.contrib.auth import login, authenticate, logout
 from django.http import JsonResponse, FileResponse, HttpResponse
 from django.db.models import Q, Sum
 from functools import wraps
@@ -9,8 +9,7 @@ from .models import (
     Beat, Bundle, OrderItem, Testimonial, Cart, CartItem, 
     Order, Favorite, PasswordResetOTP, CustomUser
 )
-from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
-from django.urls import reverse_lazy, reverse
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.hashers import check_password
 from .validators import validate_password_strength
@@ -22,8 +21,6 @@ import requests
 from urllib.parse import unquote
 import zipfile
 import io
-from django.contrib.auth.models import User
-from .models import UserProfile
 import random
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
@@ -311,7 +308,8 @@ def dashboard(request):
 
     # Get favorite beats
     favorite_beats = Beat.objects.filter(
-        favorite__user=request.user
+        favorite__user=request.user,
+        is_active=True
     ).distinct()
 
     # Set user on favorite beats for purchased check
@@ -320,9 +318,6 @@ def dashboard(request):
 
     # Get purchased beats count
     purchased_count = purchased_beats.count()
-
-    # Get download count (this will be the same as purchased count for now)
-    # In the future, you might want to track actual downloads separately
     download_count = purchased_count
 
     context = {

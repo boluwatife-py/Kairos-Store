@@ -105,13 +105,6 @@
                 </div>
               </button>
             </div>
-            {% if not beat.is_purchased %}
-            <div
-              class="absolute bottom-0 left-0 right-0 bg-gray-900/80 text-center py-0.5 text-[10px] sm:text-xs text-gray-400"
-            >
-              30-second preview
-            </div>
-            {% endif %}
           </div>
         </div>
 
@@ -136,8 +129,7 @@
             Similar Beats
           </h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3 lg:gap-4">
-            {% for similar_beat in similar_beats %} {% include
-            'components/beat_card.html' with beat=similar_beat %} {% endfor %}
+            {% for similar_beat in similar_beats %} {% include 'components/beat_card.html' with beat=similar_beat %} {% endfor %}
           </div>
         </div>
         {% endif %}
@@ -154,8 +146,7 @@
             Available in Bundles
           </h2>
           <div class="space-y-2 sm:space-y-3 lg:space-y-4">
-            {% for bundle in bundles %} {% include 'components/bundle_card.html'
-            with bundle=bundle %} {% endfor %}
+            {% for bundle in bundles %} {% include 'components/bundle_card.html' with bundle=bundle %} {% endfor %}
           </div>
         </div>
         {% endif %}

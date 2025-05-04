@@ -104,9 +104,31 @@ async function handleFavoriteClick(button) {
       method: 'POST',
       headers: {
         'X-CSRFToken': getCookie('csrftoken'),
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
       }
     });
+
+    // Check if user is not authenticated
+    if (response.status === 401 || response.status === 403) {
+      showToast('Please login to add favorites', 'error');
+      // Show login modal if it exists
+      const loginModal = document.getElementById('loginModal');
+      if (loginModal) {
+        loginModal.classList.remove('hidden');
+      } else {
+        // Redirect to login page if modal doesn't exist
+        window.location.href = '/login/';
+      }
+      return;
+    }
+
+    // Try to parse JSON response
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      throw new Error('Received non-JSON response from server');
+    }
+
     const data = await response.json();
     if (data.status === 'success') {
       const icon = button.querySelector('i');

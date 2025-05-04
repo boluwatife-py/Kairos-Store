@@ -175,8 +175,7 @@ Dashboard{% endblock %} {% block content %}
         <div
           class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-4"
         >
-          {% for beat in purchased_beats %} {% include
-          'components/beat_card.html' with beat=beat %} {% empty %}
+          {% for beat in purchased_beats %} {% include 'components/beat_card.html' with beat=beat %} {% empty %}
           <div class="col-span-3 text-center py-6 sm:py-8">
             <p class="text-gray-400 text-xs sm:text-sm">
               No purchased beats available.
@@ -216,8 +215,7 @@ Dashboard{% endblock %} {% block content %}
                 <span
                   class="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] sm:text-xs {% if order.status == 'completed' %}bg-green-500/20 text-green-400{% elif order.status == 'overruled' %}bg-red-500/20 text-red-400{% elif order.status == 'pending' %}bg-yellow-500/20 text-yellow-400{% else %}bg-gray-500/20 text-gray-400{% endif %}"
                 >
-                  {% if order.status == 'overruled' %} Overruled {% else %} {{
-                  order.get_status_display }} {% endif %}
+                  {% if order.status == 'overruled' %} Overruled {% else %} {{ order.get_status_display }} {% endif %}
                 </span>
                 {% if order.status == 'overruled' %}
                 <div class="mt-1.5 text-[10px] sm:text-xs text-left">
@@ -281,8 +279,7 @@ Dashboard{% endblock %} {% block content %}
         <div
           class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-4"
         >
-          {% for beat in favorite_beats %} {% include
-          'components/beat_card.html' with beat=beat %} {% empty %}
+          {% for beat in favorite_beats %} {% include 'components/beat_card.html' with beat=beat %} {% empty %}
           <div class="col-span-3 text-center py-6 sm:py-8">
             <p class="text-gray-400 text-xs sm:text-sm">
               No favourite beats yet.
@@ -352,8 +349,7 @@ Dashboard{% endblock %} {% block content %}
                   rows="4"
                   class="w-full bg-gray-800/50 border border-gray-700 text-white text-xs px-2.5 sm:px-3 py-1.5 sm:py-2 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   placeholder="Tell us about yourself..."
-                >
-{{ user.userprofile.bio|default:'' }}</textarea
+                >{{ user.userprofile.bio|default:'' }}</textarea
                 >
               </div>
             </form>
@@ -931,8 +927,10 @@ Dashboard{% endblock %} {% block content %}
         switchTab(tabId);
         // Update URL without reloading the page
         const url = new URL(window.location);
+        url.pathname = '/dashboard/';
         url.searchParams.set("tab", tabId);
-        window.history.pushState({}, "", url);
+        // Use pushState with state object to track dashboard state
+        window.history.pushState({ isDashboard: true, tab: tabId }, "", url);
       });
     });
 
@@ -941,7 +939,41 @@ Dashboard{% endblock %} {% block content %}
     const tabParam = urlParams.get("tab");
     if (tabParam) {
       switchTab(tabParam);
+      // Ensure correct URL on initial load
+      const url = new URL(window.location);
+      if (url.pathname === '/') {
+        url.pathname = '/dashboard/';
+        window.history.replaceState({ isDashboard: true, tab: tabParam }, "", url);
+      }
     }
+
+    // Handle browser back/forward buttons
+    window.addEventListener('popstate', function(event) {
+      // Check if we're handling a dashboard state
+      const isDashboard = event.state?.isDashboard || window.location.pathname === '/dashboard/';
+      
+      if (isDashboard) {
+        const url = new URL(window.location);
+        const tabParam = url.searchParams.get("tab");
+        
+        // If we're at root with a tab parameter, restore dashboard path
+        if (url.pathname === '/' && tabParam) {
+          url.pathname = '/dashboard/';
+          window.history.replaceState({ isDashboard: true, tab: tabParam }, "", url);
+        }
+        
+        // Switch to the appropriate tab
+        if (tabParam) {
+          switchTab(tabParam);
+        } else {
+          // If no tab parameter, default to first tab
+          const defaultTab = tabButtons[0]?.getAttribute("data-tab") || "purchased";
+          switchTab(defaultTab);
+          url.searchParams.set("tab", defaultTab);
+          window.history.replaceState({ isDashboard: true, tab: defaultTab }, "", url);
+        }
+      }
+    });
 
     // Delete Account Modal
     if (deleteAccountBtn) {
