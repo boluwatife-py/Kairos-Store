@@ -42,6 +42,9 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css"
     />
+    <!-- Toastify -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     {% block extra_css %}{% endblock %}
     <style>
       :where([class^="ri-"])::before {
@@ -309,7 +312,7 @@
       }
     </style>
   </head>
-  <body class="min-h-screen">
+  <body class="min-h-screen" data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}">
     {% include 'components/navbar.html' %}
     
     {% block content %}{% endblock %}

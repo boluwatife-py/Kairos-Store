@@ -1,13 +1,14 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import login, authenticate, logout
-from django.http import JsonResponse, FileResponse, Http404, HttpResponseRedirect, HttpResponse
+from django.contrib.auth import login, authenticate, logout, get_user_model
+from django.http import JsonResponse, FileResponse, HttpResponse
 from django.db.models import Q, Sum
 from functools import wraps
-from .models import Beat, Bundle, OrderItem, Testimonial, Cart, CartItem, Order, Favorite
-from .forms import CustomUserCreationForm, CustomAuthenticationForm
+from .models import (
+    Beat, Bundle, OrderItem, Testimonial, Cart, CartItem, 
+    Order, Favorite, PasswordResetOTP, CustomUser
+)
 from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
 from django.urls import reverse_lazy, reverse
 from django.views.decorators.http import require_http_methods
@@ -18,12 +19,22 @@ import json
 import stripe
 from django.conf import settings
 import requests
-from django.core.files.base import ContentFile
-from urllib.parse import unquote, quote
+from urllib.parse import unquote
 import zipfile
 import io
 from django.contrib.auth.models import User
 from .models import UserProfile
+import random
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.views import View
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_protect
+import logging
+import threading
+
+logger = logging.getLogger(__name__)
 
 # Initialize Stripe with your secret key
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -96,15 +107,15 @@ def require_auth(view_func):
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                next_url = request.get_full_path()
                 return JsonResponse({
                     'status': 'error',
                     'message': 'Please login to continue',
-                    'requires_auth': True
+                    'requires_auth': True,
+                    'next': next_url
                 }, status=401)
             else:
-                # Get the current path for the next parameter
                 next_url = request.get_full_path()
-                # Render home template with login modal
                 return render(request, 'home.html', {
                     'show_modal': 'login',
                     'next_url': next_url
@@ -161,12 +172,16 @@ def home(request):
                 'total_price': cart.get_total_price()
             }
 
+    # Handle password reset modal
+    if request.path == reverse('store:password_reset'):
+        modal = 'password_reset'
+
     context = {
         'featured_beats': featured_beats,
         'new_releases': new_releases,
         'bundles': bundles,
         'testimonials': testimonials,
-        'show_modal': modal,  # Will be 'login', 'signup', 'cart', or None
+        'show_modal': modal,  # Will be 'login', 'signup', 'cart', 'password_reset', or None
         'cart_data': cart_data,
         'next_url': next_url,  # Pass the next URL to the template
     }
@@ -372,6 +387,39 @@ def remove_from_cart(request, cart_item_id):
 @login_required
 def cart(request):
     """Handle regular cart view with HTML response"""
+    # Get featured beats that are active and have all required fields
+    featured_beats = Beat.objects.filter(
+        is_featured=True,
+        is_active=True,
+        image__isnull=False,
+        sample_audio__isnull=False,
+        full_audio__isnull=False
+    ).order_by('-created_at')[:3]
+
+    # Get new releases that are active and have all required fields
+    new_releases = Beat.objects.filter(
+        is_new_release=True,
+        is_active=True,
+        image__isnull=False,
+        sample_audio__isnull=False,
+        full_audio__isnull=False
+    ).order_by('-created_at')[:3]
+
+    # Get active bundles
+    bundles = Bundle.objects.filter(
+        is_active=True,
+        image__isnull=False
+    ).order_by('-created_at')[:2]
+
+    # Get active testimonials
+    testimonials = Testimonial.objects.filter(
+        is_active=True
+    ).order_by('-created_at')[:3]
+
+    # Set user on beats for purchased check
+    for beat in list(featured_beats) + list(new_releases):
+        beat.set_user(request.user)
+
     # Get user's cart
     cart = Cart.objects.filter(user=request.user).first()
     cart_items = []
@@ -379,13 +427,20 @@ def cart(request):
     
     if cart:
         cart_items = cart.cartitem_set.all()
-        total_price = cart.get_total_price()
+        total_price = cart.total_price  # Using the property instead of calling it as a method
 
     context = {
-        'cart_items': cart_items,
-        'total_price': total_price,
+        'featured_beats': featured_beats,
+        'new_releases': new_releases,
+        'bundles': bundles,
+        'testimonials': testimonials,
+        'show_modal': 'cart',  # Show cart modal
+        'cart_data': {
+            'items': cart_items,
+            'total_price': total_price
+        }
     }
-    return render(request, 'cart.html', context)
+    return render(request, 'home.html', context)
 
 def api_cart(request):
     """Handle JSON cart requests"""
@@ -400,44 +455,38 @@ def api_cart(request):
     cart = Cart.objects.filter(user=request.user).first()
     cart_items = []
     total_price = 0
+    cart_items_data = []
     
     if cart:
         cart_items = cart.cartitem_set.all()
-        total_price = cart.get_total_price()
+        total_price = cart.total_price
 
         # Prepare cart items data for JSON response
-        cart_items_data = []
-        for item in cart_items:
+    for item in cart_items:
             item_data = {
                 'id': item.id,
-                'type': 'beat' if item.beat else 'bundle',
+                'type': 'beat' if item.beat else 'bundle'
             }
             if item.beat:
                 item_data.update({
-                    'title': item.beat.title,
-                    'price': float(item.beat.price),
-                    'image_url': item.beat.get_image_url(),
+                'title': item.beat.title,
+                'price': float(item.beat.price),
+                'image_url': item.beat.get_image_url(),
                     'genre': item.beat.genre,
-                    'bpm': item.beat.bpm,
+                    'bpm': item.beat.bpm
                 })
             else:
                 item_data.update({
-                    'title': item.bundle.title,
-                    'price': float(item.bundle.discounted_price),
-                    'image_url': item.bundle.image.url if item.bundle.image else None,
-                })
+                'title': item.bundle.title,
+                'price': float(item.bundle.discounted_price),
+                    'image_url': item.bundle.image.url if item.bundle.image else None
+            })
             cart_items_data.append(item_data)
-
-        return JsonResponse({
-            'cart_count': len(cart_items),
-            'cart_items': cart_items_data,
-            'total_price': float(total_price)
-        })
     
     return JsonResponse({
-        'cart_count': 0,
-        'cart_items': [],
-        'total_price': 0.00
+        'cart_count': len(cart_items),
+        'cart_items': cart_items_data,
+        'total_price': float(total_price)
     })
 
 @login_required
@@ -538,11 +587,22 @@ def create_order(request):
 
 @require_http_methods(["GET", "POST"])
 def custom_login(request, next_url=None):
+    # Redirect logged-in users to home page
+    if request.user.is_authenticated:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Already logged in',
+                'redirect': reverse('store:home')
+            })
+        return redirect('store:home')
+
     if request.method == "POST":
         email = request.POST.get('email')
         password = request.POST.get('password')
         remember = request.POST.get('remember')
-        next_url = request.POST.get('next', '')
+        # Check for next URL in headers first, then POST data
+        next_url = request.headers.get('Next-Url') or request.POST.get('next', '')
         
         if not email or not password:
             return JsonResponse({
@@ -557,29 +617,40 @@ def custom_login(request, next_url=None):
             if not remember:
                 request.session.set_expiry(0)
             
-            # If it's an AJAX request, return JSON response
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'status': 'success',
-                    'message': 'Login successful!',
-                    'redirect': next_url if next_url else reverse('store:home')
-                })
-            # For regular form submissions, redirect
-            else:
-                return HttpResponseRedirect(next_url if next_url else reverse('store:home'))
+            # Decode the next_url if it's URL encoded
+            if next_url:
+                next_url = unquote(next_url)
+                # Ensure the next_url starts with a forward slash
+                if not next_url.startswith('/'):
+                    next_url = '/' + next_url
+            
+            redirect_url = next_url if next_url else reverse('store:home')
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Login successful!',
+                'redirect': redirect_url
+            })
         else:
-            # If it's an AJAX request, return JSON response
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'status': 'error',
-                    'message': 'Invalid email or password'
-                }, status=400)
-            # For regular form submissions, show error message
-            else:
-                messages.error(request, 'Invalid email or password')
-                return HttpResponseRedirect(reverse('store:login'))
-
-    # If GET request, render home template with login modal
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid email or password'
+            }, status=400)
+        
+    # If GET request, get the next parameter from URL
+    next_url = request.GET.get('next', next_url if next_url else '')
+    print(f"GET request - final next_url: {next_url}")
+    
+    # Decode the next_url if it's URL encoded
+    if next_url:
+        next_url = unquote(next_url)
+        print(f"Decoded next_url: {next_url}")
+        # Ensure the next_url starts with a forward slash
+        if not next_url.startswith('/'):
+            next_url = '/' + next_url
+            print(f"Added leading slash: {next_url}")
+    
+    # Get featured beats that are active and have all required fields
     featured_beats = Beat.objects.filter(
         is_featured=True,
         is_active=True,
@@ -617,11 +688,42 @@ def custom_login(request, next_url=None):
         'show_modal': 'login',
         'next_url': next_url,
     }
+    print(f"Rendering template with next_url in context: {next_url}")
     return render(request, 'home.html', context)
 
+def send_welcome_email_async(user, domain):
+    try:
+        context = {
+            'user': user,
+            'domain': domain
+        }
+        html_message = render_to_string('email/welcome_email.html', context)
+        plain_message = strip_tags(html_message)
+        
+        send_mail(
+            'Welcome to Kairos!',
+            plain_message,
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+            html_message=html_message,
+            fail_silently=True,
+        )
+    except Exception as e:
+        # Log the error but don't affect the main flow
+        logger.error(f"Failed to send welcome email to {user.email}: {str(e)}")
 
 @require_http_methods(["GET", "POST"])
 def register(request, next_url=None):
+    # Redirect logged-in users to home page
+    if request.user.is_authenticated:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Already logged in',
+                'redirect': reverse('store:home')
+            })
+        return redirect('store:home')
+
     if request.method == "POST":
         try:
             # Get form data
@@ -645,29 +747,36 @@ def register(request, next_url=None):
                 }, status=400)
 
             # Check if user already exists
-            if User.objects.filter(email=email).exists():
+            if CustomUser.objects.filter(email=email).exists():
                 return JsonResponse({
                     'status': 'error',
                     'message': 'A user with this email already exists'
                 }, status=400)
 
             # Create user
-            user = User.objects.create_user(
-                username=email,  # Using email as username
+            user = CustomUser.objects.create_user(
                 email=email,
                 password=password1
             )
 
-            # Create user profile
-            UserProfile.objects.create(user=user)
+            # Start a background thread to send welcome email
+            domain = request.build_absolute_uri('/')[:-1]
+            thread = threading.Thread(
+                target=send_welcome_email_async,
+                args=(user, domain)
+            )
+            thread.start()
 
             # Log the user in
             login(request, user)
 
+            # Handle next_url properly
+            redirect_url = next_url if next_url and next_url != 'None' else reverse('store:home')
+
             return JsonResponse({
                 'status': 'success',
                 'message': 'Registration successful! Welcome to Kairos.',
-                'redirect': next_url if next_url else reverse('store:home')
+                'redirect': redirect_url
             })
 
         except Exception as e:
@@ -702,10 +811,6 @@ def register(request, next_url=None):
         is_active=True
     ).order_by('-created_at')[:3]
 
-    # Set user on beats for purchased check
-    for beat in list(featured_beats) + list(new_releases):
-        beat.set_user(request.user)
-
     context = {
         'featured_beats': featured_beats,
         'new_releases': new_releases,
@@ -735,22 +840,319 @@ def custom_logout(request):
         'message': 'Invalid request method'
     }, status=405)
 
-class CustomPasswordResetView(PasswordResetView):
-    template_name = 'store/password_reset.html'
-    email_template_name = 'store/password_reset_email.html'
-    subject_template_name = 'store/password_reset_subject.txt'
-    html_email_template_name = 'store/password_reset_email.html'
-    success_url = reverse_lazy('store:password_reset_done')
+class CustomPasswordResetView(View):
+    template_name = 'home.html'
+    
+    @method_decorator(csrf_protect)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+    
+    def get(self, request):
+        # Get featured beats that are active and have all required fields
+        featured_beats = Beat.objects.filter(
+            is_featured=True,
+            is_active=True,
+            image__isnull=False,
+            sample_audio__isnull=False,
+            full_audio__isnull=False
+        ).order_by('-created_at')[:3]
 
-class CustomPasswordResetDoneView(PasswordResetDoneView):
+        new_releases = Beat.objects.filter(
+            is_new_release=True,
+            is_active=True,
+            image__isnull=False,
+            sample_audio__isnull=False,
+            full_audio__isnull=False
+        ).order_by('-created_at')[:3]
+
+        bundles = Bundle.objects.filter(
+            is_active=True,
+            image__isnull=False
+        ).order_by('-created_at')[:2]
+
+        testimonials = Testimonial.objects.filter(
+            is_active=True
+        ).order_by('-created_at')[:3]
+
+        # Set user on beats for purchased check
+        for beat in list(featured_beats) + list(new_releases):
+            beat.set_user(request.user)
+
+        context = {
+            'featured_beats': featured_beats,
+            'new_releases': new_releases,
+            'bundles': bundles,
+            'testimonials': testimonials,
+            'show_modal': 'password_reset'
+        }
+        return render(request, self.template_name, context)
+    
+    def post(self, request):
+        email = request.POST.get('email')
+        if not email:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Please provide an email address.'
+            }, status=400)
+            
+        try:
+            user = CustomUser.objects.get(email=email)
+        except CustomUser.DoesNotExist:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'No account found with this email address.'
+            }, status=400)
+            
+        # Generate 6-digit OTP
+        otp = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+        
+        # Save OTP to database
+        PasswordResetOTP.objects.create(
+            user=user,
+            otp=otp
+        )
+        
+        # Prepare email
+        context = {
+            'user': user,
+            'otp': otp
+        }
+        html_message = render_to_string('email/password_reset_email.html', context)
+        plain_message = strip_tags(html_message)
+        
+        # Send email
+        try:
+            send_mail(
+                'Password Reset OTP for Kairos Store',
+                plain_message,
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Failed to send OTP email. Please try again later.'
+            }, status=500)
+            
+        return JsonResponse({
+            'status': 'success',
+            'message': 'OTP has been sent to your email.',
+            'redirect': reverse('store:password_reset_done') + f'?email={email}'
+        })
+
+class CustomPasswordResetDoneView(View):
     template_name = 'store/password_reset_done.html'
+    
+    def get(self, request):
+        email = request.GET.get('email')
+        if not email:
+            messages.error(request, 'Please start the password reset process from the beginning.')
+            return redirect('store:home')
+        return render(request, self.template_name, {'email': email})
 
-class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+class VerifyResetOTPView(View):
+    @method_decorator(csrf_protect)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+    
+    def post(self, request):
+        email = request.POST.get('email')
+        otp = request.POST.get('otp')
+        
+        logger.debug(f"OTP Verification attempt - Email: {email}, OTP: {otp}")
+        
+        if not email or not otp:
+            logger.warning("Missing email or OTP in request")
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Please provide both email and OTP.'
+            }, status=400)
+            
+        try:
+            user = CustomUser.objects.get(email=email)
+            logger.debug(f"Found user with email: {email}")
+            
+            # Get latest OTP for user
+            otp_obj = PasswordResetOTP.objects.filter(
+                user=user,
+                is_used=False
+            ).order_by('-created_at').first()
+            
+            if not otp_obj:
+                logger.warning(f"No unused OTP found for user: {email}")
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'OTP has expired or not found. Please request a new one.'
+                }, status=400)
+            
+            logger.debug(f"Found OTP object - ID: {otp_obj.id}, Created: {otp_obj.created_at}, Is Valid: {otp_obj.is_valid()}")
+            
+            if not otp_obj.is_valid():
+                logger.warning(f"OTP expired for user: {email}")
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'OTP has expired. Please request a new one.'
+                }, status=400)
+            
+            if otp_obj.otp != otp:
+                logger.warning(f"Invalid OTP provided for user: {email}")
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Invalid OTP.'
+                }, status=400)
+            
+            # Mark OTP as used but don't invalidate it yet
+            otp_obj.is_used = True
+            otp_obj.save()
+            logger.debug(f"Marked OTP as used - ID: {otp_obj.id}")
+            
+            # Generate a token for password reset
+            token = otp_obj.id
+            redirect_url = reverse('store:password_reset_confirm') + f'?email={email}&token={token}'
+            logger.debug(f"Generated redirect URL: {redirect_url}")
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': 'OTP verified successfully.',
+                'redirect': redirect_url
+            })
+            
+        except CustomUser.DoesNotExist:
+            logger.warning(f"No user found with email: {email}")
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid email address.'
+            }, status=400)
+        except Exception as e:
+            logger.error(f"Unexpected error in OTP verification: {str(e)}")
+            return JsonResponse({
+                'status': 'error',
+                'message': 'An unexpected error occurred.'
+            }, status=500)
+
+class CustomPasswordResetConfirmView(View):
     template_name = 'store/password_reset_confirm.html'
-    success_url = reverse_lazy('store:password_reset_complete')
+    
+    @method_decorator(csrf_protect)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+    
+    def get(self, request):
+        email = request.GET.get('email')
+        token = request.GET.get('token')
+        
+        logger.debug(f"Password reset confirmation attempt - Email: {email}, Token: {token}")
+        
+        if not email or not token:
+            logger.warning("Missing email or token in request")
+            messages.error(request, 'Invalid password reset link.')
+            return redirect('store:password_reset')
+            
+        try:
+            user = CustomUser.objects.get(email=email)
+            logger.debug(f"Found user with email: {email}")
+            
+            # Only check if the OTP exists and belongs to the user
+            otp_obj = PasswordResetOTP.objects.get(
+                id=token,
+                is_used=True,  # Should be used from verification
+                user=user
+            )
+            logger.debug(f"Found OTP object - ID: {otp_obj.id}, Created: {otp_obj.created_at}")
+            
+            context = {
+                'email': email,
+                'token': token
+            }
+            logger.debug("Rendering password reset confirm template")
+            return render(request, self.template_name, context)
+            
+        except (CustomUser.DoesNotExist, PasswordResetOTP.DoesNotExist) as e:
+            logger.warning(f"Invalid reset attempt - Error: {str(e)}")
+            messages.error(request, 'Invalid password reset link.')
+            return redirect('store:password_reset')
+        except Exception as e:
+            logger.error(f"Unexpected error in password reset confirmation: {str(e)}")
+            messages.error(request, 'An unexpected error occurred.')
+            return redirect('store:password_reset')
+    
+    def post(self, request):
+        email = request.POST.get('email')
+        token = request.POST.get('token')
+        new_password1 = request.POST.get('new_password1')
+        new_password2 = request.POST.get('new_password2')
+        
+        logger.debug(f"Password reset attempt - Email: {email}, Token: {token}")
+        
+        if not all([email, token, new_password1, new_password2]):
+            logger.warning("Missing required fields in password reset request")
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Please fill in all fields.'
+            }, status=400)
+            
+        try:
+            user = CustomUser.objects.get(email=email)
+            logger.debug(f"Found user with email: {email}")
+            
+            # Only check if the OTP exists and belongs to the user
+            otp_obj = PasswordResetOTP.objects.get(
+                id=token,
+                is_used=True,  # Should be used from verification
+                user=user
+            )
+            logger.debug(f"Found OTP object - ID: {otp_obj.id}, Created: {otp_obj.created_at}")
+            
+            if new_password1 != new_password2:
+                logger.warning("Passwords do not match")
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Passwords do not match.'
+                }, status=400)
+            
+            try:
+                validate_password_strength(new_password1)
+            except ValidationError as e:
+                logger.warning(f"Password validation failed: {str(e)}")
+                return JsonResponse({
+                    'status': 'error',
+                    'message': str(e)
+                }, status=400)
+            
+            # Set new password
+            user.set_password(new_password1)
+            user.save()
+            
+            # Now invalidate the OTP completely
+            otp_obj.delete()  # Delete instead of just marking as used
+            logger.debug(f"Password successfully reset for user: {email}")
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Password has been reset successfully.',
+                'redirect': reverse('store:login')
+            })
+            
+        except (CustomUser.DoesNotExist, PasswordResetOTP.DoesNotExist) as e:
+            logger.warning(f"Invalid reset attempt - Error: {str(e)}")
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid request.'
+            }, status=400)
+        except Exception as e:
+            logger.error(f"Unexpected error in password reset: {str(e)}")
+            return JsonResponse({
+                'status': 'error',
+                'message': 'An unexpected error occurred.'
+            }, status=500)
 
-class CustomPasswordResetCompleteView(PasswordResetCompleteView):
+class CustomPasswordResetCompleteView(View):
     template_name = 'store/password_reset_complete.html'
+    
+    def get(self, request):
+        return render(request, self.template_name)
 
 @require_auth
 def download_beat(request, beat_id):

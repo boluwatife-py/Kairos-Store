@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Check if user is authenticated
+    const isAuthenticated = document.body.dataset.userAuthenticated === 'true';
+    
     const cartModal = document.getElementById('cartModal');
     const cartButton = document.getElementById('cartButton');
     const mobileCartButton = document.querySelector('.mobile-cart-button');
@@ -22,11 +25,39 @@ document.addEventListener('DOMContentLoaded', function() {
         isLoading: false
     };
 
-    // Load cart count on page load
+    // Load cart count on page load if authenticated
+    if (isAuthenticated) {
     loadCartCount();
+    }
+
+    // Check if we should open cart on page load
+    if (window.location.pathname === '/cart/') {
+        if (isAuthenticated) {
+        openCart();
+        } else {
+            // Show login modal with cart as next parameter
+            const url = new URL(window.location);
+            url.searchParams.delete('show_modal');
+            url.pathname = '/login/';
+            url.searchParams.set('next', '/cart/');
+            window.history.pushState({}, '', url);
+            showLoginModal();
+        }
+    }
 
     // Open cart
     async function openCart() {
+        if (!isAuthenticated) {
+            // Show login modal with cart as next parameter
+            const url = new URL(window.location);
+            url.searchParams.delete('show_modal');
+            url.pathname = '/login/';
+            url.searchParams.set('next', '/cart/');
+            window.history.pushState({}, '', url);
+            showLoginModal();
+            return;
+        }
+
         try {
             const response = await fetch('/api/cart/', {
                 headers: {
@@ -35,39 +66,31 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             const data = await response.json();
             
-            if (response.status === 401 && data.requires_auth) {
-                // Update URL and show login modal with /cart/ as next parameter
-                const url = new URL(window.location);
-                url.searchParams.delete('show_modal');
-                url.pathname = '/login/';
-                url.searchParams.set('next', '/cart/');
-                window.history.pushState({}, '', url);
-                showLoginModal();
-                return;
-            }
-            
-            if (cartModal && cartSidebar) {
-                // If mobile menu is open, close it first
-                if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
-                    mobileMenu.classList.add('hidden');
-                    const mobileMenuButton = document.getElementById('mobileMenuButton');
-                    if (mobileMenuButton) {
-                        const icon = mobileMenuButton.querySelector('i');
-                        icon.classList.remove('ri-close-line');
-                        icon.classList.add('ri-menu-line');
-                    }
+        if (cartModal && cartSidebar) {
+            // If mobile menu is open, close it first
+            if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.add('hidden');
+                const mobileMenuButton = document.getElementById('mobileMenuButton');
+                if (mobileMenuButton) {
+                    const icon = mobileMenuButton.querySelector('i');
+                    icon.classList.remove('ri-close-line');
+                    icon.classList.add('ri-menu-line');
                 }
+            }
                 
-                cartModal.classList.remove('hidden');
-                setTimeout(() => {
-                    cartSidebar.classList.remove('translate-x-full');
-                }, 10);
-                loadCart();
+                // Update URL without reloading
+                const url = new URL(window.location);
+                url.pathname = '/cart/';
+                window.history.pushState({}, '', url);
+            
+            cartModal.classList.remove('hidden');
+            setTimeout(() => {
+            cartSidebar.classList.remove('translate-x-full');
+            }, 10);
+            loadCart();
             }
         } catch (error) {
-            if (!error.message?.includes('Unauthorized')) {
                 showToast('An error occurred while opening the cart', 'error');
-            }
         }
     }
 
@@ -87,6 +110,10 @@ document.addEventListener('DOMContentLoaded', function() {
             cartSidebar.classList.add('translate-x-full');
             setTimeout(() => {
                 cartModal.classList.add('hidden');
+                // Update URL without reloading
+                const url = new URL(window.location);
+                url.pathname = '/';
+                window.history.pushState({}, '', url);
             }, 300);
         }
     }
@@ -104,6 +131,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle escape key
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && cartModal && !cartModal.classList.contains('hidden')) {
+            closeCart();
+        }
+    });
+
+    // Handle browser back/forward buttons
+    window.addEventListener('popstate', function(event) {
+        const pathname = window.location.pathname;
+        
+        if (pathname === '/cart/') {
+            openCart();
+        } else {
             closeCart();
         }
     });
@@ -145,13 +183,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load cart count
     async function loadCartCount() {
-        try {
-            // Try to get count from local storage first
-            const cachedCount = localStorage.getItem('cartCount');
-            if (cachedCount && cartCount) {
-                updateCartCount(parseInt(cachedCount));
-            }
+        if (!isAuthenticated) {
+            updateCartCount(0);
+            return;
+        }
 
+        try {
             const response = await fetch('/api/cart/', {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
@@ -159,17 +196,14 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             const data = await response.json();
             
-            if (response.status === 401 && data.requires_auth) {
-                return;
-            }
-            
             if (response.ok) {
                 updateCartCount(data.cart_count);
                 localStorage.setItem('cartCount', data.cart_count);
             }
         } catch (error) {
-            // Silently fail for cart count errors
-            return;
+            // Clear localStorage and reset count on error
+            localStorage.removeItem('cartCount');
+            updateCartCount(0);
         }
     }
 
@@ -198,6 +232,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load cart data
     async function loadCart() {
+        if (!isAuthenticated) {
+            // Show login modal with current URL as next parameter
+            const url = new URL(window.location);
+            url.searchParams.delete('show_modal');
+            url.pathname = '/login/';
+            url.searchParams.set('next', window.location.pathname + window.location.search);
+            window.history.pushState({}, '', url);
+            showLoginModal();
+            return;
+        }
+
         try {
             showLoading();
             const response = await fetch('/api/cart/', {
@@ -207,41 +252,13 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             const data = await response.json();
             
-            if (response.status === 401 && data.requires_auth) {
-                // Store current path for next parameter
-                const currentPath = window.location.pathname + window.location.search;
-                // Show login modal
-                const loginModal = document.getElementById('loginModal');
-                if (loginModal) {
-                    // Set the next URL in the form
-                    const nextInput = loginModal.querySelector('input[name="next"]');
-                    if (nextInput) {
-                        nextInput.value = currentPath;
-                    }
-                    loginModal.classList.remove('hidden');
-                    // Close cart modal
-                    closeCart();
-                }
-                return;
-            }
-            
             if (response.ok) {
-                cartState.items = data.cart_items;
+                cartState.items = data.items;
                 cartState.total_price = data.total_price;
-                updateCartUI({
-                    items: data.cart_items,
-                    total_price: data.total_price
-                });
-                localStorage.setItem('cartCount', data.cart_count);
-            } else {
-                showToast(data.message || 'Error loading cart', 'error');
-                showEmptyCart();
+                updateCartUI(data);
             }
         } catch (error) {
-            if (!error.message?.includes('Unauthorized')) {
-                showToast('An error occurred while loading the cart', 'error');
-                showEmptyCart();
-            }
+            showToast('An error occurred while loading the cart', 'error');
         } finally {
             hideLoading();
         }
@@ -415,7 +432,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             if (!error.message?.includes('Unauthorized')) {
-                showToast('An error occurred while removing the item', 'error');
+            showToast('An error occurred while removing the item', 'error');
             }
         } finally {
             hideLoading();

@@ -1,847 +1,1111 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends 'base.html' %} {% load static %} {% block title %}Kairos Store -
+Dashboard{% endblock %} {% block content %}
+<main class="pt-20 sm:pt-22 lg:pt-24 pb-12 sm:pb-16 lg:pb-24">
+  <div class="max-w-7xl mx-auto px-2 sm:px-3 lg:px-6">
+    <!-- Dashboard Header -->
+    <div
+      class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 sm:mb-4 lg:mb-6"
+    >
+      <div>
+        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white">
+          My Dashboard
+        </h1>
+        <p class="text-xs sm:text-sm text-gray-400 mt-0.5">
+          Manage your account, purchases, and favorites
+        </p>
+      </div>
+      <div class="mt-2 sm:mt-0">
+        <button
+          class="bg-primary hover:bg-primary/90 text-white px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm rounded-button font-medium transition-colors whitespace-nowrap flex items-center"
+        >
+          <i class="ri-download-cloud-line mr-1 sm:mr-1.5"></i>
+          Download All Purchases
+        </button>
+      </div>
+    </div>
 
-{% block title %}Kairos Store - Dashboard{% endblock %}
-
-{% block content %}
-    <main class="pt-20 sm:pt-22 lg:pt-24 pb-12 sm:pb-16 lg:pb-24">
-      <div class="max-w-7xl mx-auto px-2 sm:px-3 lg:px-6">
-        <!-- Dashboard Header -->
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 sm:mb-4 lg:mb-6">
+    <!-- Dashboard Overview -->
+    <div
+      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-4 mb-4 sm:mb-6"
+    >
+      <!-- Stats Card 1 -->
+      <div class="glass-card rounded-lg p-3 sm:p-4">
+        <div class="flex items-center justify-between mb-2 sm:mb-3">
+          <h3 class="text-sm sm:text-base font-semibold text-white">
+            Purchased Beats
+          </h3>
+          <div
+            class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-primary/20 rounded-full"
+          >
+            <i class="ri-music-2-line text-primary text-xs sm:text-sm"></i>
+          </div>
+        </div>
+        <div class="flex items-end justify-between">
           <div>
-            <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white">My Dashboard</h1>
-            <p class="text-xs sm:text-sm text-gray-400 mt-0.5">
-              Manage your account, purchases, and favorites
-            </p>
-          </div>
-          <div class="mt-2 sm:mt-0">
-            <button
-              class="bg-primary hover:bg-primary/90 text-white px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm rounded-button font-medium transition-colors whitespace-nowrap flex items-center"
+            <span class="text-xl sm:text-2xl font-bold text-white"
+              >{{ purchased_count }}</span
             >
-              <i class="ri-download-cloud-line mr-1 sm:mr-1.5"></i>
-              Download All Purchases
-            </button>
+            <p class="text-xs text-gray-400 mt-0.5">Total beats owned</p>
           </div>
-        </div>
-
-        <!-- Dashboard Overview -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-4 mb-4 sm:mb-6">
-          <!-- Stats Card 1 -->
-          <div class="glass-card rounded-lg p-3 sm:p-4">
-            <div class="flex items-center justify-between mb-2 sm:mb-3">
-              <h3 class="text-sm sm:text-base font-semibold text-white">Purchased Beats</h3>
-              <div class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-primary/20 rounded-full">
-                <i class="ri-music-2-line text-primary text-xs sm:text-sm"></i>
-              </div>
-            </div>
-            <div class="flex items-end justify-between">
-              <div>
-                <span class="text-xl sm:text-2xl font-bold text-white">{{ purchased_count }}</span>
-                <p class="text-xs text-gray-400 mt-0.5">Total beats owned</p>
-              </div>
-              <div class="h-10 sm:h-12 flex items-end">
-                <div class="w-3 sm:w-4 h-5 sm:h-6 bg-primary/20 rounded-t-sm mr-1"></div>
-                <div class="w-3 sm:w-4 h-7 sm:h-8 bg-primary/30 rounded-t-sm mr-1"></div>
-                <div class="w-3 sm:w-4 h-8 sm:h-10 bg-primary/40 rounded-t-sm mr-1"></div>
-                <div class="w-3 sm:w-4 h-10 sm:h-12 bg-primary/60 rounded-t-sm"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Stats Card 2 -->
-          <div class="glass-card rounded-lg p-3 sm:p-4">
-            <div class="flex items-center justify-between mb-2 sm:mb-3">
-              <h3 class="text-sm sm:text-base font-semibold text-white">Total Spent</h3>
-              <div class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-primary/20 rounded-full">
-                <i class="ri-wallet-3-line text-primary text-xs sm:text-sm"></i>
-              </div>
-            </div>
-            <div class="flex items-end justify-between">
-              <div>
-                <span class="text-xl sm:text-2xl font-bold text-white">${{ total_spent|floatformat:2 }}</span>
-                <p class="text-xs text-gray-400 mt-0.5">Lifetime spending</p>
-              </div>
-              <div class="h-10 sm:h-12 flex items-end">
-                <div class="w-3 sm:w-4 h-5 sm:h-6 bg-primary/20 rounded-t-sm mr-1"></div>
-                <div class="w-3 sm:w-4 h-7 sm:h-8 bg-primary/30 rounded-t-sm mr-1"></div>
-                <div class="w-3 sm:w-4 h-8 sm:h-10 bg-primary/40 rounded-t-sm mr-1"></div>
-                <div class="w-3 sm:w-4 h-10 sm:h-12 bg-primary/60 rounded-t-sm"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Stats Card 3 -->
-          <div class="glass-card rounded-lg p-3 sm:p-4">
-            <div class="flex items-center justify-between mb-2 sm:mb-3">
-              <h3 class="text-sm sm:text-base font-semibold text-white">Downloads</h3>
-              <div class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-primary/20 rounded-full">
-                <i class="ri-download-cloud-line text-primary text-xs sm:text-sm"></i>
-              </div>
-            </div>
-            <div class="flex items-end justify-between">
-              <div>
-                <span class="text-xl sm:text-2xl font-bold text-white">{{ download_count }}</span>
-                <p class="text-xs text-gray-400 mt-0.5">Total downloads</p>
-              </div>
-              <div class="h-10 sm:h-12 flex items-end">
-                <div class="w-3 sm:w-4 h-5 sm:h-6 bg-primary/20 rounded-t-sm mr-1"></div>
-                <div class="w-3 sm:w-4 h-7 sm:h-8 bg-primary/30 rounded-t-sm mr-1"></div>
-                <div class="w-3 sm:w-4 h-8 sm:h-10 bg-primary/40 rounded-t-sm mr-1"></div>
-                <div class="w-3 sm:w-4 h-10 sm:h-12 bg-primary/60 rounded-t-sm"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Dashboard Tabs -->
-        <div class="glass rounded-lg p-3 sm:p-4">
-          <div class="flex overflow-x-auto scrollbar-hide space-x-3 sm:space-x-4 border-b border-gray-700 mb-3 sm:mb-4">
-            <button class="tab-button active text-white pb-2 text-xs sm:text-sm whitespace-nowrap" data-tab="purchased">Purchased Beats</button>
-            <button class="tab-button text-gray-400 pb-2 text-xs sm:text-sm whitespace-nowrap" data-tab="orders">Orders</button>
-            <button class="tab-button text-gray-400 pb-2 text-xs sm:text-sm whitespace-nowrap" data-tab="favourites">Favourites</button>
-            <button class="tab-button text-gray-400 pb-2 text-xs sm:text-sm whitespace-nowrap" data-tab="settings">Settings</button>
-          </div>
-
-          <!-- Tab Content -->
-          <div class="tab-content active" id="purchased-tab">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-4">
-              {% for beat in purchased_beats %}
-                {% include 'components/beat_card.html' with beat=beat %}
-              {% empty %}
-                <div class="col-span-3 text-center py-6 sm:py-8">
-                  <p class="text-gray-400 text-xs sm:text-sm">No purchased beats available.</p>
-                </div>
-              {% endfor %}
-            </div>
-          </div>
-
-          <!-- Orders Tab Content -->
-          <div class="tab-content hidden" id="orders-tab">
-            <div class="space-y-2">
-              {% for order in orders %}
-                <div class="glass-card rounded-lg p-2 sm:p-3">
-                  <div class="flex justify-between items-start sm:items-center">
-                    <div class="flex items-center space-x-2">
-                      <div class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-primary/20 rounded-full">
-                        <i class="ri-shopping-cart-line text-primary text-xs sm:text-sm"></i>
-                      </div>
-                      <div>
-                        <h4 class="text-xs sm:text-sm text-white font-medium">Order #{{ order.id }}</h4>
-                        <p class="text-[10px] sm:text-xs text-gray-400">{{ order.created_at|date:"F j, Y" }}</p>
-                      </div>
-                    </div>
-                    <div class="text-right">
-                      <span class="text-primary font-bold text-xs sm:text-sm">${{ order.total_price|floatformat:2 }}</span>
-                      <span class="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] sm:text-xs {% if order.status == 'completed' %}bg-green-500/20 text-green-400{% elif order.status == 'overruled' %}bg-red-500/20 text-red-400{% elif order.status == 'pending' %}bg-yellow-500/20 text-yellow-400{% else %}bg-gray-500/20 text-gray-400{% endif %}">
-                        {% if order.status == 'overruled' %}
-                            Overruled
-                        {% else %}
-                            {{ order.get_status_display }}
-                        {% endif %}
-                      </span>
-                      {% if order.status == 'overruled' %}
-                        <div class="mt-1.5 text-[10px] sm:text-xs text-left">
-                            <div class="bg-red-500/10 rounded-md p-2 mt-1">
-                                <span class="text-red-400 font-medium">Already purchased:</span>
-                                <ul class="mt-1 space-y-0.5 pl-3">
-                                    {% for item in order.purchased_items %}
-                                        <li class="text-red-300">• {{ item }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                        </div>
-                      {% endif %}
-                    </div>
-                  </div>
-                  <div class="mt-1.5 pl-9 sm:pl-10">
-                    <div class="space-y-0.5">
-                      {% for item in order.orderitem_set.all %}
-                        <div class="flex justify-between items-center text-[10px] sm:text-xs">
-                          {% if item.beat %}
-                            <span class="text-gray-300">{{ item.beat.title }}</span>
-                          {% elif item.bundle %}
-                            <span class="text-gray-300">{{ item.bundle.title }} <span class="text-gray-400">(Bundle)</span></span>
-                          {% endif %}
-                          <span class="text-gray-400">${{ item.price|floatformat:2 }}</span>
-                        </div>
-                      {% endfor %}
-                    </div>
-                    {% if order.status == 'pending' and not order.purchased_items %}
-                    <div class="mt-2 sm:mt-3 flex justify-end">
-                      <a href="{% url 'store:checkout' order.id %}" class="bg-primary hover:bg-primary/90 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-button text-[10px] sm:text-xs font-medium transition-colors whitespace-nowrap flex items-center gap-1 sm:gap-1.5">
-                        <i class="ri-shopping-cart-line"></i>
-                        Complete Checkout
-                      </a>
-                    </div>
-                    {% endif %}
-                  </div>
-                </div>
-              {% empty %}
-                <div class="text-center py-6 sm:py-8">
-                  <p class="text-gray-400 text-xs sm:text-sm">No orders available.</p>
-                </div>
-              {% endfor %}
-            </div>
-          </div>
-
-          <!-- Favourites Tab Content -->
-          <div class="tab-content hidden" id="favourites-tab">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-4">
-              {% for beat in favorite_beats %}
-                {% include 'components/beat_card.html' with beat=beat %}
-              {% empty %}
-                <div class="col-span-3 text-center py-6 sm:py-8">
-                  <p class="text-gray-400 text-xs sm:text-sm">No favourite beats yet.</p>
-                </div>
-              {% endfor %}
-            </div>
-          </div>
-
-          <!-- Settings Tab Content -->
-          <div class="tab-content hidden" id="settings-tab">
-            <div class="max-w-4xl mx-auto">
-              <!-- Profile Settings -->
-              <div class="glass-card rounded-lg p-3 sm:p-4 mb-3 sm:mb-4">
-                <h3 class="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">Profile Settings</h3>
-                <form id="profileForm" class="space-y-3 sm:space-y-4">
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    <div>
-                      <label class="block text-[10px] sm:text-xs font-medium text-gray-300 mb-1">First Name</label>
-                      <input type="text" name="first_name" value="{{ user.first_name }}" class="w-full bg-gray-800/50 border border-gray-700 text-white text-xs px-2.5 sm:px-3 py-1.5 sm:py-2 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
-                    </div>
-                    <div>
-                      <label class="block text-[10px] sm:text-xs font-medium text-gray-300 mb-1">Last Name</label>
-                      <input type="text" name="last_name" value="{{ user.last_name }}" class="w-full bg-gray-800/50 border border-gray-700 text-white text-xs px-2.5 sm:px-3 py-1.5 sm:py-2 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
-                    </div>
-                  </div>
-                  <div>
-                    <label class="block text-[10px] sm:text-xs font-medium text-gray-300 mb-1">Email</label>
-                    <input type="email" value="{{ user.email }}" class="w-full bg-gray-800/50 border border-gray-700 text-white text-xs px-2.5 sm:px-3 py-1.5 sm:py-2 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" disabled />
-                    <p class="text-[10px] sm:text-xs text-gray-400 mt-0.5">Email cannot be changed</p>
-                  </div>
-                  <div>
-                    <label class="block text-[10px] sm:text-xs font-medium text-gray-300 mb-1">Bio</label>
-                    <textarea name="bio" rows="4" class="w-full bg-gray-800/50 border border-gray-700 text-white text-xs px-2.5 sm:px-3 py-1.5 sm:py-2 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Tell us about yourself...">{{ user.userprofile.bio|default:'' }}</textarea>
-                  </div>
-                </form>
-              </div>
-
-              <!-- Notification Preferences -->
-              <div class="glass-card rounded-lg p-3 sm:p-4 mb-3 sm:mb-4">
-                <h3 class="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">Notification Preferences</h3>
-                <form id="notificationForm" class="space-y-2 sm:space-y-3">
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <h4 class="text-xs sm:text-sm text-white font-medium">Email Notifications</h4>
-                      <p class="text-[10px] sm:text-xs text-gray-400 mt-0.5">Receive updates about new beats and promotions</p>
-                    </div>
-                    <button type="button" class="notification-toggle w-8 sm:w-10 h-4 sm:h-5 bg-gray-700 rounded-full relative cursor-pointer transition-colors duration-200 ease-in-out" data-setting="email_notifications" data-value="{{ user.userprofile.email_notifications|yesno:'true,false' }}">
-                      <span class="absolute left-0.5 top-0.5 w-3 sm:w-4 h-3 sm:h-4 bg-white rounded-full transition-transform duration-200 ease-in-out transform translate-x-0"></span>
-                    </button>
-                  </div>
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <h4 class="text-xs sm:text-sm text-white font-medium">Order Updates</h4>
-                      <p class="text-[10px] sm:text-xs text-gray-400 mt-0.5">Get notified about your order status</p>
-                    </div>
-                    <button type="button" class="notification-toggle w-8 sm:w-10 h-4 sm:h-5 bg-gray-700 rounded-full relative cursor-pointer transition-colors duration-200 ease-in-out" data-setting="order_updates" data-value="{{ user.userprofile.order_updates|yesno:'true,false' }}">
-                      <span class="absolute left-0.5 top-0.5 w-3 sm:w-4 h-3 sm:h-4 bg-white rounded-full transition-transform duration-200 ease-in-out transform translate-x-0"></span>
-                    </button>
-                  </div>
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <h4 class="text-xs sm:text-sm text-white font-medium">New Releases</h4>
-                      <p class="text-[10px] sm:text-xs text-gray-400 mt-0.5">Be the first to know about new beats</p>
-                    </div>
-                    <button type="button" class="notification-toggle w-8 sm:w-10 h-4 sm:h-5 bg-gray-700 rounded-full relative cursor-pointer transition-colors duration-200 ease-in-out" data-setting="new_releases" data-value="{{ user.userprofile.new_releases|yesno:'true,false' }}">
-                      <span class="absolute left-0.5 top-0.5 w-3 sm:w-4 h-3 sm:h-4 bg-white rounded-full transition-transform duration-200 ease-in-out transform translate-x-0"></span>
-                    </button>
-                  </div>
-                </form>
-              </div>
-
-              <!-- Password Settings -->
-              <div class="glass-card rounded-lg p-3 sm:p-4">
-                <h3 class="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">Change Password</h3>
-                <form id="passwordForm" class="space-y-3 sm:space-y-4">
-                  <div>
-                    <label class="block text-[10px] sm:text-xs font-medium text-gray-300 mb-1">Current Password</label>
-                    <input type="password" name="current_password" class="w-full bg-gray-800/50 border border-gray-700 text-white text-xs px-2.5 sm:px-3 py-1.5 sm:py-2 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
-                  </div>
-                  <div>
-                    <label class="block text-[10px] sm:text-xs font-medium text-gray-300 mb-1">New Password</label>
-                    <input type="password" name="new_password" class="w-full bg-gray-800/50 border border-gray-700 text-white text-xs px-2.5 sm:px-3 py-1.5 sm:py-2 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
-                  </div>
-                  <div>
-                    <label class="block text-[10px] sm:text-xs font-medium text-gray-300 mb-1">Confirm New Password</label>
-                    <input type="password" name="confirm_password" class="w-full bg-gray-800/50 border border-gray-700 text-white text-xs px-2.5 sm:px-3 py-1.5 sm:py-2 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
-                  </div>
-                  <div class="flex justify-end">
-                    <button type="submit" class="bg-primary hover:bg-primary/90 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-button text-[10px] sm:text-xs font-medium transition-colors">
-                      Update Password
-                    </button>
-                  </div>
-                </form>
-              </div>
-
-              <!-- Delete Account -->
-              <div class="glass-card rounded-lg p-3 sm:p-4 border border-red-500/20">
-                <h3 class="text-base sm:text-lg font-bold text-red-500 mb-3 sm:mb-4">Delete Account</h3>
-                <div class="space-y-3">
-                  <p class="text-gray-300 text-xs">Once you delete your account, there is no going back. Please be certain.</p>
-                  <div class="flex justify-end">
-                    <button id="deleteAccountBtn" class="bg-red-500 hover:bg-red-600 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-button text-[10px] sm:text-xs font-medium transition-colors">
-                      Delete Account
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div class="h-10 sm:h-12 flex items-end">
+            <div
+              class="w-3 sm:w-4 h-5 sm:h-6 bg-primary/20 rounded-t-sm mr-1"
+            ></div>
+            <div
+              class="w-3 sm:w-4 h-7 sm:h-8 bg-primary/30 rounded-t-sm mr-1"
+            ></div>
+            <div
+              class="w-3 sm:w-4 h-8 sm:h-10 bg-primary/40 rounded-t-sm mr-1"
+            ></div>
+            <div
+              class="w-3 sm:w-4 h-10 sm:h-12 bg-primary/60 rounded-t-sm"
+            ></div>
           </div>
         </div>
       </div>
-    </main>
 
-    <!-- Delete Account Confirmation Modal -->
-    <div id="deleteAccountModal" class="fixed inset-0 z-50 hidden">
-      <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
-      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md">
-        <div class="glass rounded-lg border border-red-500/20 shadow-xl">
-          <div class="flex justify-between items-center p-6 border-b border-gray-800">
-            <h2 class="text-xl font-bold text-red-500">Delete Account</h2>
-            <button id="closeDeleteAccountModal" class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
-              <i class="ri-close-line ri-lg"></i>
-            </button>
+      <!-- Stats Card 2 -->
+      <div class="glass-card rounded-lg p-3 sm:p-4">
+        <div class="flex items-center justify-between mb-2 sm:mb-3">
+          <h3 class="text-sm sm:text-base font-semibold text-white">
+            Total Spent
+          </h3>
+          <div
+            class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-primary/20 rounded-full"
+          >
+            <i class="ri-wallet-3-line text-primary text-xs sm:text-sm"></i>
           </div>
-          <div class="p-6">
-            <div class="mb-6">
-              <p class="text-gray-300 mb-4">This action cannot be undone. Please type your security code to confirm.</p>
-              <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-300 mb-2">Security Code</label>
-                <input type="text" id="securityCode" class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" placeholder="Enter security code" />
-              </div>
-              <p class="text-sm text-gray-400">Type "DELETE" to confirm</p>
-            </div>
-            <div class="flex justify-end space-x-4">
-              <button id="cancelDeleteAccount" class="px-6 py-2.5 text-gray-300 hover:text-white transition-colors">
-                Cancel
-              </button>
-              <button id="confirmDeleteAccount" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2.5 rounded-button font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red-500 flex items-center justify-center min-w-[120px]" disabled>
-                <span class="button-text">Delete Account</span>
-                <div class="loading-spinner hidden">
-                  <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
+        </div>
+        <div class="flex items-end justify-between">
+          <div>
+            <span class="text-xl sm:text-2xl font-bold text-white"
+              >${{ total_spent|floatformat:2 }}</span
+            >
+            <p class="text-xs text-gray-400 mt-0.5">Lifetime spending</p>
+          </div>
+          <div class="h-10 sm:h-12 flex items-end">
+            <div
+              class="w-3 sm:w-4 h-5 sm:h-6 bg-primary/20 rounded-t-sm mr-1"
+            ></div>
+            <div
+              class="w-3 sm:w-4 h-7 sm:h-8 bg-primary/30 rounded-t-sm mr-1"
+            ></div>
+            <div
+              class="w-3 sm:w-4 h-8 sm:h-10 bg-primary/40 rounded-t-sm mr-1"
+            ></div>
+            <div
+              class="w-3 sm:w-4 h-10 sm:h-12 bg-primary/60 rounded-t-sm"
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Card 3 -->
+      <div class="glass-card rounded-lg p-3 sm:p-4">
+        <div class="flex items-center justify-between mb-2 sm:mb-3">
+          <h3 class="text-sm sm:text-base font-semibold text-white">
+            Downloads
+          </h3>
+          <div
+            class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-primary/20 rounded-full"
+          >
+            <i
+              class="ri-download-cloud-line text-primary text-xs sm:text-sm"
+            ></i>
+          </div>
+        </div>
+        <div class="flex items-end justify-between">
+          <div>
+            <span class="text-xl sm:text-2xl font-bold text-white"
+              >{{ download_count }}</span
+            >
+            <p class="text-xs text-gray-400 mt-0.5">Total downloads</p>
+          </div>
+          <div class="h-10 sm:h-12 flex items-end">
+            <div
+              class="w-3 sm:w-4 h-5 sm:h-6 bg-primary/20 rounded-t-sm mr-1"
+            ></div>
+            <div
+              class="w-3 sm:w-4 h-7 sm:h-8 bg-primary/30 rounded-t-sm mr-1"
+            ></div>
+            <div
+              class="w-3 sm:w-4 h-8 sm:h-10 bg-primary/40 rounded-t-sm mr-1"
+            ></div>
+            <div
+              class="w-3 sm:w-4 h-10 sm:h-12 bg-primary/60 rounded-t-sm"
+            ></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard Tabs -->
+    <div class="glass rounded-lg p-3 sm:p-4">
+      <div
+        class="flex overflow-x-auto scrollbar-hide space-x-3 sm:space-x-4 border-b border-gray-700 mb-3 sm:mb-4"
+      >
+        <button
+          class="tab-button active text-white pb-2 text-xs sm:text-sm whitespace-nowrap"
+          data-tab="purchased"
+        >
+          Purchased Beats
+        </button>
+        <button
+          class="tab-button text-gray-400 pb-2 text-xs sm:text-sm whitespace-nowrap"
+          data-tab="orders"
+        >
+          Orders
+        </button>
+        <button
+          class="tab-button text-gray-400 pb-2 text-xs sm:text-sm whitespace-nowrap"
+          data-tab="favourites"
+        >
+          Favourites
+        </button>
+        <button
+          class="tab-button text-gray-400 pb-2 text-xs sm:text-sm whitespace-nowrap"
+          data-tab="settings"
+        >
+          Settings
+        </button>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="tab-content active" id="purchased-tab">
+        <div
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-4"
+        >
+          {% for beat in purchased_beats %} {% include
+          'components/beat_card.html' with beat=beat %} {% empty %}
+          <div class="col-span-3 text-center py-6 sm:py-8">
+            <p class="text-gray-400 text-xs sm:text-sm">
+              No purchased beats available.
+            </p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Orders Tab Content -->
+      <div class="tab-content hidden" id="orders-tab">
+        <div class="space-y-2">
+          {% for order in orders %}
+          <div class="glass-card rounded-lg p-2 sm:p-3">
+            <div class="flex justify-between items-start sm:items-center">
+              <div class="flex items-center space-x-2">
+                <div
+                  class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center bg-primary/20 rounded-full"
+                >
+                  <i
+                    class="ri-shopping-cart-line text-primary text-xs sm:text-sm"
+                  ></i>
                 </div>
-              </button>
+                <div>
+                  <h4 class="text-xs sm:text-sm text-white font-medium">
+                    Order #{{ order.id }}
+                  </h4>
+                  <p class="text-[10px] sm:text-xs text-gray-400">
+                    {{ order.created_at|date:"F j, Y" }}
+                  </p>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="text-primary font-bold text-xs sm:text-sm"
+                  >${{ order.total_price|floatformat:2 }}</span
+                >
+                <span
+                  class="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] sm:text-xs {% if order.status == 'completed' %}bg-green-500/20 text-green-400{% elif order.status == 'overruled' %}bg-red-500/20 text-red-400{% elif order.status == 'pending' %}bg-yellow-500/20 text-yellow-400{% else %}bg-gray-500/20 text-gray-400{% endif %}"
+                >
+                  {% if order.status == 'overruled' %} Overruled {% else %} {{
+                  order.get_status_display }} {% endif %}
+                </span>
+                {% if order.status == 'overruled' %}
+                <div class="mt-1.5 text-[10px] sm:text-xs text-left">
+                  <div class="bg-red-500/10 rounded-md p-2 mt-1">
+                    <span class="text-red-400 font-medium"
+                      >Already purchased:</span
+                    >
+                    <ul class="mt-1 space-y-0.5 pl-3">
+                      {% for item in order.purchased_items %}
+                      <li class="text-red-300">• {{ item }}</li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+            <div class="mt-1.5 pl-9 sm:pl-10">
+              <div class="space-y-0.5">
+                {% for item in order.orderitem_set.all %}
+                <div
+                  class="flex justify-between items-center text-[10px] sm:text-xs"
+                >
+                  {% if item.beat %}
+                  <span class="text-gray-300">{{ item.beat.title }}</span>
+                  {% elif item.bundle %}
+                  <span class="text-gray-300"
+                    >{{ item.bundle.title }}
+                    <span class="text-gray-400">(Bundle)</span></span
+                  >
+                  {% endif %}
+                  <span class="text-gray-400"
+                    >${{ item.price|floatformat:2 }}</span
+                  >
+                </div>
+                {% endfor %}
+              </div>
+              {% if order.status == 'pending' and not order.purchased_items %}
+              <div class="mt-2 sm:mt-3 flex justify-end">
+                <a
+                  href="{% url 'store:checkout' order.id %}"
+                  class="bg-primary hover:bg-primary/90 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-button text-[10px] sm:text-xs font-medium transition-colors whitespace-nowrap flex items-center gap-1 sm:gap-1.5"
+                >
+                  <i class="ri-shopping-cart-line"></i>
+                  Complete Checkout
+                </a>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% empty %}
+          <div class="text-center py-6 sm:py-8">
+            <p class="text-gray-400 text-xs sm:text-sm">No orders available.</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Favourites Tab Content -->
+      <div class="tab-content hidden" id="favourites-tab">
+        <div
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-4"
+        >
+          {% for beat in favorite_beats %} {% include
+          'components/beat_card.html' with beat=beat %} {% empty %}
+          <div class="col-span-3 text-center py-6 sm:py-8">
+            <p class="text-gray-400 text-xs sm:text-sm">
+              No favourite beats yet.
+            </p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Settings Tab Content -->
+      <div class="tab-content hidden" id="settings-tab">
+        <div class="max-w-4xl mx-auto">
+          <!-- Profile Settings -->
+          <div class="glass-card rounded-lg p-3 sm:p-4 mb-3 sm:mb-4">
+            <h3 class="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">
+              Profile Settings
+            </h3>
+            <form id="profileForm" class="space-y-3 sm:space-y-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div>
+                  <label
+                    class="block text-[10px] sm:text-xs font-medium text-gray-300 mb-1"
+                    >First Name</label
+                  >
+                  <input
+                    type="text"
+                    name="first_name"
+                    value="{{ user.first_name }}"
+                    class="w-full bg-gray-800/50 border border-gray-700 text-white text-xs px-2.5 sm:px-3 py-1.5 sm:py-2 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label
+                    class="block text-[10px] sm:text-xs font-medium text-gray-300 mb-1"
+                    >Last Name</label
+                  >
+                  <input
+                    type="text"
+                    name="last_name"
+                    value="{{ user.last_name }}"
+                    class="w-full bg-gray-800/50 border border-gray-700 text-white text-xs px-2.5 sm:px-3 py-1.5 sm:py-2 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  />
+                </div>
+              </div>
+              <div>
+                <label
+                  class="block text-[10px] sm:text-xs font-medium text-gray-300 mb-1"
+                  >Email</label
+                >
+                <input
+                  type="email"
+                  value="{{ user.email }}"
+                  class="w-full bg-gray-800/50 border border-gray-700 text-white text-xs px-2.5 sm:px-3 py-1.5 sm:py-2 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  disabled
+                />
+                <p class="text-[10px] sm:text-xs text-gray-400 mt-0.5">
+                  Email cannot be changed
+                </p>
+              </div>
+              <div>
+                <label
+                  class="block text-[10px] sm:text-xs font-medium text-gray-300 mb-1"
+                  >Bio</label
+                >
+                <textarea
+                  name="bio"
+                  rows="4"
+                  class="w-full bg-gray-800/50 border border-gray-700 text-white text-xs px-2.5 sm:px-3 py-1.5 sm:py-2 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  placeholder="Tell us about yourself..."
+                >
+{{ user.userprofile.bio|default:'' }}</textarea
+                >
+              </div>
+            </form>
+          </div>
+
+          <!-- Notification Preferences -->
+          <div class="glass-card rounded-lg p-3 sm:p-4 mb-3 sm:mb-4">
+            <h3 class="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">
+              Notification Preferences
+            </h3>
+            <form id="notificationForm" class="space-y-2 sm:space-y-3">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h4 class="text-xs sm:text-sm text-white font-medium">
+                    Email Notifications
+                  </h4>
+                  <p class="text-[10px] sm:text-xs text-gray-400 mt-0.5">
+                    Receive updates about new beats and promotions
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  class="notification-toggle w-8 sm:w-10 h-4 sm:h-5 bg-gray-700 rounded-full relative cursor-pointer transition-colors duration-200 ease-in-out"
+                  data-setting="email_notifications"
+                  data-value="{{ user.userprofile.email_notifications|yesno:'true,false' }}"
+                >
+                  <span
+                    class="absolute left-0.5 top-0.5 w-3 sm:w-4 h-3 sm:h-4 bg-white rounded-full transition-transform duration-200 ease-in-out transform translate-x-0"
+                  ></span>
+                </button>
+              </div>
+              <div class="flex items-center justify-between">
+                <div>
+                  <h4 class="text-xs sm:text-sm text-white font-medium">
+                    Order Updates
+                  </h4>
+                  <p class="text-[10px] sm:text-xs text-gray-400 mt-0.5">
+                    Get notified about your order status
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  class="notification-toggle w-8 sm:w-10 h-4 sm:h-5 bg-gray-700 rounded-full relative cursor-pointer transition-colors duration-200 ease-in-out"
+                  data-setting="order_updates"
+                  data-value="{{ user.userprofile.order_updates|yesno:'true,false' }}"
+                >
+                  <span
+                    class="absolute left-0.5 top-0.5 w-3 sm:w-4 h-3 sm:h-4 bg-white rounded-full transition-transform duration-200 ease-in-out transform translate-x-0"
+                  ></span>
+                </button>
+              </div>
+              <div class="flex items-center justify-between">
+                <div>
+                  <h4 class="text-xs sm:text-sm text-white font-medium">
+                    New Releases
+                  </h4>
+                  <p class="text-[10px] sm:text-xs text-gray-400 mt-0.5">
+                    Be the first to know about new beats
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  class="notification-toggle w-8 sm:w-10 h-4 sm:h-5 bg-gray-700 rounded-full relative cursor-pointer transition-colors duration-200 ease-in-out"
+                  data-setting="new_releases"
+                  data-value="{{ user.userprofile.new_releases|yesno:'true,false' }}"
+                >
+                  <span
+                    class="absolute left-0.5 top-0.5 w-3 sm:w-4 h-3 sm:h-4 bg-white rounded-full transition-transform duration-200 ease-in-out transform translate-x-0"
+                  ></span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Password Settings -->
+          <div class="glass-card rounded-lg p-3 sm:p-4">
+            <h3 class="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">
+              Change Password
+            </h3>
+            <form id="passwordForm" class="space-y-3 sm:space-y-4">
+              <div>
+                <label
+                  class="block text-[10px] sm:text-xs font-medium text-gray-300 mb-1"
+                  >Current Password</label
+                >
+                <input
+                  type="password"
+                  name="current_password"
+                  class="w-full bg-gray-800/50 border border-gray-700 text-white text-xs px-2.5 sm:px-3 py-1.5 sm:py-2 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label
+                  class="block text-[10px] sm:text-xs font-medium text-gray-300 mb-1"
+                  >New Password</label
+                >
+                <input
+                  type="password"
+                  name="new_password"
+                  class="w-full bg-gray-800/50 border border-gray-700 text-white text-xs px-2.5 sm:px-3 py-1.5 sm:py-2 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label
+                  class="block text-[10px] sm:text-xs font-medium text-gray-300 mb-1"
+                  >Confirm New Password</label
+                >
+                <input
+                  type="password"
+                  name="confirm_password"
+                  class="w-full bg-gray-800/50 border border-gray-700 text-white text-xs px-2.5 sm:px-3 py-1.5 sm:py-2 rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+              </div>
+              <div class="flex justify-end">
+                <button
+                  type="submit"
+                  class="bg-primary hover:bg-primary/90 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-button text-[10px] sm:text-xs font-medium transition-colors"
+                >
+                  Update Password
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Delete Account -->
+          <div
+            class="glass-card rounded-lg p-3 sm:p-4 border border-red-500/20"
+          >
+            <h3
+              class="text-base sm:text-lg font-bold text-red-500 mb-3 sm:mb-4"
+            >
+              Delete Account
+            </h3>
+            <div class="space-y-3">
+              <p class="text-gray-300 text-xs">
+                Once you delete your account, there is no going back. Please be
+                certain.
+              </p>
+              <div class="flex justify-end">
+                <button
+                  id="deleteAccountBtn"
+                  class="bg-red-500 hover:bg-red-600 text-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-button text-[10px] sm:text-xs font-medium transition-colors"
+                >
+                  Delete Account
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-{% endblock %}
+  </div>
+</main>
 
-{% block extra_js %}
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        // Initialize form elements first
-        const profileForm = document.getElementById('profileForm');
-        const passwordForm = document.getElementById('passwordForm');
-        const saveSettingsBtn = document.getElementById('saveSettings');
-        const changePasswordBtn = document.getElementById('changePasswordBtn');
-        const deleteAccountBtn = document.getElementById('deleteAccountBtn');
-        const confirmDeleteAccountBtn = document.getElementById('confirmDeleteAccount');
-        const securityCodeInput = document.getElementById('securityCode');
-        const toggles = document.querySelectorAll('.notification-toggle');
+<!-- Delete Account Confirmation Modal -->
+<div id="deleteAccountModal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+  <div
+    class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md"
+  >
+    <div class="glass rounded-lg border border-red-500/20 shadow-xl">
+      <div
+        class="flex justify-between items-center p-6 border-b border-gray-800"
+      >
+        <h2 class="text-xl font-bold text-red-500">Delete Account</h2>
+        <button
+          id="closeDeleteAccountModal"
+          class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+        >
+          <i class="ri-close-line ri-lg"></i>
+        </button>
+      </div>
+      <div class="p-6">
+        <div class="mb-6">
+          <p class="text-gray-300 mb-4">
+            This action cannot be undone. Please type your security code to
+            confirm.
+          </p>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-300 mb-2"
+              >Security Code</label
+            >
+            <input
+              type="text"
+              id="securityCode"
+              class="w-full bg-gray-800/50 border border-gray-700 text-white px-4 py-2.5 rounded focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              placeholder="Enter security code"
+            />
+          </div>
+          <p class="text-sm text-gray-400">Type "DELETE" to confirm</p>
+        </div>
+        <div class="flex justify-end space-x-4">
+          <button
+            id="cancelDeleteAccount"
+            class="px-6 py-2.5 text-gray-300 hover:text-white transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            id="confirmDeleteAccount"
+            class="bg-red-500 hover:bg-red-600 text-white px-6 py-2.5 rounded-button font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red-500 flex items-center justify-center min-w-[120px]"
+            disabled
+          >
+            <span class="button-text">Delete Account</span>
+            <div class="loading-spinner hidden">
+              <svg
+                class="animate-spin h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Initialize form elements first
+    const profileForm = document.getElementById("profileForm");
+    const passwordForm = document.getElementById("passwordForm");
+    const saveSettingsBtn = document.getElementById("saveSettings");
+    const changePasswordBtn = document.getElementById("changePasswordBtn");
+    const deleteAccountBtn = document.getElementById("deleteAccountBtn");
+    const confirmDeleteAccountBtn = document.getElementById(
+      "confirmDeleteAccount"
+    );
+    const securityCodeInput = document.getElementById("securityCode");
+    const toggles = document.querySelectorAll(".notification-toggle");
 
-        // Function to check if forms have changes
-        function checkFormChanges() {
-          if (!profileForm || !saveSettingsBtn) return;
-          
-          const profileData = new FormData(profileForm);
-          const passwordData = new FormData(passwordForm);
-          
-          // Check profile form changes
-          const hasProfileChanges = Array.from(profileData.entries()).some(([key, value]) => {
-            const element = profileForm.querySelector(`[name="${key}"]`);
-            if (!element) return false;
-            
-            // Handle textarea and input elements differently
-            const originalValue = element.tagName.toLowerCase() === 'textarea' 
-              ? element.defaultValue.trim() 
+    // Function to check if forms have changes
+    function checkFormChanges() {
+      if (!profileForm || !saveSettingsBtn) return;
+
+      const profileData = new FormData(profileForm);
+      const passwordData = new FormData(passwordForm);
+
+      // Check profile form changes
+      const hasProfileChanges = Array.from(profileData.entries()).some(
+        ([key, value]) => {
+          const element = profileForm.querySelector(`[name="${key}"]`);
+          if (!element) return false;
+
+          // Handle textarea and input elements differently
+          const originalValue =
+            element.tagName.toLowerCase() === "textarea"
+              ? element.defaultValue.trim()
               : element.defaultValue;
-            const currentValue = value.trim();
-            
-            return currentValue !== originalValue;
-          });
-          
-          // Check password form changes
-          const hasPasswordChanges = Array.from(passwordData.entries()).some(([_, value]) => value !== '');
-          
-          // Check notification toggle changes
-          const hasNotificationChanges = Array.from(toggles).some(toggle => {
-            const originalValue = toggle.dataset.initialValue;
-            const currentValue = toggle.classList.contains('bg-primary').toString();
-            return originalValue !== currentValue;
-          });
-          
-          // Enable save button if there are any profile or notification changes
-          saveSettingsBtn.disabled = !(hasProfileChanges || hasNotificationChanges);
-          
-          // Enable password button if there are password changes
-          if (changePasswordBtn) {
-            changePasswordBtn.disabled = !hasPasswordChanges;
-          }
-        }
+          const currentValue = value.trim();
 
-        // Add input event listeners to all form fields
-        if (profileForm) {
-          const formInputs = profileForm.querySelectorAll('input, textarea');
-          formInputs.forEach(input => {
-            input.addEventListener('input', checkFormChanges);
-            // Store initial value after DOM is loaded
-            input.defaultValue = input.value;
-          });
+          return currentValue !== originalValue;
         }
+      );
 
-        // Initialize notification toggles
-        toggles.forEach(toggle => {
-          const isEnabled = toggle.dataset.value === 'true';
-          if (isEnabled) {
-            toggle.classList.add('bg-primary');
-            toggle.querySelector('span').classList.add('translate-x-5');
+      // Check password form changes
+      const hasPasswordChanges = Array.from(passwordData.entries()).some(
+        ([_, value]) => value !== ""
+      );
+
+      // Check notification toggle changes
+      const hasNotificationChanges = Array.from(toggles).some((toggle) => {
+        const originalValue = toggle.dataset.initialValue;
+        const currentValue = toggle.classList.contains("bg-primary").toString();
+        return originalValue !== currentValue;
+      });
+
+      // Enable save button if there are any profile or notification changes
+      saveSettingsBtn.disabled = !(hasProfileChanges || hasNotificationChanges);
+
+      // Enable password button if there are password changes
+      if (changePasswordBtn) {
+        changePasswordBtn.disabled = !hasPasswordChanges;
+      }
+    }
+
+    // Add input event listeners to all form fields
+    if (profileForm) {
+      const formInputs = profileForm.querySelectorAll("input, textarea");
+      formInputs.forEach((input) => {
+        input.addEventListener("input", checkFormChanges);
+        // Store initial value after DOM is loaded
+        input.defaultValue = input.value;
+      });
+    }
+
+    // Initialize notification toggles
+    toggles.forEach((toggle) => {
+      const isEnabled = toggle.dataset.value === "true";
+      if (isEnabled) {
+        toggle.classList.add("bg-primary");
+        toggle.querySelector("span").classList.add("translate-x-5");
+      }
+      // Store initial state
+      toggle.dataset.initialValue = toggle.dataset.value;
+    });
+
+    // Toggle click handler
+    toggles.forEach((toggle) => {
+      toggle.addEventListener("click", function () {
+        const isEnabled = this.classList.contains("bg-primary");
+        this.classList.toggle("bg-primary");
+        this.querySelector("span").classList.toggle("translate-x-5");
+        this.dataset.value = (!isEnabled).toString();
+        checkFormChanges();
+      });
+    });
+
+    // Track password form changes and add input event listeners
+    if (passwordForm) {
+      const passwordInputs = passwordForm.querySelectorAll("input");
+      passwordInputs.forEach((input) => {
+        // Add change detection
+        input.addEventListener("input", checkFormChanges);
+
+        // Add error clearing
+        input.addEventListener("input", function () {
+          const errorDiv = this.nextElementSibling;
+          if (errorDiv) {
+            this.classList.remove("border-red-500");
+            errorDiv.classList.add("hidden");
           }
-          // Store initial state
-          toggle.dataset.initialValue = toggle.dataset.value;
+        });
+      });
+    }
+
+    // Security code validation
+    if (securityCodeInput && confirmDeleteAccountBtn) {
+      securityCodeInput.addEventListener("input", () => {
+        confirmDeleteAccountBtn.disabled = securityCodeInput.value !== "DELETE";
+      });
+    }
+
+    // Function to set button loading state
+    function setButtonLoading(button, isLoading) {
+      if (!button) return;
+
+      const buttonText = button.querySelector(".button-text");
+      const loadingSpinner = button.querySelector(".loading-spinner");
+
+      if (!buttonText || !loadingSpinner) return;
+
+      if (isLoading) {
+        button.disabled = true;
+        buttonText.classList.add("opacity-0");
+        loadingSpinner.classList.remove("hidden");
+      } else {
+        button.disabled = false;
+        buttonText.classList.remove("opacity-0");
+        loadingSpinner.classList.add("hidden");
+      }
+    }
+
+    // Save settings handler
+    if (saveSettingsBtn) {
+      saveSettingsBtn.addEventListener("click", async function () {
+        const button = this;
+        setButtonLoading(button, true);
+
+        const profileData = new FormData(profileForm);
+        const notificationData = new FormData();
+
+        // Get notification preferences
+        toggles.forEach((toggle) => {
+          const value = toggle.classList.contains("bg-primary").toString();
+          notificationData.append(toggle.dataset.setting, value);
         });
 
-        // Toggle click handler
-        toggles.forEach(toggle => {
-          toggle.addEventListener('click', function() {
-            const isEnabled = this.classList.contains('bg-primary');
-            this.classList.toggle('bg-primary');
-            this.querySelector('span').classList.toggle('translate-x-5');
-            this.dataset.value = (!isEnabled).toString();
+        const requestData = {
+          profile: Object.fromEntries(profileData),
+          notifications: Object.fromEntries(notificationData),
+        };
+
+        try {
+          const response = await fetch("/api/settings/update/", {
+            method: "POST",
+            headers: {
+              "X-CSRFToken": getCookie("csrftoken"),
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(requestData),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            showNotification("Settings saved successfully", "success");
+            // Reset form default values
+            Array.from(profileForm.elements).forEach((element) => {
+              if (element.type !== "submit") {
+                element.defaultValue = element.value;
+              }
+            });
+            // Update toggle initial values
+            toggles.forEach((toggle) => {
+              toggle.dataset.initialValue = toggle.dataset.value;
+            });
             checkFormChanges();
-          });
-        });
-
-        // Track password form changes and add input event listeners
-        if (passwordForm) {
-          const passwordInputs = passwordForm.querySelectorAll('input');
-          passwordInputs.forEach(input => {
-            // Add change detection
-            input.addEventListener('input', checkFormChanges);
-            
-            // Add error clearing
-            input.addEventListener('input', function() {
-              const errorDiv = this.nextElementSibling;
-              if (errorDiv) {
-                this.classList.remove('border-red-500');
-                errorDiv.classList.add('hidden');
-              }
-            });
-          });
-        }
-
-        // Security code validation
-        if (securityCodeInput && confirmDeleteAccountBtn) {
-          securityCodeInput.addEventListener('input', () => {
-            confirmDeleteAccountBtn.disabled = securityCodeInput.value !== 'DELETE';
-          });
-        }
-
-        // Function to set button loading state
-        function setButtonLoading(button, isLoading) {
-          if (!button) return;
-          
-          const buttonText = button.querySelector('.button-text');
-          const loadingSpinner = button.querySelector('.loading-spinner');
-          
-          if (!buttonText || !loadingSpinner) return;
-          
-          if (isLoading) {
-            button.disabled = true;
-            buttonText.classList.add('opacity-0');
-            loadingSpinner.classList.remove('hidden');
           } else {
-            button.disabled = false;
-            buttonText.classList.remove('opacity-0');
-            loadingSpinner.classList.add('hidden');
+            showNotification(data.error || "Error saving settings", "error");
           }
-        }
-
-        // Save settings handler
-        if (saveSettingsBtn) {
-          saveSettingsBtn.addEventListener('click', async function() {
-            const button = this;
-            setButtonLoading(button, true);
-            
-            const profileData = new FormData(profileForm);
-            const notificationData = new FormData();
-            
-            // Get notification preferences
-            toggles.forEach(toggle => {
-              const value = toggle.classList.contains('bg-primary').toString();
-              notificationData.append(toggle.dataset.setting, value);
-            });
-
-            const requestData = {
-              profile: Object.fromEntries(profileData),
-              notifications: Object.fromEntries(notificationData)
-            };
-
-            try {
-              const response = await fetch('/api/settings/update/', {
-                method: 'POST',
-                headers: {
-                  'X-CSRFToken': getCookie('csrftoken'),
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestData)
-              });
-
-              const data = await response.json();
-              
-              if (response.ok) {
-                showNotification('Settings saved successfully', 'success');
-                // Reset form default values
-                Array.from(profileForm.elements).forEach(element => {
-                  if (element.type !== 'submit') {
-                    element.defaultValue = element.value;
-                  }
-                });
-                // Update toggle initial values
-                toggles.forEach(toggle => {
-                  toggle.dataset.initialValue = toggle.dataset.value;
-                });
-                checkFormChanges();
-              } else {
-                showNotification(data.error || 'Error saving settings', 'error');
-              }
-            } catch (error) {
-              showNotification('Error saving settings', 'error');
-            } finally {
-              setButtonLoading(button, false);
-            }
-          });
-        }
-
-        // Change password handler
-        if (changePasswordBtn) {
-          changePasswordBtn.addEventListener('click', async function() {
-            const button = this;
-            clearErrors();
-            
-            const passwordData = new FormData(passwordForm);
-            const currentPassword = passwordData.get('current_password');
-            const newPassword = passwordData.get('new_password');
-            const confirmPassword = passwordData.get('confirm_password');
-            
-            // Validate current password
-            if (!currentPassword) {
-              showFieldError('current_password', 'Please enter your current password');
-              return;
-            }
-            
-            // Validate new password
-            const validation = validatePassword(newPassword);
-            if (!validation.isValid) {
-              showFieldError('new_password', validation.errors.join('\n'));
-              return;
-            }
-            
-            // Check if passwords match
-            if (newPassword !== confirmPassword) {
-              showFieldError('confirm_password', 'New passwords do not match');
-              return;
-            }
-            
-            setButtonLoading(button, true);
-            
-            try {
-              const response = await fetch('/api/settings/update/', {
-                method: 'POST',
-                headers: {
-                  'X-CSRFToken': getCookie('csrftoken'),
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  password: {
-                    current_password: currentPassword,
-                    new_password: newPassword,
-                    confirm_password: confirmPassword
-                  }
-                })
-              });
-
-              const data = await response.json();
-              if (response.ok) {
-                showNotification('Password changed successfully', 'success');
-                passwordForm.reset();
-                checkFormChanges();
-              } else {
-                // Handle specific error cases
-                if (data.message.includes('Current password is incorrect')) {
-                  showFieldError('current_password', 'Current password is incorrect');
-                } else if (data.message.includes('New passwords do not match')) {
-                  showFieldError('confirm_password', 'New passwords do not match');
-                } else {
-                  // Handle password strength validation errors
-                  const errors = data.message.split('\n');
-                  showFieldError('new_password', errors.join('\n'));
-                }
-              }
-            } catch (error) {
-              showFieldError('new_password', 'An error occurred while changing password');
-            } finally {
-              setButtonLoading(button, false);
-            }
-          });
-        }
-
-        // Handle delete account confirmation
-        if (confirmDeleteAccountBtn) {
-          confirmDeleteAccountBtn.addEventListener('click', async function() {
-            const button = this;
-            setButtonLoading(button, true);
-            
-            try {
-              const response = await fetch('/api/settings/delete-account/', {
-                method: 'POST',
-                headers: {
-                  'X-CSRFToken': getCookie('csrftoken'),
-                  'Content-Type': 'application/json',
-                }
-              });
-
-              if (response.ok) {
-                window.location.href = '/';
-              } else {
-                const data = await response.json();
-                showNotification(data.error || 'Error deleting account', 'error');
-              }
-            } catch (error) {
-              showNotification('Error deleting account', 'error');
-            } finally {
-              setButtonLoading(button, false);
-            }
-          });
-        }
-
-        // Tab functionality
-        const tabButtons = document.querySelectorAll(".tab-button");
-        const tabContents = document.querySelectorAll(".tab-content");
-
-        function switchTab(tabId) {
-          // Hide all tab contents
-          tabContents.forEach(content => {
-            content.classList.add('hidden');
-            content.classList.remove('active');
-          });
-
-          // Remove active class from all buttons
-          tabButtons.forEach(button => {
-            button.classList.remove('active');
-            button.classList.remove('text-white');
-            button.classList.add('text-gray-400');
-          });
-
-          // Show selected tab content
-          const selectedContent = document.getElementById(`${tabId}-tab`);
-          if (selectedContent) {
-            selectedContent.classList.remove('hidden');
-            selectedContent.classList.add('active');
-          }
-
-          // Update button styles
-          const selectedButton = document.querySelector(`[data-tab="${tabId}"]`);
-          if (selectedButton) {
-            selectedButton.classList.add('active');
-            selectedButton.classList.add('text-white');
-            selectedButton.classList.remove('text-gray-400');
-          }
-        }
-
-        // Add click event listeners to tab buttons
-        tabButtons.forEach(button => {
-          button.addEventListener("click", () => {
-            const tabId = button.getAttribute('data-tab');
-            switchTab(tabId);
-            // Update URL without reloading the page
-            const url = new URL(window.location);
-            url.searchParams.set('tab', tabId);
-            window.history.pushState({}, '', url);
-          });
-        });
-
-        // Handle URL parameters for direct tab access
-        const urlParams = new URLSearchParams(window.location.search);
-        const tabParam = urlParams.get('tab');
-        if (tabParam) {
-          switchTab(tabParam);
-        }
-
-        // Delete Account Modal
-        if (deleteAccountBtn) {
-          deleteAccountBtn.addEventListener('click', () => {
-            document.getElementById('deleteAccountModal').classList.remove('hidden');
-          });
-        }
-
-        const closeDeleteAccountModal = document.getElementById('closeDeleteAccountModal');
-        if (closeDeleteAccountModal) {
-          closeDeleteAccountModal.addEventListener('click', () => {
-            document.getElementById('deleteAccountModal').classList.add('hidden');
-          });
-        }
-
-        const cancelDeleteAccount = document.getElementById('cancelDeleteAccount');
-        if (cancelDeleteAccount) {
-          cancelDeleteAccount.addEventListener('click', () => {
-            document.getElementById('deleteAccountModal').classList.add('hidden');
-          });
-        }
-
-        // Cart functionality
-        async function addToCart(beatId) {
-          try {
-            const response = await fetch(`/api/cart/add/${beatId}/`, {
-              method: 'POST',
-              headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-                'Content-Type': 'application/json',
-              }
-            });
-
-            const data = await response.json();
-            
-            if (response.status === 401) {
-              // User is not authenticated
-              showNotification('Please login to add items to cart', 'error');
-              // Optionally redirect to login page
-              window.location.href = '/login/';
-              return;
-            }
-            
-            if (response.ok) {
-              showNotification(data.message, 'success');
-              updateCartCount();
-            } else {
-              showNotification(data.message || 'Error adding to cart', 'error');
-            }
-          } catch (error) {
-            showNotification('Error adding to cart', 'error');
-          }
-        }
-
-        async function removeFromCart(cartItemId) {
-          try {
-            const response = await fetch(`/api/cart/remove/${cartItemId}/`, {
-              method: 'POST',
-              headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-                'Content-Type': 'application/json',
-              }
-            });
-
-            const data = await response.json();
-            
-            if (response.status === 401) {
-              // User is not authenticated
-              showNotification('Please login to manage your cart', 'error');
-              window.location.href = '/login/';
-              return;
-            }
-            
-            if (response.ok) {
-              showNotification(data.message, 'success');
-              updateCartCount();
-              // Optionally refresh cart items display
-              loadCartItems();
-            } else {
-              showNotification(data.message || 'Error removing from cart', 'error');
-            }
-          } catch (error) {
-            showNotification('Error removing from cart', 'error');
-          }
-        }
-
-        async function loadCartItems() {
-          try {
-            const response = await fetch('/api/cart/', {
-              headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-                'Content-Type': 'application/json',
-              }
-            });
-
-            const data = await response.json();
-            
-            if (response.status === 401) {
-              // User is not authenticated
-              showNotification('Please login to view your cart', 'error');
-              window.location.href = '/login/';
-              return;
-            }
-            
-            if (response.ok) {
-              // Update cart display with data.items
-              updateCartDisplay(data.items);
-              updateCartTotal(data.total_price);
-            } else {
-              showNotification(data.message || 'Error loading cart', 'error');
-            }
-          } catch (error) {
-            showNotification('Error loading cart', 'error');
-          }
-        }
-
-        async function updateCartCount() {
-          try {
-            const response = await fetch('/api/cart/count/', {
-              headers: {
-                'X-CSRFToken': getCookie('csrftoken'),
-                'Content-Type': 'application/json',
-              }
-            });
-
-            const data = await response.json();
-            
-            if (response.status === 401) {
-              // User is not authenticated, set count to 0
-              document.querySelector('.cart-count').textContent = '0';
-              return;
-            }
-            
-            if (response.ok) {
-              document.querySelector('.cart-count').textContent = data.count;
-            }
-          } catch (error) {
-            console.error('Error updating cart count:', error);
-          }
-        }
-
-        // Add click handlers for cart buttons
-        document.querySelectorAll('.add-to-cart-btn').forEach(button => {
-          button.addEventListener('click', function() {
-            const beatId = this.dataset.beatId;
-            addToCart(beatId);
-          });
-        });
-
-        document.querySelectorAll('.remove-from-cart-btn').forEach(button => {
-          button.addEventListener('click', function() {
-            const cartItemId = this.dataset.cartItemId;
-            removeFromCart(cartItemId);
-          });
-        });
-
-        // Load cart items on page load if on cart page
-        if (document.querySelector('.cart-items-container')) {
-          loadCartItems();
+        } catch (error) {
+          showNotification("Error saving settings", "error");
+        } finally {
+          setButtonLoading(button, false);
         }
       });
-    </script>
+    }
+
+    // Change password handler
+    if (changePasswordBtn) {
+      changePasswordBtn.addEventListener("click", async function () {
+        const button = this;
+        clearErrors();
+
+        const passwordData = new FormData(passwordForm);
+        const currentPassword = passwordData.get("current_password");
+        const newPassword = passwordData.get("new_password");
+        const confirmPassword = passwordData.get("confirm_password");
+
+        // Validate current password
+        if (!currentPassword) {
+          showFieldError(
+            "current_password",
+            "Please enter your current password"
+          );
+          return;
+        }
+
+        // Validate new password
+        const validation = validatePassword(newPassword);
+        if (!validation.isValid) {
+          showFieldError("new_password", validation.errors.join("\n"));
+          return;
+        }
+
+        // Check if passwords match
+        if (newPassword !== confirmPassword) {
+          showFieldError("confirm_password", "New passwords do not match");
+          return;
+        }
+
+        setButtonLoading(button, true);
+
+        try {
+          const response = await fetch("/api/settings/update/", {
+            method: "POST",
+            headers: {
+              "X-CSRFToken": getCookie("csrftoken"),
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              password: {
+                current_password: currentPassword,
+                new_password: newPassword,
+                confirm_password: confirmPassword,
+              },
+            }),
+          });
+
+          const data = await response.json();
+          if (response.ok) {
+            showNotification("Password changed successfully", "success");
+            passwordForm.reset();
+            checkFormChanges();
+          } else {
+            // Handle specific error cases
+            if (data.message.includes("Current password is incorrect")) {
+              showFieldError(
+                "current_password",
+                "Current password is incorrect"
+              );
+            } else if (data.message.includes("New passwords do not match")) {
+              showFieldError("confirm_password", "New passwords do not match");
+            } else {
+              // Handle password strength validation errors
+              const errors = data.message.split("\n");
+              showFieldError("new_password", errors.join("\n"));
+            }
+          }
+        } catch (error) {
+          showFieldError(
+            "new_password",
+            "An error occurred while changing password"
+          );
+        } finally {
+          setButtonLoading(button, false);
+        }
+      });
+    }
+
+    // Handle delete account confirmation
+    if (confirmDeleteAccountBtn) {
+      confirmDeleteAccountBtn.addEventListener("click", async function () {
+        const button = this;
+        setButtonLoading(button, true);
+
+        try {
+          const response = await fetch("/api/settings/delete-account/", {
+            method: "POST",
+            headers: {
+              "X-CSRFToken": getCookie("csrftoken"),
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (response.ok) {
+            window.location.href = "/";
+          } else {
+            const data = await response.json();
+            showNotification(data.error || "Error deleting account", "error");
+          }
+        } catch (error) {
+          showNotification("Error deleting account", "error");
+        } finally {
+          setButtonLoading(button, false);
+        }
+      });
+    }
+
+    // Tab functionality
+    const tabButtons = document.querySelectorAll(".tab-button");
+    const tabContents = document.querySelectorAll(".tab-content");
+
+    function switchTab(tabId) {
+      // Hide all tab contents
+      tabContents.forEach((content) => {
+        content.classList.add("hidden");
+        content.classList.remove("active");
+      });
+
+      // Remove active class from all buttons
+      tabButtons.forEach((button) => {
+        button.classList.remove("active");
+        button.classList.remove("text-white");
+        button.classList.add("text-gray-400");
+      });
+
+      // Show selected tab content
+      const selectedContent = document.getElementById(`${tabId}-tab`);
+      if (selectedContent) {
+        selectedContent.classList.remove("hidden");
+        selectedContent.classList.add("active");
+      }
+
+      // Update button styles
+      const selectedButton = document.querySelector(`[data-tab="${tabId}"]`);
+      if (selectedButton) {
+        selectedButton.classList.add("active");
+        selectedButton.classList.add("text-white");
+        selectedButton.classList.remove("text-gray-400");
+      }
+    }
+
+    // Add click event listeners to tab buttons
+    tabButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const tabId = button.getAttribute("data-tab");
+        switchTab(tabId);
+        // Update URL without reloading the page
+        const url = new URL(window.location);
+        url.searchParams.set("tab", tabId);
+        window.history.pushState({}, "", url);
+      });
+    });
+
+    // Handle URL parameters for direct tab access
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get("tab");
+    if (tabParam) {
+      switchTab(tabParam);
+    }
+
+    // Delete Account Modal
+    if (deleteAccountBtn) {
+      deleteAccountBtn.addEventListener("click", () => {
+        document
+          .getElementById("deleteAccountModal")
+          .classList.remove("hidden");
+      });
+    }
+
+    const closeDeleteAccountModal = document.getElementById(
+      "closeDeleteAccountModal"
+    );
+    if (closeDeleteAccountModal) {
+      closeDeleteAccountModal.addEventListener("click", () => {
+        document.getElementById("deleteAccountModal").classList.add("hidden");
+      });
+    }
+
+    const cancelDeleteAccount = document.getElementById("cancelDeleteAccount");
+    if (cancelDeleteAccount) {
+      cancelDeleteAccount.addEventListener("click", () => {
+        document.getElementById("deleteAccountModal").classList.add("hidden");
+      });
+    }
+
+    // Cart functionality
+    async function addToCart(beatId) {
+      try {
+        const response = await fetch(`/api/cart/add/${beatId}/`, {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data = await response.json();
+
+        if (response.status === 401) {
+          // User is not authenticated
+          showNotification("Please login to add items to cart", "error");
+          // Optionally redirect to login page
+          window.location.href = "/login/";
+          return;
+        }
+
+        if (response.ok) {
+          showNotification(data.message, "success");
+          updateCartCount();
+        } else {
+          showNotification(data.message || "Error adding to cart", "error");
+        }
+      } catch (error) {
+        showNotification("Error adding to cart", "error");
+      }
+    }
+
+    async function removeFromCart(cartItemId) {
+      try {
+        const response = await fetch(`/api/cart/remove/${cartItemId}/`, {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data = await response.json();
+
+        if (response.status === 401) {
+          // User is not authenticated
+          showNotification("Please login to manage your cart", "error");
+          window.location.href = "/login/";
+          return;
+        }
+
+        if (response.ok) {
+          showNotification(data.message, "success");
+          updateCartCount();
+          // Optionally refresh cart items display
+          loadCartItems();
+        } else {
+          showNotification(data.message || "Error removing from cart", "error");
+        }
+      } catch (error) {
+        showNotification("Error removing from cart", "error");
+      }
+    }
+
+    async function loadCartItems() {
+      try {
+        const response = await fetch("/api/cart/", {
+          headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data = await response.json();
+
+        if (response.status === 401) {
+          // User is not authenticated
+          showNotification("Please login to view your cart", "error");
+          window.location.href = "/login/";
+          return;
+        }
+
+        if (response.ok) {
+          // Update cart display with data.items
+          updateCartDisplay(data.items);
+          updateCartTotal(data.total_price);
+        } else {
+          showNotification(data.message || "Error loading cart", "error");
+        }
+      } catch (error) {
+        showNotification("Error loading cart", "error");
+      }
+    }
+
+    async function updateCartCount() {
+      try {
+        const response = await fetch("/api/cart/count/", {
+          headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data = await response.json();
+
+        if (response.status === 401) {
+          // User is not authenticated, set count to 0
+          document.querySelector(".cart-count").textContent = "0";
+          return;
+        }
+
+        if (response.ok) {
+          document.querySelector(".cart-count").textContent = data.count;
+        }
+      } catch (error) {
+        console.error("Error updating cart count:", error);
+      }
+    }
+
+    // Add click handlers for cart buttons
+    document.querySelectorAll(".add-to-cart-btn").forEach((button) => {
+      button.addEventListener("click", function () {
+        const beatId = this.dataset.beatId;
+        addToCart(beatId);
+      });
+    });
+
+    document.querySelectorAll(".remove-from-cart-btn").forEach((button) => {
+      button.addEventListener("click", function () {
+        const cartItemId = this.dataset.cartItemId;
+        removeFromCart(cartItemId);
+      });
+    });
+
+    // Load cart items on page load if on cart page
+    if (document.querySelector(".cart-items-container")) {
+      loadCartItems();
+    }
+  });
+</script>
 {% endblock %}

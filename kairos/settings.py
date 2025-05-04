@@ -29,6 +29,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*', '192.168.131.126']
 
+# Password Reset Timeout (30 minutes)
+PASSWORD_RESET_TIMEOUT = 1800  # 30 minutes in seconds
 
 # Application definition
 

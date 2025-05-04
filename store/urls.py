@@ -21,16 +21,20 @@ urlpatterns = [
     path('toggle-favorite/<int:beat_id>/', views.toggle_favorite, name='toggle_favorite'),
     path('terms/', views.terms, name='terms'),
     path('privacy/', views.privacy, name='privacy'),
-    path('password-reset/', views.CustomPasswordResetView.as_view(), name='password_reset'),
-    path('password-reset/done/', views.CustomPasswordResetDoneView.as_view(), name='password_reset_done'),
-    path('password-reset/<uidb64>/<token>/', views.CustomPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
-    path('password-reset/complete/', views.CustomPasswordResetCompleteView.as_view(), name='password_reset_complete'),
     
     # Auth URLs with next parameter
-    re_path(r'^login(?:&next=(?P<next_url>.*))?/?$', views.custom_login, name='login'),
-    re_path(r'^register(?:&next=(?P<next_url>.*))?/?$', views.register, name='register'),
-    
+    re_path(r'^login(?:\?next=(?P<next_url>.*))?/?$', views.custom_login, name='login'),
+    re_path(r'^register(?:\?next=(?P<next_url>.*))?/?$', views.register, name='register'),
     path('logout/', views.custom_logout, name='logout'),
+    
+    # Password reset URLs (OTP-based)
+    path('password-reset/', views.CustomPasswordResetView.as_view(), name='password_reset'),
+    path('password-reset/done/', views.CustomPasswordResetDoneView.as_view(), name='password_reset_done'),
+    path('password-reset/verify-otp/', views.VerifyResetOTPView.as_view(), name='verify_reset_otp'),
+    path('password-reset/confirm/', views.CustomPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('password-reset/complete/', views.CustomPasswordResetCompleteView.as_view(), name='password_reset_complete'),
+    
+    # API endpoints
     path('api/settings/update/', views.update_settings, name='update_settings'),
     path('api/create-payment-intent/<int:order_id>/', views.create_payment_intent, name='create_payment_intent'),
     path('api/payment-success/<int:order_id>/', views.payment_success, name='payment_success'),

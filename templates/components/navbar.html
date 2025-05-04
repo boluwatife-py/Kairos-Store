@@ -138,6 +138,9 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
+    // Check if user is authenticated
+    const isAuthenticated = {% if user.is_authenticated %}true{% else %}false{% endif %};
+    
     const searchButton = document.getElementById("searchButton");
     const searchInput = document.getElementById("searchInput");
     const userMenuButton = document.getElementById("userMenuButton");
@@ -220,6 +223,17 @@
     if (mobileCartButton) {
       mobileCartButton.addEventListener('click', async (e) => {
         e.preventDefault();
+        if (!isAuthenticated) {
+          // Show login modal with cart as next parameter
+          const url = new URL(window.location);
+          url.searchParams.delete('show_modal');
+          url.pathname = '/login/';
+          url.searchParams.set('next', '/cart/');
+          window.history.pushState({}, '', url);
+          showLoginModal();
+          return;
+        }
+        
         try {
           const response = await fetch('/api/cart/', {
             headers: {
@@ -228,23 +242,10 @@
           });
           const data = await response.json();
           
-          if (response.status === 401 && data.requires_auth) {
-            // Update URL and show login modal with /cart/ as next parameter
-            const url = new URL(window.location);
-            url.searchParams.delete('show_modal');
-            url.pathname = '/login/';
-            url.searchParams.set('next', '/cart/');
-            window.history.pushState({}, '', url);
-            showLoginModal();
-            return;
-          }
-          
           // If authorized, open cart
           openCart();
         } catch (error) {
-          if (!error.message?.includes('Unauthorized')) {
             showToast('An error occurred while opening the cart', 'error');
-          }
         }
       });
     }

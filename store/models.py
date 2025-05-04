@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from cloudinary.models import CloudinaryField
+from datetime import timedelta
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -255,3 +256,14 @@ class Favorite(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - {self.beat.title}"
+
+class PasswordResetOTP(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False)
+    
+    def is_valid(self):
+        # OTP expires after 10 minutes
+        expiry_time = self.created_at + timedelta(minutes=10)
+        return not self.is_used and timezone.now() <= expiry_time
