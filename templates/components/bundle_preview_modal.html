@@ -96,29 +96,6 @@
 </template>
 
 <script>
-// Notification function
-function showNotification(message, type = 'success') {
-  const notification = document.createElement('div');
-  notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white z-50 transform transition-all duration-300 translate-y-[-100%] ${
-    type === 'success' ? 'bg-green-500' : 'bg-red-500'
-  }`;
-  notification.textContent = message;
-  document.body.appendChild(notification);
-
-  // Animate in
-  setTimeout(() => {
-    notification.style.transform = 'translateY(0)';
-  }, 100);
-
-  // Remove after 3 seconds
-  setTimeout(() => {
-    notification.style.transform = 'translateY(-100%)';
-    setTimeout(() => {
-      notification.remove();
-    }, 300);
-  }, 3000);
-}
-
 document.addEventListener('DOMContentLoaded', function() {
   const modal = document.getElementById('bundlePreviewModal');
   const closeBtn = document.getElementById('closeBundlePreview');
