@@ -279,12 +279,11 @@ document.addEventListener('DOMContentLoaded', function() {
           // Show modal
           modal.classList.remove('hidden');
         } else {
-          showNotification(data.message || 'Error loading bundle', 'error');
+          showToast(data.message || 'Error loading bundle', 'error');
         }
       })
       .catch(error => {
-        console.error('Error loading bundle:', error);
-        showNotification('Error loading bundle', 'error');
+        showToast('Error loading bundle', 'error');
       });
   };
 
@@ -318,7 +317,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
           
           if (data.status === 'success') {
-            showNotification('Success', 'Bundle added to cart', 'success');
+            showToast('Bundle added to cart', 'success');
             updateCartCount(data.cart_count);
           } else {
             throw new Error(data.message || 'Failed to add bundle to cart');
@@ -326,8 +325,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
           if (error.message !== 'Unauthorized') {
-            console.error('Error:', error);
-            showNotification('Error', error.message || 'Failed to add bundle to cart', 'error');
+            showToast(error.message || 'Failed to add bundle to cart', 'error');
           }
         });
       }

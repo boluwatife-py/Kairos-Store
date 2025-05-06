@@ -752,7 +752,7 @@ Dashboard{% endblock %} {% block content %}
           const data = await response.json();
 
           if (response.ok) {
-            showNotification("Settings saved successfully", "success");
+            showToast("Settings saved successfully", "success");
             // Reset form default values
             Array.from(profileForm.elements).forEach((element) => {
               if (element.type !== "submit") {
@@ -765,10 +765,10 @@ Dashboard{% endblock %} {% block content %}
             });
             checkFormChanges();
           } else {
-            showNotification(data.error || "Error saving settings", "error");
+            showToast(data.error || "Error saving settings", "error");
           }
         } catch (error) {
-          showNotification("Error saving settings", "error");
+          showToast("Error saving settings", "error");
         } finally {
           setButtonLoading(button, false);
         }
@@ -828,7 +828,7 @@ Dashboard{% endblock %} {% block content %}
 
           const data = await response.json();
           if (response.ok) {
-            showNotification("Password changed successfully", "success");
+            showToast("Password changed successfully", "success");
             passwordForm.reset();
             checkFormChanges();
           } else {
@@ -876,10 +876,10 @@ Dashboard{% endblock %} {% block content %}
             window.location.href = "/";
           } else {
             const data = await response.json();
-            showNotification(data.error || "Error deleting account", "error");
+            showToast(data.error || "Error deleting account", "error");
           }
         } catch (error) {
-          showNotification("Error deleting account", "error");
+          showToast("Error deleting account", "error");
         } finally {
           setButtonLoading(button, false);
         }

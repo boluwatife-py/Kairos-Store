@@ -242,10 +242,15 @@
           });
           const data = await response.json();
           
-          // If authorized, open cart
-          openCart();
+          if (data.status === "success") {
+            showToast(data.message, 'success');
+            // Update cart count
+            updateCartCount(data.cart_count);
+          } else {
+            showToast(data.message, 'error');
+          }
         } catch (error) {
-            showToast('An error occurred while opening the cart', 'error');
+          showToast('An error occurred while opening the cart', 'error');
         }
       });
     }

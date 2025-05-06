@@ -283,7 +283,7 @@ function handleAddToCart(beatId, beatTitle) {
     }
     
     if (data.status === 'success') {
-      showNotification('Success', `${beatTitle} added to cart`, 'success');
+      showToast(`${beatTitle} added to cart`, 'success');
       updateCartCount(data.cart_count);
     } else {
       throw new Error(data.message || 'Failed to add beat to cart');
@@ -291,8 +291,7 @@ function handleAddToCart(beatId, beatTitle) {
   })
   .catch(error => {
     if (error.message !== 'Unauthorized') {
-      console.error('Error:', error);
-      showNotification('Error', error.message || 'Failed to add beat to cart', 'error');
+      showToast(error.message || 'Failed to add beat to cart', 'error');
     }
   });
 }
@@ -309,15 +308,14 @@ function handleAddBundleToCart(bundleId, bundleTitle) {
   .then(response => response.json())
   .then(data => {
     if (data.status === 'success') {
-      showNotification('Success', `${bundleTitle} added to cart`, 'success');
+      showToast(`${bundleTitle} added to cart`, 'success');
       updateCartCount();
     } else {
-      showNotification('Error', data.message || 'Failed to add bundle to cart', 'error');
+      showToast(data.message || 'Failed to add bundle to cart', 'error');
     }
   })
-  .catch(error => {
-    console.error('Error:', error);
-    showNotification('Error', 'Failed to add bundle to cart', 'error');
+  .catch(() => {
+    showToast('Failed to add bundle to cart', 'error');
   });
 }
 

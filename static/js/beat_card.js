@@ -36,7 +36,7 @@ async function handleAddToCart(beatId, beatTitle) {
     }
     
     if (data.status === 'success') {
-      showToast(data.message);
+      showToast(data.message, 'success');
       // Fetch actual cart count from server
       const cartResponse = await fetch('/api/cart/', {
         headers: {
@@ -60,7 +60,6 @@ async function handleAddToCart(beatId, beatTitle) {
     }
   } catch (error) {
     if (!error.message?.includes('Unauthorized')) {
-      console.error('Error adding to cart:', error);
       showToast(error.message || 'An error occurred. Please try again.', 'error');
     }
   }
@@ -86,7 +85,7 @@ async function handleDownload(beatId, beatTitle) {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      showToast('Download started!');
+      showToast('Download started!', 'success');
     } else {
       const data = await response.json();
       showToast(data.message || 'Error downloading beat', 'error');
@@ -139,7 +138,7 @@ async function handleFavoriteClick(button) {
         icon.classList.remove('ri-heart-fill', 'text-primary');
         icon.classList.add('ri-heart-line');
       }
-      showToast(data.message);
+      showToast(data.message, 'success');
     }
   } catch (error) {
     console.error('Error:', error);
@@ -153,4 +152,26 @@ document.addEventListener('click', function(e) {
   if (favoriteButton) {
     handleFavoriteClick(favoriteButton);
   }
+});
+
+// Handle equalizer animation
+document.addEventListener('DOMContentLoaded', function() {
+  window.addEventListener('audioPlayerStateChange', function(e) {
+    const { beatId, isPlaying } = e.detail;
+    const equalizer = document.querySelector(`.equalizer[data-beat-id="${beatId}"]`);
+    if (equalizer) {
+      if (isPlaying) {
+        equalizer.classList.add('playing');
+      } else {
+        equalizer.classList.remove('playing');
+      }
+    }
+    
+    // Remove playing class from other equalizers
+    document.querySelectorAll('.equalizer').forEach(eq => {
+      if (eq.dataset.beatId !== beatId) {
+        eq.classList.remove('playing');
+      }
+    });
+  });
 }); 

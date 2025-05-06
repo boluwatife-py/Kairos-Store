@@ -283,7 +283,6 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update cart count
             updateCartCount(cartState.items.length);
         } catch (error) {
-            console.error('Error loading cart:', error);
             showToast('Failed to load cart. Please try again.', 'error');
             // Initialize empty cart state on error
             cartState.items = [];
@@ -321,7 +320,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateCartUI(cartData) {
         // Validate cart data
         if (!cartData || !cartData.items) {
-            console.error('Invalid cart data received');
             showEmptyCart();
             return;
         }
@@ -462,8 +460,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            if (response.ok) {
-                showToast(data.message);
+            if (data.status === "success") {
+                showToast(data.message, 'success');
                 loadCart(); // Reload cart after removal
             } else {
                 showToast(data.message || 'Error removing item', 'error');
@@ -499,8 +497,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 const data = await response.json();
                 
-                if (response.ok) {
-                    showToast(data.message);
+                if (data.status === "success") {
+                    showToast(data.message, 'success');
                     closeCart();
                     // Clear cart state
                     cartState = { items: [], total_price: 0 };
@@ -514,7 +512,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     showToast(data.message || 'Error during checkout', 'error');
                 }
             } catch (error) {
-                console.error('Checkout error:', error);
                 showToast('An error occurred during checkout', 'error');
             } finally {
                 hideLoading();

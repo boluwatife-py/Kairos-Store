@@ -42,9 +42,8 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css"
     />
-    <!-- Toastify -->
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <!-- Remove Toastify -->
+    {% include 'components/toast.html' %}
     {% block extra_css %}{% endblock %}
     <style>
       :where([class^="ri-"])::before {
@@ -326,6 +325,7 @@
     {% block extra_js %}{% endblock %}
     <script src="{% static 'js/cart.js' %}"></script>
     <script src="{% static 'js/beat_card.js' %}"></script>
+    <script src="{% static 'js/bundle_card.js' %}"></script>
     <script src="{% static 'js/audio_player.js' %}"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
@@ -430,5 +430,17 @@
         }
       });
     </script>
+    {% if messages %}
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        {% for message in messages %}
+          showToast(
+            "{{ message|escapejs }}", 
+            "{% if message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% elif message.tags == 'success' %}success{% elif message.tags == 'info' %}info{% else %}default{% endif %}"
+          );
+        {% endfor %}
+      });
+    </script>
+    {% endif %}
   </body>
 </html> 

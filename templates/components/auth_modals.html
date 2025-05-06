@@ -1,4 +1,6 @@
 {% load static %}
+{% include 'components/toast.html' %}
+
 <!-- Login Modal -->
 <div id="loginModal" class="fixed inset-0 z-50 hidden">
   <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
@@ -150,69 +152,7 @@
   </div>
 </div>
 
-
-<!-- Toast Container -->
-<div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col items-end"></div>
-
 <script>
-  // Toast function
-  function showToast(message, type = 'success') {
-    const toast = document.createElement('div');
-    toast.className = `mb-4 p-4 rounded-lg shadow-lg min-w-[300px] max-w-md ${
-      type === 'success' ? 'bg-green-500' : 'bg-red-500'
-    } text-white flex items-center justify-between`;
-    
-    // Create message container
-    const messageContainer = document.createElement('div');
-    messageContainer.className = 'flex-1';
-    
-    // Handle both string and object messages
-    if (typeof message === 'object') {
-      if (message.errors) {
-        // Get the first error message
-        const firstError = Object.values(message.errors)[0][0];
-        messageContainer.textContent = firstError;
-      } else {
-        messageContainer.textContent = message.message || 'An error occurred';
-      }
-    } else {
-      messageContainer.textContent = message;
-    }
-    
-    // Create close button
-    const closeButton = document.createElement('button');
-    closeButton.className = 'ml-4 text-white hover:text-gray-200';
-    closeButton.innerHTML = '<i class="ri-close-line"></i>';
-    closeButton.onclick = () => toast.remove();
-    
-    // Add elements to toast
-    toast.appendChild(messageContainer);
-    toast.appendChild(closeButton);
-    
-    const container = document.getElementById('toastContainer');
-    container.appendChild(toast);
-    
-    // Add animation with faster transition
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateY(10px)';
-    toast.style.transition = 'all 0.15s ease-out';
-    
-    // Trigger animation
-    requestAnimationFrame(() => {
-      toast.style.opacity = '1';
-      toast.style.transform = 'translateY(0)';
-    });
-    
-    // Remove toast after 4 seconds
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      toast.style.transform = 'translateY(10px)';
-      setTimeout(() => {
-        toast.remove();
-      }, 150);
-    }, 4000);
-  }
-
   // Loading state functions
   function setLoading(form, isLoading) {
     const submitButton = form.querySelector('button[type="submit"]');
@@ -433,7 +373,7 @@
       const data = await response.json();
       
       if (response.ok) {
-        showToast(data.message || 'Login successful');
+        showToast(data.message || 'Login successful', 'success');
         // If there's a next URL, redirect to it
         if (data.redirect) {
           // Ensure the redirect URL starts with a forward slash
@@ -459,7 +399,6 @@
         }
       }
     } catch (error) {
-      console.error('Login error:', error);
       showToast('An error occurred during login. Please try again.', 'error');
     } finally {
       setLoading(form, false);
@@ -475,13 +414,13 @@
     const password1 = formData.get('password1');
     const password2 = formData.get('password2');
     
-    if (password1 !== password2) {
-      showToast({ message: 'Passwords do not match' }, 'error');
+    if (password1.length < 8) {
+      showToast('Password must be at least 8 characters long', 'error');
       return;
     }
     
-    if (password1.length < 8) {
-      showToast({ message: 'Password must be at least 8 characters long' }, 'error');
+    if (password1 !== password2) {
+      showToast('Passwords do not match', 'error');
       return;
     }
     
@@ -499,7 +438,7 @@
       const data = await response.json();
       
       if (response.ok) {
-        showToast(data.message);
+        showToast(data.message, 'success');
         // If there's a next URL, redirect to it
         if (data.redirect) {
           window.location.href = data.redirect;
@@ -510,7 +449,7 @@
         showToast(data, 'error');
       }
     } catch (error) {
-      showToast({ message: 'An error occurred. Please try again.' }, 'error');
+      showToast('An error occurred. Please try again.', 'error');
     } finally {
       setLoading(form, false);
     }
@@ -569,4 +508,62 @@
       window.closeRegistrationModal();
     }
   });
-</script> 
+</script>
+
+<style>
+  /* Glass effect */
+  .glass {
+    background: rgba(17, 24, 39, 0.95);
+    backdrop-filter: blur(8px);
+  }
+
+  /* Button styles */
+  .rounded-button {
+    border-radius: 0.375rem;
+  }
+
+  /* Loading spinner animation */
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+
+  /* Modal animation */
+  .modal-enter {
+    animation: modalSlideIn 0.2s ease-out;
+  }
+
+  .modal-exit {
+    animation: modalSlideOut 0.2s ease-in;
+  }
+
+  @keyframes modalSlideIn {
+    from {
+      transform: translate(-50%, -45%);
+      opacity: 0;
+    }
+    to {
+      transform: translate(-50%, -50%);
+      opacity: 1;
+    }
+  }
+
+  @keyframes modalSlideOut {
+    from {
+      transform: translate(-50%, -50%);
+      opacity: 1;
+    }
+    to {
+      transform: translate(-50%, -45%);
+      opacity: 0;
+    }
+  }
+</style> 
